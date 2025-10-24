@@ -10,6 +10,8 @@ const createWindow = () => {
       // Wichtig für Sicherheit: ermöglicht die Nutzung von Node.js-APIs im Renderer-Prozess
       // über ein Preload-Skript
       preload: path.join(__dirname, 'preload.js'),
+      // Damit ich HTML-Dateien in HTML einbauen kann als Webview
+      webviewTag: true,
     },
   });
 
@@ -47,20 +49,24 @@ app.on('window-all-closed', () => {
 // Menüleiste
 const menuBar = [
   //Allgemeine Menüs
-    ...(process.platform === 'darwin' ? [{
-    label: app.name, // Verwendet den Namen deiner App (standardmäßig "Electron")
-    submenu: [
-      { role: 'about' }, // Über die App
-      { type: 'separator' },
-      { role: 'services' },
-      { type: 'separator' },
-      { role: 'hide' }, // Ausblenden der App
-      { role: 'hideOthers' },
-      { role: 'unhide' },
-      { type: 'separator' },
-      { role: 'quit' } // Beenden der App
-    ]
-  }] : []),
+  ...(process.platform === 'darwin'
+    ? [
+        {
+          label: app.name, // Verwendet den Namen deiner App (standardmäßig "Electron")
+          submenu: [
+            { role: 'about' }, // Über die App
+            { type: 'separator' },
+            { role: 'services' },
+            { type: 'separator' },
+            { role: 'hide' }, // Ausblenden der App
+            { role: 'hideOthers' },
+            { role: 'unhide' },
+            { type: 'separator' },
+            { role: 'quit' }, // Beenden der App
+          ],
+        },
+      ]
+    : []),
   // Individuelle Menüs
   {
     label: 'Import',
@@ -92,7 +98,6 @@ const menuBar = [
   { role: 'viewMenu' }, // Enthält Toggle DevTools, Reload, etc.
   { role: 'windowMenu' },
 ];
-
 
 function createMenu() {
   const menu = Menu.buildFromTemplate(menuBar);

@@ -1,0 +1,9 @@
+body, html {
+    margin: 0;
+    padding: 10px;
+    font-family: sans-serif;
+}
+
+.h2{
+    color: green
+}

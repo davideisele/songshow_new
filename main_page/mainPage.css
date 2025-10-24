@@ -17,6 +17,8 @@ body, html {
 }
 
 #left-panel {
+    display: flex;
+    flex-direction: column;
     background-color: #f0f0f0;
     width: 15%; /* Feste Breite für die linke Spalte */
     min-width: 10%; /* Minimale Breite für die linke Spalte */
