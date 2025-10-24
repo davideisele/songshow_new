@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" 
+      content="default-src 'self'; 
+               script-src 'self'; 
+               style-src 'self' 'unsafe-inline'; 
+               img-src 'self' data:; 
+               connect-src 'self' https://api.ihre-domain.de;"
+>
+    <title>Main Page - Songshow</title>
+    <link rel="stylesheet" href="mainPage.css">
+    <link rel="stylesheet" href="../utilities/css/all.min.css">
+    <script src="mainPage.js" defer></script>
+</head>
+<body>
+
+    <div id="split-view">
+        <div id="left-panel" class="panel">
+            <h2>Linke Spalte</h2>
+            <p>Dieser Bereich ist in der Größe veränderbar.</p>
+        </div>
+
+        <div id="splitter"></div>
+         <div id="right-panel" class="panel">
+            <h2>Rechte Spalte</h2>
+            <p>Dieser Bereich passt sich der Größe an.</p>
+        </div>
+    </div>
+    <div id="button-bar">
+        <div id="song-buttons">
+            <button id="song-add" class="button"><i class="fa-solid fa-plus"></i></button>
+            <button id="song-remove" class="button"><i class="fa-solid fa-minus"></i></button>
+            <button id="song-up" class="button"><i class="fa-solid fa-arrow-up"></i></button>
+            <button id="song-down" class="button"><i class="fa-solid fa-arrow-down"></i></button>
+        </div>
+        <div id="slide-control-buttons">
+            <button id="black-screen" class="button"><i class="fa-solid fa-square"></i></button>
+            <button id="show-background" class="button"><i class="fa-solid fa-images"></i></button>
+            <button id="show-desktop" class="button"><i class="fa-solid fa-desktop"></i></button>
+        </div>
+
+    </div>
+
+</body>
+</html>

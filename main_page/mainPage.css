@@ -1,0 +1,86 @@
+body, html {
+    margin: 0;
+    height: 100%;
+    overflow: hidden; /* Verhindert Scrollbalken durch Überlauf */
+    font-family: sans-serif;
+}
+
+/* Split-View zwischen dem Ablaufplan und den Slides */
+#split-view {
+    display: flex;
+    height: 95%;
+}
+
+.panel {
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#left-panel {
+    background-color: #f0f0f0;
+    width: 15%; /* Feste Breite für die linke Spalte */
+    min-width: 10%; /* Minimale Breite für die linke Spalte */
+    max-width: 40%; /* Maximale Breite für die linke Spalte */
+    resize: horizontal; /* Ermöglicht das Ändern der Breite */
+    overflow: auto; /* Scrollbalken, wenn der Inhalt zu groß ist */
+}
+
+#right-panel {
+    background-color: #ffffff;
+    flex-grow: 1; /* Rechte Spalte nimmt den verbleibenden Platz ein */
+    overflow: auto; /* Scrollbalken, wenn der Inhalt zu groß ist */
+}
+
+#splitter {
+    background-color: #000;
+    width: 5px; /* Breite des Splitters */
+    cursor: ew-resize; /* Cursor ändert sich beim Überfahren */
+}
+
+.dragging, .dragging * { 
+    cursor: col-resize !important;
+    user-select: none; /* Verhindert das versehentliche Markieren von Text beim Ziehen */
+}
+
+/* Stil für die Button-Leiste */
+.button{
+    border: none;
+    outline: none;
+
+    background-color: #f0f0f0; 
+    color: #333;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s, box-shadow 0.15s;
+}
+
+button:hover {
+    background-color: #e0eeef;
+}
+
+button:active {
+    background-color: #d0e0e1;
+    box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
+}
+
+#button-bar {
+    display: flex;
+    padding: 10px;
+    padding-left: 20px;
+    border-top: 1px solid #ccc;
+}
+
+#song-buttons {
+    width: 15%; 
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+#slide-control-buttons {
+    flex-grow: 1; 
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
