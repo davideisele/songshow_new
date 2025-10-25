@@ -119,6 +119,12 @@ button:active {
     box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
 }
 
+.song-item.selected {
+    background-color: #007bff; /* Zum Beispiel Blau */
+    color: white;
+    border: 2px solid #0056b3;
+}
+
 .song-item.dragging {
   opacity: 0.5;
   border: 2px dashed #000;

@@ -33,11 +33,16 @@ document.addEventListener('mouseup', (e) => {
 
 // Ende der Split-View-Funktionalität
 
+
+
 // Ablaufplan-Funktionen
+
+// Button zum Hinzufügen von Songs und Container für die Song-Liste
 const addSongButton = document.getElementById('song-add');
 const songListContainer = document.getElementById('song-schedule');
 
 var playlist = [];
+var selectedSong = null;
 
 addSongButton.addEventListener('click', () => {
   console.log('Add song button clicked');
@@ -71,8 +76,6 @@ addSongButton.addEventListener('click', () => {
     }
     placeholder = null;
 
-    // Optional: Aktualisiere die Playlist-Array-Reihenfolge hier basierend auf der DOM-Reihenfolge
-    // Dazu müsstest du alle 'song-item' Elemente im Container neu einlesen und die Playlist aktualisieren.
     updatePlaylistArray();
   });
   // Drag-and-Drop-Funktionalität hinzufügen (End)
@@ -83,19 +86,35 @@ addSongButton.addEventListener('click', () => {
 
 songListContainer.addEventListener('click', (event) => {
   if (event.target && event.target.classList.contains('song-item')) {
-    console.log('Clicked on', event.target.innerHTML);
+    // Ruft die neue Funktion auf, um die Auswahl zu verwalten
+    selectSong(event.target);
+    console.log('Song item clicked:', event.target.innerHTML);
   }
 });
 
-// Aktualisiert das Playlist-Array wenn die Reihenfolge geändert wurde
-function updatePlaylistArray() {
-  playlist = [...songListContainer.querySelectorAll('.song-item')];
+// Funktion zum Auswählen eines Songs
+function selectSong(songItem) {
+    // 1. Deselektiere das zuvor ausgewählte Element
+    if (selectedSong && selectedSong !== songItem) {
+        selectedSong.classList.remove('selected');
+    }
 
-  console.log(
-    'Playlist updated:',
-    playlist.map((item) => item.innerHTML),
-  );
+    // 2. Wähle das neue Element aus (toggle für den Fall, dass man das gleiche Element erneut klickt)
+    songItem.classList.toggle('selected');
+
+    // 3. Aktualisiere die Verfolgungsvariable
+    if (songItem.classList.contains('selected')) {
+        selectedSong = songItem;
+        console.log('Selected:', songItem.innerHTML);
+    } else {
+        selectedSong = null; // Deselektiert, falls es das gleiche Element war
+    }
 }
+
+// Button zum Hinzufügen von Songs und Container für die Song-Liste (ENDE)
+
+
+// Drag-and-Drop-Logik
 
 let draggedItem = null;
 
@@ -160,3 +179,18 @@ function getDragAfterElement(container, y) {
     { offset: Number.NEGATIVE_INFINITY },
   ).element;
 }
+
+// Aktualisiert das Playlist-Array wenn die Reihenfolge geändert wurde
+function updatePlaylistArray() {
+  playlist = [...songListContainer.querySelectorAll('.song-item')];
+
+  console.log(
+    'Playlist updated:',
+    playlist.map((item) => item.innerHTML),
+  );
+}
+// Ende der Drag-and-Drop-Logik
+
+
+
+// Ende der Ablaufplan-Funktionen
