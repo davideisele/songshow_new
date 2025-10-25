@@ -103,7 +103,7 @@ button:active {
 .song-item {
   display: block;
   margin:10px;
-
+  width: 90%;
   border: none;
   outline: none;
   background-color: transparent;
@@ -117,4 +117,24 @@ button:active {
 .song-item:active {
     background-color: #d0e0e1;
     box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
+}
+
+.song-item.dragging {
+  opacity: 0.5;
+  border: 2px dashed #000;
+}
+
+.drag-placeholder {
+     /* Wichtig: Gib ihm die gleiche Höhe wie einem 'song-item' */
+    background-color: #e0f7fa; /* Hellblauer Hintergrund als Platzhalter */
+    border: 1px dashed lightblue; /* Gestrichelte blaue Linie */
+    margin: 5px 0; /* Abstand, um ihn von den Buttons abzuheben */
+    /* Füge für einen weicheren Übergang eine Transition hinzu */
+    transition: all 0.1s ease-out; 
+}
+
+.song-item.hide {
+  /* Hilft bei einigen Browsern, das Originalelement während des Ziehens zu verstecken, 
+     damit nur der Drag-Ghost sichtbar ist. */
+  display: none; 
 }
