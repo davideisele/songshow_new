@@ -33,11 +33,11 @@ document.addEventListener('mouseup', (e) => {
 
 // Ende der Split-View-Funktionalität
 
-
-
 // Ablaufplan-Funktionen
 
-// Button zum Hinzufügen von Songs und Container für die Song-Liste
+// Button zum Hinzufügen, Entfernen und Verschieben von Songs und Container für die Song-Liste
+
+// Song Hinzufügen
 const addSongButton = document.getElementById('song-add');
 const songListContainer = document.getElementById('song-schedule');
 
@@ -94,25 +94,77 @@ songListContainer.addEventListener('click', (event) => {
 
 // Funktion zum Auswählen eines Songs
 function selectSong(songItem) {
-    // 1. Deselektiere das zuvor ausgewählte Element
-    if (selectedSong && selectedSong !== songItem) {
-        selectedSong.classList.remove('selected');
-    }
+  // 1. Deselektiere das zuvor ausgewählte Element
+  if (selectedSong && selectedSong !== songItem) {
+    selectedSong.classList.remove('selected');
+  }
 
-    // 2. Wähle das neue Element aus (toggle für den Fall, dass man das gleiche Element erneut klickt)
-    songItem.classList.toggle('selected');
+  // 2. Wähle das neue Element aus (toggle für den Fall, dass man das gleiche Element erneut klickt)
+  songItem.classList.toggle('selected');
 
-    // 3. Aktualisiere die Verfolgungsvariable
-    if (songItem.classList.contains('selected')) {
-        selectedSong = songItem;
-        console.log('Selected:', songItem.innerHTML);
-    } else {
-        selectedSong = null; // Deselektiert, falls es das gleiche Element war
-    }
+  // 3. Aktualisiere die Verfolgungsvariable
+  if (songItem.classList.contains('selected')) {
+    selectedSong = songItem;
+    console.log('Selected:', songItem.innerHTML);
+  } else {
+    selectedSong = null; // Deselektiert, falls es das gleiche Element war
+  }
 }
 
-// Button zum Hinzufügen von Songs und Container für die Song-Liste (ENDE)
+// Entfernen eines ausgewählten Songs
+const removeSongButton = document.getElementById('song-remove');
 
+removeSongButton.addEventListener('click', () => {
+  console.log('Remove song button clicked');
+  if (selectedSong) {
+    songListContainer.removeChild(selectedSong);
+    console.log('Removed:', selectedSong.innerHTML);
+    const index = playlist.indexOf(selectedSong);
+    if (index > -1) {
+      playlist.splice(index, 1);
+    }
+  }
+});
+
+// Verschieben eines ausgewählten Songs
+const moveUpSongButton = document.getElementById('song-up');
+const moveDownSongButton = document.getElementById('song-down');
+
+moveUpSongButton.addEventListener('click', () => {
+  console.log('Move up song button clicked');
+  const currentIndex = playlist.indexOf(selectedSong);
+  const targetSong = playlist[currentIndex - 1];
+
+  if (currentIndex > 0) {
+    songListContainer.insertBefore(selectedSong, targetSong);
+    updatePlaylistArray();
+    console.log(`Song nach oben verschoben: ${selectedSong.innerHTML}`);
+  } else {
+    console.log('Der Song ist bereits an erster Position.');
+  }
+});
+
+moveDownSongButton.addEventListener('click', () => {
+  console.log('Move down song button clicked');
+  const currentIndex = playlist.indexOf(selectedSong);
+  if (currentIndex < playlist.length - 1) {
+    const targetIndex = currentIndex + 1;
+    const targetSong = playlist[targetIndex];
+
+    songListContainer.insertBefore(selectedSong, targetSong.nextSibling);
+
+    [playlist[currentIndex], playlist[targetIndex]] = [
+      playlist[targetIndex],
+      playlist[currentIndex],
+    ];
+
+    console.log(`Song nach unten verschoben: ${selectedSong.innerHTML}`);
+  } else {
+    console.log('Der Song ist bereits an letzter Position.');
+  }
+});
+
+// Button zum Hinzufügen von Songs und Container für die Song-Liste (ENDE)
 
 // Drag-and-Drop-Logik
 
@@ -190,7 +242,5 @@ function updatePlaylistArray() {
   );
 }
 // Ende der Drag-and-Drop-Logik
-
-
 
 // Ende der Ablaufplan-Funktionen
