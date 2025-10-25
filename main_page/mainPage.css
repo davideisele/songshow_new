@@ -20,11 +20,14 @@ body, html {
     display: flex;
     flex-direction: column;
     background-color: #f0f0f0;
-    width: 15%; /* Feste Breite für die linke Spalte */
     min-width: 10%; /* Minimale Breite für die linke Spalte */
     max-width: 40%; /* Maximale Breite für die linke Spalte */
-    resize: horizontal; /* Ermöglicht das Ändern der Breite */
+    resize: horizontal;
     overflow: auto; /* Scrollbalken, wenn der Inhalt zu groß ist */
+}
+
+#left-panel webview {
+    height: 100%;
 }
 
 #right-panel {
@@ -85,4 +88,33 @@ button:active {
     display: flex;
     gap: 10px;
     justify-content: center;
+}
+
+/* Stil für den Ablaufplan */
+#song-schedule {
+    flex-grow: 1;
+    column-fill: 1; 
+    overflow: auto; 
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #fff;
+}
+
+.song-item {
+  display: block;
+  margin:10px;
+
+  border: none;
+  outline: none;
+  background-color: transparent;
+}
+
+.song-item:hover {
+    background-color: rgba(236, 234, 234, 0.498);
+    cursor: grab;
+}
+
+.song-item:active {
+    background-color: #d0e0e1;
+    box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
 }
