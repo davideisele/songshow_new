@@ -83,7 +83,7 @@ async function handleDeleteClick() {
     const songTitle = detailsForm.elements['title'].value;
 
     // Verwenden Sie eine einfache, nicht-native Bestätigung
-    if (!confirm(`Sind Sie sicher, dass Sie den Song "${songTitle}" (ID: ${songId}) löschen möchten?`)) {
+    if (!confirm(`Are you sure you want to delete "${songTitle}" (ID: ${songId})?`)) {
         return;
     }
 
@@ -91,17 +91,17 @@ async function handleDeleteClick() {
         const result = await window.electronAPI.deleteSong(songId);
 
         if (result.success) {
-            console.log(`Song ${songId} erfolgreich gelöscht.`);
-            alert(`"${songTitle}" wurde erfolgreich gelöscht.`);
-            // Dropdown neu laden und Detailansicht leeren
+            console.log(`Song ${songId} deleted.`);
+            alert(`"${songTitle}" has been successfully deleted.`);
+            // Reload dropdown and clear details view
             loadSongs();
             songDetailsContainer.style.display = 'none';
         } else {
-            alert('Fehler beim Löschen: ' + result.message);
+            alert('Error deleting: ' + result.message);
         }
     } catch (error) {
-        console.error('Löschfehler:', error);
-        alert('Ein unerwarteter Fehler ist beim Löschen aufgetreten.');
+        console.error('Delete error:', error);
+        alert('An unexpected error occurred while deleting.');
     }
 }
 
@@ -124,15 +124,15 @@ async function handleSaveClick(event) {
         const result = await window.electronAPI.updateSong(updatedSongData); 
         
         if (result.success) {
-            alert(`Song "${updatedSongData.title}" erfolgreich aktualisiert.`);
+            alert(`Song "${updatedSongData.title}" has been successfully updated.`);
             // Dropdown-Liste aktualisieren, falls der Titel geändert wurde
             loadSongs();
         } else {
-            alert('Fehler beim Aktualisieren: ' + result.message);
+            alert('Error while updating: ' + result.message);
         }
     } catch (error) {
-        console.error('Bearbeitungsfehler:', error);
-        alert('Ein unerwarteter Fehler ist beim Bearbeiten aufgetreten.');
+        console.error('Editing error:', error);
+        alert('An unexpected error occurred while editing.');
     }
 }
 

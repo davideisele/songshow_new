@@ -48,51 +48,121 @@ const songListContainer = document.getElementById('song-schedule');
 var playlist = [];
 var selectedSong = null;
 
+// addSongButton.addEventListener('click', () => {
+//   console.log('Add song button clicked');
+//   const newSongItem = document.createElement('button');
+//   newSongItem.classList.add('song-item');
+//   newSongItem.innerHTML = 'song ' + (playlist.length + 1);
+
+//   // Drag-and-Drop-Funktionalität hinzufügen (Start)
+//   newSongItem.setAttribute('draggable', 'true');
+//   newSongItem.addEventListener('dragstart', () => {
+//     // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen (z. B. mit geringerer Opazität)
+//     newSongItem.classList.add('dragging');
+//     draggedItem = newSongItem;
+
+//     // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
+//     placeholder = document.createElement('div');
+//     placeholder.classList.add('drag-placeholder');
+
+//     // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
+//     setTimeout(() => newSongItem.classList.add('hide'), 0);
+//   });
+
+//   newSongItem.addEventListener('dragend', () => {
+//     // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
+//     newSongItem.classList.remove('dragging');
+//     newSongItem.classList.remove('hide');
+//     draggedItem = null;
+
+//     if (placeholder && placeholder.parentNode) {
+//       placeholder.parentNode.removeChild(placeholder);
+//     }
+//     placeholder = null;
+
+//     updatePlaylistArray();
+//   });
+//   // Drag-and-Drop-Funktionalität hinzufügen (End)
+
+//   songListContainer.appendChild(newSongItem);
+//   playlist.push(newSongItem);
+// });
+
+// songListContainer.addEventListener('click', (event) => {
+//   if (event.target && event.target.classList.contains('song-item')) {
+//     // Ruft die neue Funktion auf, um die Auswahl zu verwalten
+//     selectSong(event.target);
+//     console.log('Song item clicked:', event.target.innerHTML);
+//   }
+// });
+
+function createAndAppendSongButton(songData) {
+    const newSongItem = document.createElement('button');
+    newSongItem.textContent = songData.title;
+    newSongItem.classList.add('song-item');
+    newSongItem.setAttribute('data-song-id', songData.id); // WICHTIG: Speichere die ID
+
+    // Drag-and-Drop-Funktionalität hinzufügen (Start)
+    newSongItem.setAttribute('draggable', 'true');
+    newSongItem.addEventListener('dragstart', () => {
+        // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen
+        newSongItem.classList.add('dragging');
+        draggedItem = newSongItem;
+
+        // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
+        placeholder = document.createElement('div');
+        placeholder.classList.add('drag-placeholder');
+
+        // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
+        setTimeout(() => newSongItem.classList.add('hide'), 0);
+    });
+
+    newSongItem.addEventListener('dragend', () => {
+        // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
+        newSongItem.classList.remove('dragging');
+        newSongItem.classList.remove('hide');
+        draggedItem = null;
+
+        if (placeholder && placeholder.parentNode) {
+            placeholder.parentNode.removeChild(placeholder);
+        }
+        placeholder = null;
+
+        updatePlaylistArray();
+    });
+    // Drag-and-Drop-Funktionalität hinzufügen (End)
+
+    songListContainer.appendChild(newSongItem);
+    playlist.push(newSongItem); // Zur internen Verfolgung hinzufügen
+}
+
+
+// ** GEÄNDERT: Öffnet jetzt das Song-Auswahl-Modal **
 addSongButton.addEventListener('click', () => {
-  console.log('Add song button clicked');
-  const newSongItem = document.createElement('button');
-  newSongItem.classList.add('song-item');
-  newSongItem.innerHTML = 'song ' + (playlist.length + 1);
-
-  // Drag-and-Drop-Funktionalität hinzufügen (Start)
-  newSongItem.setAttribute('draggable', 'true');
-  newSongItem.addEventListener('dragstart', () => {
-    // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen (z. B. mit geringerer Opazität)
-    newSongItem.classList.add('dragging');
-    draggedItem = newSongItem;
-
-    // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
-    placeholder = document.createElement('div');
-    placeholder.classList.add('drag-placeholder');
-
-    // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
-    setTimeout(() => newSongItem.classList.add('hide'), 0);
-  });
-
-  newSongItem.addEventListener('dragend', () => {
-    // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
-    newSongItem.classList.remove('dragging');
-    newSongItem.classList.remove('hide');
-    draggedItem = null;
-
-    if (placeholder && placeholder.parentNode) {
-      placeholder.parentNode.removeChild(placeholder);
-    }
-    placeholder = null;
-
-    updatePlaylistArray();
-  });
-  // Drag-and-Drop-Funktionalität hinzufügen (End)
-
-  songListContainer.appendChild(newSongItem);
-  playlist.push(newSongItem);
+  console.log('Add song button clicked: Opening selection modal');
+  // Ruft die Funktion in preload.js auf, um das Auswahlfenster zu öffnen
+  window.electronAPI.openSongSelectWindow();
 });
 
-songListContainer.addEventListener('click', (event) => {
+// ** GEÄNDERT: Click-Handler wurde auf async geändert und ruft Lyrics ab **
+songListContainer.addEventListener('click', async (event) => {
   if (event.target && event.target.classList.contains('song-item')) {
-    // Ruft die neue Funktion auf, um die Auswahl zu verwalten
+    // Ruft die Funktion auf, um die Auswahl zu verwalten
     selectSong(event.target);
-    console.log('Song item clicked:', event.target.innerHTML);
+    
+    const songId = event.target.getAttribute('data-song-id');
+    
+    if (songId) {
+      // Rufe die Lyrics aus der Datenbank ab
+      const lyrics = await window.electronAPI.getSongLyrics(songId);
+      
+      // Ausgabe in der Konsole, wie gewünscht
+      console.log(`--- Liedtext für ${event.target.textContent} (ID: ${songId}) ---`);
+      console.log(lyrics);
+      console.log('----------------------------------------------------');
+    } else {
+        console.log('Song item clicked (no ID found):', event.target.innerHTML);
+    }
   }
 });
 
@@ -256,5 +326,14 @@ function updatePlaylistArray() {
 document.addEventListener('DOMContentLoaded', async () => {
     const songs = await window.electronAPI.getAllSongs();
     console.log('All songs from database:', songs);
+
+     if (window.electronAPI && window.electronAPI.onSongSelected) {
+        window.electronAPI.onSongSelected((songData) => {
+            // songData enthält { id: 1, title: 'Mein Song' }
+            console.log('Selected song received:', songData);
+            createAndAppendSongButton(songData);
+            updatePlaylistArray();
+        });
+    }
 
 });

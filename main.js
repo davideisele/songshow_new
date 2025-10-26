@@ -81,7 +81,7 @@ app.whenReady().then(() => {
   createWindow();
   createMenu();
   // createAddSongWindow();
-  createSongCollectionWindow();
+  // createSongCollectionWindow();
 
 
   // Wichtig für macOS: Wenn keine Fenster geöffnet sind, soll ein neues erstellt werden,
@@ -295,3 +295,59 @@ ipcMain.handle('update-song', (event, songData) => {
         return { success: false, message: error.message };
     }
 });
+
+// IPC-Handler zum Abrufen der Songtexte für die Anzeige rechts
+ipcMain.handle('get-song-lyrics', (event, songId) => {
+    const stmt = db.prepare('SELECT lyrics FROM songs WHERE id = ?');
+    const result = stmt.get(songId);
+    return result ? result.lyrics : 'Lyrics not found.';
+});
+
+
+let songSelectWindow; 
+
+// NEU: Funktion zum Erstellen des Song-Auswahlfensters
+function createSongSelectWindow() {
+    // Stellen Sie sicher, dass nur ein Fenster offen ist
+    if (songSelectWindow) {
+        songSelectWindow.focus();
+        return;
+    }
+
+    songSelectWindow = new BrowserWindow({
+        width: 500,
+        height: 350,
+        title: 'Song auswählen',
+        modal: true, 
+        parent: mainWindow, // Definiert das Hauptfenster als Elternteil
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: false,
+            contextIsolation: true,
+        }
+    });
+
+    songSelectWindow.loadFile(path.join(__dirname, './other_pages/songSelect2Add.html'));
+
+    songSelectWindow.on('closed', () => {
+        songSelectWindow = null;
+    });
+}
+
+// NEU: IPC-Handler vom Renderer, um das Auswahlfenster zu öffnen
+ipcMain.on('open-song-select-window', () => {
+    createSongSelectWindow();
+});
+
+// NEU: IPC-Handler vom Auswahlfenster zum Hauptfenster
+ipcMain.on('send-selected-song', (event, songData) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        // Sende die Daten an den Renderer des Hauptfensters
+        mainWindow.webContents.send('song-selected', songData);
+    }
+    // Schließe das Auswahlfenster
+    if (songSelectWindow) {
+        songSelectWindow.close();
+    }
+});
+

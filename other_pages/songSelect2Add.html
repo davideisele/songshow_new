@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Song auswählen</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; display: flex; flex-direction: column; height: 100vh; margin: 0; }
+        h2 { color: #007bff; margin-top: 0; }
+        .content { flex-grow: 1; }
+        .selector-group { margin-bottom: 20px; }
+        .selector-group label { font-weight: bold; display: block; margin-bottom: 5px; }
+        #song-select {
+            padding: 10px;
+            width: 100%;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        #loading-message {
+            margin-top: 10px;
+            color: #666;
+            font-style: italic;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 20px;
+        }
+        .action-buttons button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        #add-button {
+            background-color: #28a745;
+        }
+        #add-button:hover {
+            background-color: #218838;
+        }
+        #cancel-button {
+            background-color: #6c757d;
+        }
+        #cancel-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <h2>Song zum Ablaufplan hinzufügen</h2>
+    <div class="content">
+        <div class="selector-group">
+            <label for="song-select">Verfügbare Songs:</label>
+            <select id="song-select">
+                <option value="">--- Bitte Song auswählen ---</option>
+            </select>
+        </div>
+        <div id="loading-message">Lade Songs...</div>
+    </div>
+
+    <div class="action-buttons">
+        <button id="cancel-button">Abbrechen</button>
+        <button id="add-button" disabled>Hinzufügen</button>
+    </div>
+
+    <script src="./songSelect2Add.js"></script>
+</body>
+</html>
