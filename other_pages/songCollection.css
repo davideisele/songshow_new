@@ -1,0 +1,89 @@
+body, html {
+font-family: sans-serif;
+height: 100%;
+
+}
+
+.selector-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+#song-select{
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding-left: 10px;
+    height: 40px;
+}
+
+#song-details-form{
+    display: flex;
+    flex-direction: column;
+    margin: 5px;
+}
+
+label {
+    margin-top: 10px;
+}
+
+input[type="text"], textarea {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-top: 5px;
+    font-size: 14px;
+    font-family: sans-serif;
+}
+
+#theme {
+    flex-grow: 1; /* Lässt das <select>-Element den gesamten verfügbaren Platz einnehmen */
+    min-width: 0; /* Stellt sicher, dass flex-grow korrekt funktioniert, auch wenn der Inhalt lang ist */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding-left: 20px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    height: 35px;
+}
+
+#theme select {
+    flex-grow: 1; /* Lässt das <select>-Element den gesamten verfügbaren Platz einnehmen */
+    min-width: 0; /* Stellt sicher, dass flex-grow korrekt funktioniert, auch wenn der Inhalt lang ist */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding-left: 20px;
+    
+}
+
+#theme button {
+    flex-shrink: 0; /* Stellt sicher, dass der Button nicht schrumpft */
+    margin-left: 10px;
+}
+
+.action-buttons{
+    display: flex;
+    align-self: center;
+    gap: 20px;
+}
+
+.action-buttons button{
+    flex-direction: row;
+    justify-content: space-between;
+    align-self: center;
+    margin-top: 20px;
+
+    width: 100px;
+    padding: 5px;
+    align-self: center;
+    border: none;
+    outline: none;
+
+    background-color: #f0f0f0; 
+    color: #333;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s, box-shadow 0.15s;
+    
+}

@@ -1,4 +1,7 @@
-// JavaScript für die Split-View-Funktionalität
+
+
+// ### JavaScript für die Split-View-Funktionalität ###
+
 const splitter = document.getElementById('splitter');
 const leftPanel = document.getElementById('left-panel');
 const splitView = document.getElementById('split-view');
@@ -33,7 +36,8 @@ document.addEventListener('mouseup', (e) => {
 
 // Ende der Split-View-Funktionalität
 
-// Ablaufplan-Funktionen
+
+// ### Ablaufplan-Funktionen ###
 
 // Button zum Hinzufügen, Entfernen und Verschieben von Songs und Container für die Song-Liste
 
@@ -164,9 +168,10 @@ moveDownSongButton.addEventListener('click', () => {
   }
 });
 
-// Button zum Hinzufügen von Songs und Container für die Song-Liste (ENDE)
+// Button zum Hinzufügen, Entfernen und Verschieben von Songs und Container für die Song-Liste (ENDE)
 
-// Drag-and-Drop-Logik
+
+// # Drag-and-Drop-Logik #
 
 let draggedItem = null;
 
@@ -244,3 +249,12 @@ function updatePlaylistArray() {
 // Ende der Drag-and-Drop-Logik
 
 // Ende der Ablaufplan-Funktionen
+
+
+// ### Datenbank-Funktionen ###
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const songs = await window.electronAPI.getAllSongs();
+    console.log('All songs from database:', songs);
+
+});

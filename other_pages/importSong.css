@@ -1,0 +1,61 @@
+body, html {
+font-family: sans-serif;
+}
+
+#import-song-form {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+#lyrics {
+    width: 100%;
+    height: 200px;
+    resize: none;
+}
+
+button {
+    width: 100px;
+    padding: 5px;
+    align-self: center;
+    border: none;
+    outline: none;
+
+    background-color: #f0f0f0; 
+    color: #333;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s, box-shadow 0.15s;
+}
+
+.import-buttons{
+    flex-direction: row;
+    justify-content: space-between;
+    align-self: center;
+    margin-top: 20px;
+}
+
+input[type="text"], textarea {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-top: 5px;
+    font-size: 14px;
+    font-family: sans-serif;
+}
+
+#theme-selector {
+    display: flex;
+}
+
+#theme-selector select {
+    flex-grow: 1; /* Lässt das <select>-Element den gesamten verfügbaren Platz einnehmen */
+    min-width: 0; /* Stellt sicher, dass flex-grow korrekt funktioniert, auch wenn der Inhalt lang ist */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding-left: 20px;
+}
+
+#theme-selector button {
+    flex-shrink: 0; /* Stellt sicher, dass der Button nicht schrumpft */
+    margin-left: 10px;
+}

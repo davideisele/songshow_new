@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Import Song manually</title>
+    <link rel="stylesheet" href="importSong.css">
+    </head>
+<body>
+    <form id="import-song-form">
+        <label for="title">Title:</label>
+        <input type="text" id="title" required><br><br>
+
+        <label for="author">Author/Artist:</label>
+        <input type="text" id="author"><br><br>
+
+        <label for="lyrics">Lyrics:</label>
+        <textarea id="lyrics" required></textarea><br><br>
+
+        <label for="originalOrder">Versreihenfolge (z.B. V1,C1,V2,C1):</label>
+        <input type="text" id="originalOrder" required><br><br>
+
+        <!-- TODO: Theme => DropdownList -->
+        <label for="theme">Theme:</label>
+        <div id="theme-selector">
+            <select id="theme">
+            <option value="default">Default</option>
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+        </select>
+        <button type="button" id="add-theme-button">Add Theme</button>
+        <br><br>
+        </div>
+
+        <div class="import-buttons">
+            <button type="submit">Save</button>
+            <button type="button" id="cancel-button">Cancel</button>
+    </div>
+        
+    </form>
+
+    <script src="importSong.js"></script>
+</body>
+</html>

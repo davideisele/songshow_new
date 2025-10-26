@@ -16,5 +16,13 @@ contextBridge.exposeInMainWorld(
         // Beispiel 3: Eine Funktion, die direkt eine Node.js-API kapselt (Achtung: Nur für vertrauenswürdigen Code)
         // Besser: Lassen Sie den Main Process die FS-Operationen durchführen
         // readConfig: (path) => require('fs').readFileSync(path, 'utf-8')
+
+        openAddSongWindow: () => ipcRenderer.send('open-add-song-window'),
+        addNewSong: (songData) => ipcRenderer.invoke('add-new-song', songData),
+
+        getAllSongs: () => ipcRenderer.invoke('get-all-songs'),
+        getSongDetails: (songId) => ipcRenderer.invoke('get-song-details', songId),
+        deleteSong: (songId) => ipcRenderer.invoke('delete-song', songId),
+        updateSong: (songData) => ipcRenderer.invoke('update-song', songData),
     }
 );
