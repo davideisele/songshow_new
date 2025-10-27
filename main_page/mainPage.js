@@ -1,5 +1,3 @@
-
-
 // ### JavaScript für die Split-View-Funktionalität ###
 
 const splitter = document.getElementById('splitter');
@@ -35,7 +33,6 @@ document.addEventListener('mouseup', (e) => {
 });
 
 // Ende der Split-View-Funktionalität
-
 
 // ### Ablaufplan-Funktionen ###
 
@@ -97,45 +94,44 @@ var selectedSong = null;
 // });
 
 function createAndAppendSongButton(songData) {
-    const newSongItem = document.createElement('button');
-    newSongItem.textContent = songData.title;
-    newSongItem.classList.add('song-item');
-    newSongItem.setAttribute('data-song-id', songData.id); // WICHTIG: Speichere die ID
+  const newSongItem = document.createElement('button');
+  newSongItem.textContent = songData.title;
+  newSongItem.classList.add('song-item');
+  newSongItem.setAttribute('data-song-id', songData.id); // WICHTIG: Speichere die ID
 
-    // Drag-and-Drop-Funktionalität hinzufügen (Start)
-    newSongItem.setAttribute('draggable', 'true');
-    newSongItem.addEventListener('dragstart', () => {
-        // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen
-        newSongItem.classList.add('dragging');
-        draggedItem = newSongItem;
+  // Drag-and-Drop-Funktionalität hinzufügen (Start)
+  newSongItem.setAttribute('draggable', 'true');
+  newSongItem.addEventListener('dragstart', () => {
+    // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen
+    newSongItem.classList.add('dragging');
+    draggedItem = newSongItem;
 
-        // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
-        placeholder = document.createElement('div');
-        placeholder.classList.add('drag-placeholder');
+    // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
+    placeholder = document.createElement('div');
+    placeholder.classList.add('drag-placeholder');
 
-        // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
-        setTimeout(() => newSongItem.classList.add('hide'), 0);
-    });
+    // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
+    setTimeout(() => newSongItem.classList.add('hide'), 0);
+  });
 
-    newSongItem.addEventListener('dragend', () => {
-        // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
-        newSongItem.classList.remove('dragging');
-        newSongItem.classList.remove('hide');
-        draggedItem = null;
+  newSongItem.addEventListener('dragend', () => {
+    // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
+    newSongItem.classList.remove('dragging');
+    newSongItem.classList.remove('hide');
+    draggedItem = null;
 
-        if (placeholder && placeholder.parentNode) {
-            placeholder.parentNode.removeChild(placeholder);
-        }
-        placeholder = null;
+    if (placeholder && placeholder.parentNode) {
+      placeholder.parentNode.removeChild(placeholder);
+    }
+    placeholder = null;
 
-        updatePlaylistArray();
-    });
-    // Drag-and-Drop-Funktionalität hinzufügen (End)
+    updatePlaylistArray();
+  });
+  // Drag-and-Drop-Funktionalität hinzufügen (End)
 
-    songListContainer.appendChild(newSongItem);
-    playlist.push(newSongItem); // Zur internen Verfolgung hinzufügen
+  songListContainer.appendChild(newSongItem);
+  playlist.push(newSongItem); // Zur internen Verfolgung hinzufügen
 }
-
 
 // ** GEÄNDERT: Öffnet jetzt das Song-Auswahl-Modal **
 addSongButton.addEventListener('click', () => {
@@ -149,19 +145,77 @@ songListContainer.addEventListener('click', async (event) => {
   if (event.target && event.target.classList.contains('song-item')) {
     // Ruft die Funktion auf, um die Auswahl zu verwalten
     selectSong(event.target);
-    
+
     const songId = event.target.getAttribute('data-song-id');
-    
+
     if (songId) {
       // Rufe die Lyrics aus der Datenbank ab
       const lyrics = await window.electronAPI.getSongLyrics(songId);
-      
-      // Ausgabe in der Konsole, wie gewünscht
-      console.log(`--- Liedtext für ${event.target.textContent} (ID: ${songId}) ---`);
-      console.log(lyrics);
-      console.log('----------------------------------------------------');
+      const rightPanel = document.getElementById('right-panel');
+      const slides = lyrics.split('---').map((slide) => slide.trim());
+      let slidesHTML = '';
+      let lastLabel = '';
+      let lastLabelClass = '';
+
+      slides.forEach((slideText, index) => {
+        if (slideText) {
+          let label = ``; // Standard-Label
+          let content = slideText;
+          let labelClass = 'default-label'; // Standard-Klasse für CSS
+          let labelFound = false;
+
+          const labelMatch = slideText.match(/^\[(.*?)\]\s*[\r\n]/);
+
+          if (labelMatch) {
+            labelFound = true;
+            label = labelMatch[1].trim();
+            content = slideText.substring(labelMatch[0].length).trim();
+            const baseLabel = label.split(' ')[0].toLowerCase();
+            
+            if (baseLabel.includes('verse')) {
+              labelClass = 'label-verse';
+            } else if (baseLabel.includes('chorus') || baseLabel.includes('refrain')){
+              labelClass = 'label-chorus';
+            } else if (baseLabel.includes('bridge')) {
+              labelClass = 'label-bridge';
+            } else if (baseLabel.includes('intro') || baseLabel.includes('outro') || baseLabel.includes('tag')) {
+              labelClass = 'label-transition';
+            }
+
+            lastLabel = label;
+            lastLabelClass = labelClass;
+          } else if (lastLabel !== '') {
+            label = `${lastLabel} (...)`;
+            labelClass = lastLabelClass;
+          }else {}
+
+          const formattedText = content.replace(/\n/g, '<br>');
+
+          slidesHTML += `
+          <div class="song-slide ${labelClass}" data-slide-index="${index}">
+              <div class="slide-header">
+                <p class="slide-label">${label}</p>
+              </div>
+              <div class="slide-inner-content">
+                <div class="slide-content">${formattedText}</div>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      if (rightPanel) {
+        rightPanel.innerHTML = `
+          <h2>Songtext: ${event.target.textContent}</h2>
+          <div id="slides-container">
+            ${slidesHTML}
+          </div>
+        `;
+      } else {
+        console.error('Element mit ID "right-panel" nicht gefunden.');
+      }
     } else {
-        console.log('Song item clicked (no ID found):', event.target.innerHTML);
+      console.log('Song item clicked (no ID found):', event.target.innerHTML);
     }
   }
 });
@@ -239,7 +293,6 @@ moveDownSongButton.addEventListener('click', () => {
 });
 
 // Button zum Hinzufügen, Entfernen und Verschieben von Songs und Container für die Song-Liste (ENDE)
-
 
 // # Drag-and-Drop-Logik #
 
@@ -320,20 +373,18 @@ function updatePlaylistArray() {
 
 // Ende der Ablaufplan-Funktionen
 
-
 // ### Datenbank-Funktionen ###
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const songs = await window.electronAPI.getAllSongs();
-    console.log('All songs from database:', songs);
+  const songs = await window.electronAPI.getAllSongs();
+  console.log('All songs from database:', songs);
 
-     if (window.electronAPI && window.electronAPI.onSongSelected) {
-        window.electronAPI.onSongSelected((songData) => {
-            // songData enthält { id: 1, title: 'Mein Song' }
-            console.log('Selected song received:', songData);
-            createAndAppendSongButton(songData);
-            updatePlaylistArray();
-        });
-    }
-
+  if (window.electronAPI && window.electronAPI.onSongSelected) {
+    window.electronAPI.onSongSelected((songData) => {
+      // songData enthält { id: 1, title: 'Mein Song' }
+      console.log('Selected song received:', songData);
+      createAndAppendSongButton(songData);
+      updatePlaylistArray();
+    });
+  }
 });

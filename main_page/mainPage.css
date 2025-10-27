@@ -21,7 +21,7 @@ body, html {
     flex-direction: column;
     background-color: #f0f0f0;
     min-width: 10%; /* Minimale Breite für die linke Spalte */
-    max-width: 40%; /* Maximale Breite für die linke Spalte */
+    max-width: 20%; /* Maximale Breite für die linke Spalte */
     resize: horizontal;
     overflow: auto; /* Scrollbalken, wenn der Inhalt zu groß ist */
 }
@@ -33,7 +33,8 @@ body, html {
 #right-panel {
     background-color: #ffffff;
     flex-grow: 1; /* Rechte Spalte nimmt den verbleibenden Platz ein */
-    overflow: auto; /* Scrollbalken, wenn der Inhalt zu groß ist */
+    overflow-y: auto; /* Scrollbalken, wenn der Inhalt zu groß ist */
+    overflow-x: hidden;
 }
 
 #splitter {
@@ -143,4 +144,79 @@ button:active {
   /* Hilft bei einigen Browsern, das Originalelement während des Ziehens zu verstecken, 
      damit nur der Drag-Ghost sichtbar ist. */
   display: none; 
+}
+
+
+/* ### Style for Slides ### */
+
+#slides-container{
+    display: grid;
+    grid-template-columns: 350px 350px 350px;
+    gap:5px;
+    justify-content: start;
+
+}
+
+.song-slide {
+    margin-bottom: 20px;
+    border-radius: 5px;
+    /* Der äußere Div bekommt die Label-Farbe als Hintergrund */
+    /* Die spezifische Farbe wird durch .label-verse, .label-chorus etc. gesetzt */
+    size: 5;
+    overflow: hidden; /* Wichtig, um die abgerundeten Ecken zu erhalten */
+    border: 1px solid currentColor; /* Rahmen in der aktuellen Label-Farbe */
+}
+
+/* STYLES FÜR DEN FÜLLENDEN KOPFBEREICH (FARBIG) */
+.slide-header {
+    /* Setzt die Farbe des Texts im Header auf Weiß */
+    color: white; 
+    padding: 8px 15px; /* Etwas Polsterung um das Label */
+}
+
+.slide-label {
+    /* Entfernt die vorherigen Block-Hintergrundfarben und Rahmen */
+    padding: 0;
+    margin: 0;
+    font-weight: bold;
+}
+
+/* STYLES FÜR DEN INNEREN INHALTS-DIV (WEISS) */
+.slide-inner-content {
+    background-color: white; /* Der innere Kasten ist Weiß */
+    padding: 15px; /* Abstand zwischen dem inneren Text und dem farbigen Rand */
+    border-top: none; /* Kein Rahmen oben, da der Header direkt anschließt */
+    height: 100%;
+}
+
+.slide-content {
+    /* Stellt sicher, dass der Text im inneren Bereich gut sichtbar ist */
+    color: #333; 
+    line-height: 1.6;
+}
+
+/* FARBDEFINITIONEN (Wie zuvor, jetzt als Hintergrund für .song-slide) */
+.label-verse {
+    background-color: #007bff; /* Blau */
+    color: #007bff; /* Stellt sicher, dass 'currentColor' für den Border Blau ist */
+}
+
+.label-chorus {
+    background-color: #28a745; /* Grün */
+    color: #28a745; 
+}
+
+.label-bridge {
+    background-color: #dc3545; /* Rot */
+    color: #dc3545;
+}
+
+.label-transition {
+    background-color: #ffc107; /* Gelb/Orange */
+    color: #ffc107;
+}
+
+.default-label {
+    background-color: #6c757d; /* Graublau */
+    color: #6c757d;
 }
