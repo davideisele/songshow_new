@@ -171,14 +171,21 @@ songListContainer.addEventListener('click', async (event) => {
             label = labelMatch[1].trim();
             content = slideText.substring(labelMatch[0].length).trim();
             const baseLabel = label.split(' ')[0].toLowerCase();
-            
+
             if (baseLabel.includes('verse')) {
               labelClass = 'label-verse';
-            } else if (baseLabel.includes('chorus') || baseLabel.includes('refrain')){
+            } else if (
+              baseLabel.includes('chorus') ||
+              baseLabel.includes('refrain')
+            ) {
               labelClass = 'label-chorus';
             } else if (baseLabel.includes('bridge')) {
               labelClass = 'label-bridge';
-            } else if (baseLabel.includes('intro') || baseLabel.includes('outro') || baseLabel.includes('tag')) {
+            } else if (
+              baseLabel.includes('intro') ||
+              baseLabel.includes('outro') ||
+              baseLabel.includes('tag')
+            ) {
               labelClass = 'label-transition';
             }
 
@@ -187,7 +194,8 @@ songListContainer.addEventListener('click', async (event) => {
           } else if (lastLabel !== '') {
             label = `${lastLabel} (...)`;
             labelClass = lastLabelClass;
-          }else {}
+          } else {
+          }
 
           const formattedText = content.replace(/\n/g, '<br>');
 
@@ -388,3 +396,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 });
+
+// ### Songs auf Beamer Anzeigen Logik
+const staticContainer = document.getElementById('right-panel');
+
+if (staticContainer) {
+  staticContainer.addEventListener('click', function (event) {
+    const clickedSlide = event.target.closest('[class^="song-slide"]');
+
+    if (clickedSlide) {
+      const slideContent = clickedSlide.querySelector('.slide-content');
+      const content = slideContent.innerHTML;
+      window.electronAPI.openSongOnBeamer(content);
+      console.log('Inhalt der Slide:', content);
+    }
+  });
+} else {
+  console.error(
+    'Das statische Element "#right-panel" wurde für die Event Delegation nicht gefunden.',
+  );
+}

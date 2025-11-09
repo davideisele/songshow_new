@@ -351,3 +351,45 @@ ipcMain.on('send-selected-song', (event, songData) => {
     }
 });
 
+// IPC-Handler zum Öffnen eines Songs auf dem Beamer-Fenster
+let songPresentationWindow = null;
+var beamerWindow = false;
+
+ipcMain.on('open-song-on-beamer', (event, content) => {
+  beamerWindow = true;
+  console.log('Opening Beamer Window with content:', content);
+  songPresentation(content);
+});
+
+function songPresentation(content){
+  if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
+      songPresentationWindow.webContents.send('load-song-content', content);
+      return;
+  }
+
+  songPresentationWindow = new BrowserWindow({
+        width: 500,
+        height: 350,
+        title: 'Song Präsentation',
+        parent: mainWindow, // Definiert das Hauptfenster als Elternteil
+        focusable: false,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: false,
+            contextIsolation: true,
+        }
+    });
+
+    songPresentationWindow.loadFile(path.join(__dirname, './beamer_page/beamerPage.html'));
+
+    songPresentationWindow.webContents.on('did-finish-load', () => {
+        // Der Listener in beamerPage.js ist jetzt registriert.
+        console.log('Beamer Page hat geladen. Sende Inhalt.');
+        songPresentationWindow.webContents.send('load-song-content', content);
+    });
+
+    songPresentationWindow.on('closed', () => {
+        songPresentationWindow = null;
+    });
+}
+

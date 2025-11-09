@@ -34,5 +34,11 @@ contextBridge.exposeInMainWorld(
 
     onSongSelected: (callback) =>
       ipcRenderer.on('song-selected', (event, songData) => callback(songData)),
+
+    openSongOnBeamer: (content) => ipcRenderer.send('open-song-on-beamer', content),
+    onContentReceived: (callback) => {
+        // Nutzt ipcRenderer.on, um auf jede Nachricht auf dem Kanal 'load-song-content' zu hören.
+        ipcRenderer.on('load-song-content', (event, content) => callback(content));
+    },
   },
 );
