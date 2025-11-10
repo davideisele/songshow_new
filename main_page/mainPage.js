@@ -442,12 +442,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // ### Songs auf Beamer Anzeigen Logik
 const staticContainer = document.getElementById('right-panel');
+const highlightClass = 'selected-slide-highlight';
 
 if (staticContainer) {
   staticContainer.addEventListener('click', function (event) {
     const clickedSlide = event.target.closest('[class^="song-slide"]');
 
     if (clickedSlide) {
+      const currentlyHighlighted = staticContainer.querySelector(`.${highlightClass}`);
+      if (currentlyHighlighted && currentlyHighlighted !== clickedSlide) {
+        currentlyHighlighted.classList.remove(highlightClass);
+      }
+
+      // 2. Markierung zur angeklickten Folie hinzufügen
+      clickedSlide.classList.add(highlightClass);
+      
       const slideContent = clickedSlide.querySelector('.slide-content');
       const content = slideContent.innerHTML;
       window.electronAPI.openSongOnBeamer(content);

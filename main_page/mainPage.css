@@ -202,6 +202,17 @@ button:active {
     text-overflow: ellipsis; /* Optional, fügt "..." hinzu, wenn der Text abgeschnitten wird */
 }
 
+/* MARKIERUNG DER AUSGEWÄHLTEN FOLIE */
+.selected-slide-highlight {
+    /* Beispiel: Ein roter, dicker Rahmen */
+    border: 3px solid #FF5733 !important; 
+    /* Optional: Ein leichter Schatten */
+    box-shadow: 0 0 10px rgba(255, 87, 51, 0.7); 
+    /* Optional: Für ein besseres Aussehen */
+    transform: scale(1.02);
+    transition: transform 0.2s ease-in-out;
+}
+
 /* FARBDEFINITIONEN (Wie zuvor, jetzt als Hintergrund für .song-slide) */
 .label-verse {
     background-color: #007bff; /* Blau */
