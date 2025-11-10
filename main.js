@@ -351,6 +351,7 @@ ipcMain.on('send-selected-song', (event, songData) => {
 
 let songPresentationWindow = null;
 var beamerWindow = false;
+let lastThemeData = null;
 
 ipcMain.on('open-song-on-beamer', (event, content) => {
   beamerWindow = true;
@@ -403,9 +404,30 @@ function songPresentation(content) {
     // Der Listener in beamerPage.js ist jetzt registriert.
     console.log('Beamer Page hat geladen. Sende Inhalt.');
     songPresentationWindow.webContents.send('load-song-content', content);
+
+    if (lastThemeData) { // 👈 Prüft, ob mainPage.js bereits Daten gesendet hat
+        songPresentationWindow.webContents.send('update-beamer-theme', lastThemeData);
+        console.log('Hauptprozess: Sende GESPEICHERTE Theme-Daten an Beamer nach dem Laden.');
+    } else {
+        console.warn('Hauptprozess: Beamer geladen, aber keine Theme-Daten verfügbar.');
+    }
   });
 
   songPresentationWindow.on('closed', () => {
     songPresentationWindow = null;
   });
 }
+
+// Style für das Beamer-Fenster
+ipcMain.on('apply-theme-styles-to-beamer', (event, themeData) => {
+    // 1. Speichere die Theme-Daten IMMER, wenn sie vom Hauptfenster kommen
+    lastThemeData = themeData;
+    console.log('Hauptprozess: Theme-Daten gespeichert. Letzter Wert:', lastThemeData);
+
+    // 2. Versuche, die Daten sofort zu senden, WENN das Fenster bereits existiert
+    if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
+        songPresentationWindow.webContents.send('update-beamer-theme', themeData);
+        console.log('Hauptprozess: Sende Theme-Daten sofort an existierenden Beamer.');
+    }
+    // Wenn das Fenster nicht existiert, wird nichts gesendet (bis zum Laden).
+});

@@ -1,0 +1,13 @@
+{
+  ".slide-content": {
+    "height": "100%",
+    "text-align": "center",
+    "color": "#333",
+    "background-color": "white",
+    "line-height": 1.6,
+    "padding": "5%",
+    "white-space": "nowrap",
+    "overflow": "hidden",
+    "text-overflow": "ellipsis"
+  }
+}

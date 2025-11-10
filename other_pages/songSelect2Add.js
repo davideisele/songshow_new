@@ -51,6 +51,7 @@ function handleAddClick() {
         const songData = {
             id: selectedSong.id,
             title: selectedSong.title,
+            theme: selectedSong.theme
         };
         // IPC-Aufruf zum Senden der Daten an das Hauptfenster und Schließen des Modals
         window.electronAPI.sendSelectedSong(songData);

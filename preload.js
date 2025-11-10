@@ -40,5 +40,15 @@ contextBridge.exposeInMainWorld(
         // Nutzt ipcRenderer.on, um auf jede Nachricht auf dem Kanal 'load-song-content' zu hören.
         ipcRenderer.on('load-song-content', (event, content) => callback(content));
     },
+    // für Beamer Theme Styles
+    sendThemeToMain: (themeData) => ipcRenderer.send('apply-theme-styles-to-beamer', themeData),
+    receiveThemeFromMain: (channel, callback) => {
+        // Nur Kanäle erlauben, die vom Hauptprozess kommen (Sicherheit)
+        let validChannels = ['update-beamer-theme']; 
+        if (validChannels.includes(channel)) {
+            // Der Callback wird ausgeführt, wenn Daten auf diesem Kanal empfangen werden
+            ipcRenderer.on(channel, (event, ...args) => callback(...args));
+        }
+    }
   },
 );

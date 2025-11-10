@@ -93,7 +93,7 @@ var selectedSong = null;
 //   }
 // });
 
-function createAndAppendSongButton(songData) {
+async function createAndAppendSongButton(songData) {
   const newSongItem = document.createElement('button');
   newSongItem.textContent = songData.title;
   newSongItem.classList.add('song-item');
@@ -131,6 +131,61 @@ function createAndAppendSongButton(songData) {
 
   songListContainer.appendChild(newSongItem);
   playlist.push(newSongItem); // Zur internen Verfolgung hinzufügen
+
+  // Wende das Theme-Style an
+
+  const themeData = await fetchThemeStyles(songData.theme);
+  console.log('Theme data:', themeData);
+
+    if (themeData) {
+        applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
+        sendThemeToMain(themeData); // Senden Sie die Styles an das Beamer-Fenster
+      }
+}
+
+// Funktion für das Übernehmen des Theme-Styles
+async function fetchThemeStyles(themeName) {
+  // Erstellen des Pfades zur JSON-Datei, z.B. '/theme/default.json'
+  const themePath = `../themes/${themeName}.json`;
+
+  try {
+    const response = await fetch(themePath);
+
+    if (!response.ok) {
+      throw new Error(`Fehler beim Laden des Themes: ${response.status}`);
+    }
+
+    const themeData = await response.json();
+    return themeData;
+  } catch (error) {
+    console.error('Konnte Theme-Daten nicht laden:', error);
+    return null;
+  }
+}
+
+// Funktion zum Anwenden der Theme-Styles
+function applyThemeStyles(themeData, targetElement) {
+    // Gehen Sie die Styles für den Selektor durch, den Sie in der JSON-Datei definiert haben
+    const slideContentStyles = themeData['.slide-content'];
+
+    if (slideContentStyles) {
+        // Setzen Sie jede Eigenschaft als CSS Custom Property auf dem Ziel-Element
+        for (const [property, value] of Object.entries(slideContentStyles)) {
+            // Beispiel: 'text-align' wird zu '--slide-text-align'
+            console.log(`Setting CSS variable --slide-${property} to ${value}`);
+            const cssVariable = `--slide-${property}`;
+            targetElement.style.setProperty(cssVariable, value);
+        }
+    }
+}
+
+// Funktion zum Anwenden der Theme-Styles auf Beamer-Fenster
+function sendThemeToMain(themeData) {
+    // Prüfen Sie, ob die API vorhanden ist (Electron-Check)
+    if (window.electronAPI && window.electronAPI.sendThemeToMain) {
+        window.electronAPI.sendThemeToMain(themeData);
+        console.log('Hauptfenster: Theme-Daten gesendet:', themeData);
+    }
 }
 
 // ** GEÄNDERT: Öffnet jetzt das Song-Auswahl-Modal **
