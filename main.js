@@ -6,7 +6,6 @@ const path = require('path');
 const Database = require('better-sqlite3');
 // Pfad zur Datenbankdatei im AppData-Verzeichnis
 const dbPath = path.join(app.getPath('userData'), 'songs.db');
-console.log('Datenbankpfad:', dbPath);
 const db = new Database(dbPath, { verbose: console.log });
 
 // Tabelle erstellen (bei erstem Start)
@@ -129,26 +128,22 @@ const menuBar = [
         label: 'Form txt',
         // accelerator: 'CmdOrCtrl+I', // Kann später hinzugefügt werden
         click: (menuItem, browserWindow, event) => {
-          console.log('Import form txt clicked');
           // Hier IPC-Kommunikation zum Renderer-Prozess, falls nötig
         },
       },
       {
         label: 'Form CCLI',
         click: () => {
-          console.log('Import form CCLI clicked');
         },
       },
       {
         label: 'Form Genius',
         click: () => {
-          console.log('Import form Genius clicked');
         },
       },
       {
         label: 'Manually',
         click: () => {
-          console.log('Import "Manually" clicked');
           if (!addSongWindow) {
             createAddSongWindow();
           }
@@ -158,7 +153,6 @@ const menuBar = [
       {
         label: 'Song-Collection',
         click: () => {
-          console.log('Import "Song-Collection" clicked');
           if (!songCollectionWindow) {
             createSongCollectionWindow();
           }
@@ -355,7 +349,6 @@ let lastThemeData = null;
 
 ipcMain.on('open-song-on-beamer', (event, content) => {
   beamerWindow = true;
-  console.log('Opening Beamer Window with content:', content);
   songPresentation(content);
 });
 
@@ -402,14 +395,11 @@ function songPresentation(content) {
 
   songPresentationWindow.webContents.on('did-finish-load', () => {
     // Der Listener in beamerPage.js ist jetzt registriert.
-    console.log('Beamer Page hat geladen. Sende Inhalt.');
     songPresentationWindow.webContents.send('load-song-content', content);
 
     if (lastThemeData) { // 👈 Prüft, ob mainPage.js bereits Daten gesendet hat
         songPresentationWindow.webContents.send('update-beamer-theme', lastThemeData);
-        console.log('Hauptprozess: Sende GESPEICHERTE Theme-Daten an Beamer nach dem Laden.');
     } else {
-        console.warn('Hauptprozess: Beamer geladen, aber keine Theme-Daten verfügbar.');
     }
   });
 
@@ -422,12 +412,10 @@ function songPresentation(content) {
 ipcMain.on('apply-theme-styles-to-beamer', (event, themeData) => {
     // 1. Speichere die Theme-Daten IMMER, wenn sie vom Hauptfenster kommen
     lastThemeData = themeData;
-    console.log('Hauptprozess: Theme-Daten gespeichert. Letzter Wert:', lastThemeData);
 
     // 2. Versuche, die Daten sofort zu senden, WENN das Fenster bereits existiert
     if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
         songPresentationWindow.webContents.send('update-beamer-theme', themeData);
-        console.log('Hauptprozess: Sende Theme-Daten sofort an existierenden Beamer.');
     }
     // Wenn das Fenster nicht existiert, wird nichts gesendet (bis zum Laden).
 });

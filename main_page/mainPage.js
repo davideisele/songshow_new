@@ -135,7 +135,6 @@ async function createAndAppendSongButton(songData) {
   // Wende das Theme-Style an
 
   const themeData = await fetchThemeStyles(songData.theme);
-  console.log('Theme data:', themeData);
 
     if (themeData) {
         applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
@@ -172,7 +171,6 @@ function applyThemeStyles(themeData, targetElement) {
         // Setzen Sie jede Eigenschaft als CSS Custom Property auf dem Ziel-Element
         for (const [property, value] of Object.entries(slideContentStyles)) {
             // Beispiel: 'text-align' wird zu '--slide-text-align'
-            console.log(`Setting CSS variable --slide-${property} to ${value}`);
             const cssVariable = `--slide-${property}`;
             targetElement.style.setProperty(cssVariable, value);
         }
@@ -184,13 +182,11 @@ function sendThemeToMain(themeData) {
     // Prüfen Sie, ob die API vorhanden ist (Electron-Check)
     if (window.electronAPI && window.electronAPI.sendThemeToMain) {
         window.electronAPI.sendThemeToMain(themeData);
-        console.log('Hauptfenster: Theme-Daten gesendet:', themeData);
     }
 }
 
 // ** GEÄNDERT: Öffnet jetzt das Song-Auswahl-Modal **
 addSongButton.addEventListener('click', () => {
-  console.log('Add song button clicked: Opening selection modal');
   // Ruft die Funktion in preload.js auf, um das Auswahlfenster zu öffnen
   window.electronAPI.openSongSelectWindow();
 });
@@ -274,11 +270,7 @@ songListContainer.addEventListener('click', async (event) => {
             ${slidesHTML}
           </div>
         `;
-      } else {
-        console.error('Element mit ID "right-panel" nicht gefunden.');
-      }
-    } else {
-      console.log('Song item clicked (no ID found):', event.target.innerHTML);
+      } 
     }
   }
 });
@@ -296,7 +288,6 @@ function selectSong(songItem) {
   // 3. Aktualisiere die Verfolgungsvariable
   if (songItem.classList.contains('selected')) {
     selectedSong = songItem;
-    console.log('Selected:', songItem.innerHTML);
   } else {
     selectedSong = null; // Deselektiert, falls es das gleiche Element war
   }
@@ -306,10 +297,8 @@ function selectSong(songItem) {
 const removeSongButton = document.getElementById('song-remove');
 
 removeSongButton.addEventListener('click', () => {
-  console.log('Remove song button clicked');
   if (selectedSong) {
     songListContainer.removeChild(selectedSong);
-    console.log('Removed:', selectedSong.innerHTML);
     const index = playlist.indexOf(selectedSong);
     if (index > -1) {
       playlist.splice(index, 1);
@@ -322,21 +311,17 @@ const moveUpSongButton = document.getElementById('song-up');
 const moveDownSongButton = document.getElementById('song-down');
 
 moveUpSongButton.addEventListener('click', () => {
-  console.log('Move up song button clicked');
   const currentIndex = playlist.indexOf(selectedSong);
   const targetSong = playlist[currentIndex - 1];
 
   if (currentIndex > 0) {
     songListContainer.insertBefore(selectedSong, targetSong);
     updatePlaylistArray();
-    console.log(`Song nach oben verschoben: ${selectedSong.innerHTML}`);
   } else {
-    console.log('Der Song ist bereits an erster Position.');
   }
 });
 
 moveDownSongButton.addEventListener('click', () => {
-  console.log('Move down song button clicked');
   const currentIndex = playlist.indexOf(selectedSong);
   if (currentIndex < playlist.length - 1) {
     const targetIndex = currentIndex + 1;
@@ -349,9 +334,6 @@ moveDownSongButton.addEventListener('click', () => {
       playlist[currentIndex],
     ];
 
-    console.log(`Song nach unten verschoben: ${selectedSong.innerHTML}`);
-  } else {
-    console.log('Der Song ist bereits an letzter Position.');
   }
 });
 
@@ -426,11 +408,6 @@ function getDragAfterElement(container, y) {
 // Aktualisiert das Playlist-Array wenn die Reihenfolge geändert wurde
 function updatePlaylistArray() {
   playlist = [...songListContainer.querySelectorAll('.song-item')];
-
-  console.log(
-    'Playlist updated:',
-    playlist.map((item) => item.innerHTML),
-  );
 }
 // Ende der Drag-and-Drop-Logik
 
@@ -440,12 +417,10 @@ function updatePlaylistArray() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   const songs = await window.electronAPI.getAllSongs();
-  console.log('All songs from database:', songs);
 
   if (window.electronAPI && window.electronAPI.onSongSelected) {
     window.electronAPI.onSongSelected((songData) => {
       // songData enthält { id: 1, title: 'Mein Song' }
-      console.log('Selected song received:', songData);
       createAndAppendSongButton(songData);
       updatePlaylistArray();
     });
@@ -463,7 +438,6 @@ if (staticContainer) {
       const slideContent = clickedSlide.querySelector('.slide-content');
       const content = slideContent.innerHTML;
       window.electronAPI.openSongOnBeamer(content);
-      console.log('Inhalt der Slide:', content);
     }
   });
 } else {
