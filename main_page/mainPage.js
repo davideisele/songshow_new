@@ -444,28 +444,117 @@ document.addEventListener('DOMContentLoaded', async () => {
 const staticContainer = document.getElementById('right-panel');
 const highlightClass = 'selected-slide-highlight';
 
-if (staticContainer) {
-  staticContainer.addEventListener('click', function (event) {
-    const clickedSlide = event.target.closest('[class^="song-slide"]');
+const nextButton = document.getElementById('next-slide');
+const prevButton = document.getElementById('prev-slide');
 
-    if (clickedSlide) {
-      const currentlyHighlighted = staticContainer.querySelector(`.${highlightClass}`);
-      if (currentlyHighlighted && currentlyHighlighted !== clickedSlide) {
+// if (staticContainer) {
+//   staticContainer.addEventListener('click', function (event) {
+//     const clickedSlide = event.target.closest('[class^="song-slide"]');
+
+//     if (clickedSlide) {
+//       const currentlyHighlighted = staticContainer.querySelector(`.${highlightClass}`);
+//       if (currentlyHighlighted && currentlyHighlighted !== clickedSlide) {
+//         currentlyHighlighted.classList.remove(highlightClass);
+//       }
+
+//       // 2. Markierung zur angeklickten Folie hinzufügen
+//       clickedSlide.classList.add(highlightClass);
+
+//       const slideContent = clickedSlide.querySelector('.slide-content');
+//       const content = slideContent.innerHTML;
+//       window.electronAPI.openSongOnBeamer(content);
+//     }
+//   });
+// } else {
+//   console.error(
+//     'Das statische Element "#right-panel" wurde für die Event Delegation nicht gefunden.',
+//   );
+// }
+
+function selectSlide(slideElement) {
+    if (!slideElement) return;
+
+    // 1. Markierung von der zuvor markierten Folie entfernen
+    const currentlyHighlighted = staticContainer.querySelector(`.${highlightClass}`);
+    if (currentlyHighlighted && currentlyHighlighted !== slideElement) {
         currentlyHighlighted.classList.remove(highlightClass);
-      }
-
-      // 2. Markierung zur angeklickten Folie hinzufügen
-      clickedSlide.classList.add(highlightClass);
-      
-      const slideContent = clickedSlide.querySelector('.slide-content');
-      const content = slideContent.innerHTML;
-      window.electronAPI.openSongOnBeamer(content);
     }
-  });
+
+    // 2. Markierung zur neuen Folie hinzufügen
+    slideElement.classList.add(highlightClass);
+
+    // 3. Logik zum Öffnen des Beamers
+    const slideContent = slideElement.querySelector('.slide-content');
+    const content = slideContent.innerHTML;
+    window.electronAPI.openSongOnBeamer(content);
+}
+
+// --- 1. Bestehender Click-Listener (für manuelle Auswahl) ---
+
+if (staticContainer) {
+    staticContainer.addEventListener('click', function (event) {
+        const clickedSlide = event.target.closest('[class^="song-slide"]');
+
+        if (clickedSlide) {
+            selectSlide(clickedSlide);
+        }
+    });
 } else {
-  console.error(
-    'Das statische Element "#right-panel" wurde für die Event Delegation nicht gefunden.',
-  );
+    console.error(
+        'Das statische Element "#right-panel" wurde für die Event Delegation nicht gefunden.',
+    );
+}
+
+// --- 2. Neue Event-Listener für die Navigation-Buttons ---
+
+if (nextButton && prevButton && staticContainer) {
+    
+    /** Liefert alle Folien-Elemente im Container zurück */
+    const getAllSlides = () => {
+        // Wichtig: Array.from nutzen, um die NodeList einfacher zu handhaben
+        return Array.from(staticContainer.querySelectorAll('[class^="song-slide"]'));
+    };
+
+    nextButton.addEventListener('click', () => {
+        const slides = getAllSlides();
+        const currentSlide = staticContainer.querySelector(`.${highlightClass}`);
+        
+        let targetIndex = 0; // Standardmäßig die erste Folie, wenn keine ausgewählt ist
+        
+        if (currentSlide) {
+            // Aktuellen Index abrufen und +1 für die nächste Folie
+            const currentIndex = parseInt(currentSlide.dataset.slideIndex);
+            targetIndex = currentIndex + 1;
+        }
+
+        // Überprüfen, ob der Ziel-Index innerhalb der Grenzen liegt
+        if (targetIndex < slides.length) {
+             // Die Folie mit dem passenden data-slide-index finden
+            const nextSlide = slides.find(slide => parseInt(slide.dataset.slideIndex) === targetIndex);
+            selectSlide(nextSlide);
+        }
+    });
+
+    prevButton.addEventListener('click', () => {
+        const slides = getAllSlides();
+        const currentSlide = staticContainer.querySelector(`.${highlightClass}`);
+        
+        if (!currentSlide) {
+            // Keine Folie ausgewählt, keine Aktion
+            return; 
+        }
+
+        // Aktuellen Index abrufen und -1 für die vorherige Folie
+        const currentIndex = parseInt(currentSlide.dataset.slideIndex);
+        const targetIndex = currentIndex - 1;
+
+        // Überprüfen, ob der Ziel-Index größer oder gleich 0 ist (erste Folie)
+        if (targetIndex >= 0) {
+            // Die Folie mit dem passenden data-slide-index finden
+            const prevSlide = slides.find(slide => parseInt(slide.dataset.slideIndex) === targetIndex);
+            selectSlide(prevSlide);
+        }
+    });
 }
 
 // ### Dropdownliste in der Main Page für Theme-Auswahl ###
