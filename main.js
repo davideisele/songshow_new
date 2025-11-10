@@ -26,7 +26,7 @@ db.exec(`
 // IPC-Handler zum Abrufen aller Songs
 ipcMain.handle('get-all-songs', () => {
   // Führe die Datenbankabfrage aus
-  const stmt = db.prepare('SELECT id, title, author FROM songs ORDER BY title');
+  const stmt = db.prepare('SELECT id, title, author,lyrics, original_order, last_used_order, theme, last_used FROM songs ORDER BY title');
   return stmt.all();
 });
 
