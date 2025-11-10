@@ -98,6 +98,7 @@ async function createAndAppendSongButton(songData) {
   newSongItem.textContent = songData.title;
   newSongItem.classList.add('song-item');
   newSongItem.setAttribute('data-song-id', songData.id); // WICHTIG: Speichere die ID
+  newSongItem.setAttribute('data-song-theme', songData.theme); // WICHTIG: Speichere das Theme
 
   // Drag-and-Drop-Funktionalität hinzufügen (Start)
   newSongItem.setAttribute('draggable', 'true');
@@ -134,12 +135,12 @@ async function createAndAppendSongButton(songData) {
 
   // Wende das Theme-Style an
 
-  const themeData = await fetchThemeStyles(songData.theme);
+  // const themeData = await fetchThemeStyles(songData.theme);
 
-    if (themeData) {
-        applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
-        sendThemeToMain(themeData); // Senden Sie die Styles an das Beamer-Fenster
-      }
+  // if (themeData) {
+  //   applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
+  //   sendThemeToMain(themeData); // Senden Sie die Styles an das Beamer-Fenster
+  // }
 }
 
 // Funktion für das Übernehmen des Theme-Styles
@@ -164,25 +165,25 @@ async function fetchThemeStyles(themeName) {
 
 // Funktion zum Anwenden der Theme-Styles
 function applyThemeStyles(themeData, targetElement) {
-    // Gehen Sie die Styles für den Selektor durch, den Sie in der JSON-Datei definiert haben
-    const slideContentStyles = themeData['.slide-content'];
+  // Gehen Sie die Styles für den Selektor durch, den Sie in der JSON-Datei definiert haben
+  const slideContentStyles = themeData['.slide-content'];
 
-    if (slideContentStyles) {
-        // Setzen Sie jede Eigenschaft als CSS Custom Property auf dem Ziel-Element
-        for (const [property, value] of Object.entries(slideContentStyles)) {
-            // Beispiel: 'text-align' wird zu '--slide-text-align'
-            const cssVariable = `--slide-${property}`;
-            targetElement.style.setProperty(cssVariable, value);
-        }
+  if (slideContentStyles) {
+    // Setzen Sie jede Eigenschaft als CSS Custom Property auf dem Ziel-Element
+    for (const [property, value] of Object.entries(slideContentStyles)) {
+      // Beispiel: 'text-align' wird zu '--slide-text-align'
+      const cssVariable = `--slide-${property}`;
+      targetElement.style.setProperty(cssVariable, value);
     }
+  }
 }
 
 // Funktion zum Anwenden der Theme-Styles auf Beamer-Fenster
 function sendThemeToMain(themeData) {
-    // Prüfen Sie, ob die API vorhanden ist (Electron-Check)
-    if (window.electronAPI && window.electronAPI.sendThemeToMain) {
-        window.electronAPI.sendThemeToMain(themeData);
-    }
+  // Prüfen Sie, ob die API vorhanden ist (Electron-Check)
+  if (window.electronAPI && window.electronAPI.sendThemeToMain) {
+    window.electronAPI.sendThemeToMain(themeData);
+  }
 }
 
 // ** GEÄNDERT: Öffnet jetzt das Song-Auswahl-Modal **
@@ -196,10 +197,23 @@ songListContainer.addEventListener('click', async (event) => {
   if (event.target && event.target.classList.contains('song-item')) {
     // Ruft die Funktion auf, um die Auswahl zu verwalten
     selectSong(event.target);
-
+      
     const songId = event.target.getAttribute('data-song-id');
+    const songTheme = event.target.getAttribute('data-song-theme');
 
     if (songId) {
+      if (songTheme) {
+
+        // Hier habe ich etwas eingefügt
+        const themeData = await fetchThemeStyles(songTheme);
+
+        if (themeData) {
+          applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
+          sendThemeToMain(themeData); // Senden Sie die Styles an das Beamer-Fenster
+        }
+      }
+
+
       // Rufe die Lyrics aus der Datenbank ab
       const lyrics = await window.electronAPI.getSongLyrics(songId);
       const rightPanel = document.getElementById('right-panel');
@@ -270,7 +284,7 @@ songListContainer.addEventListener('click', async (event) => {
             ${slidesHTML}
           </div>
         `;
-      } 
+      }
     }
   }
 });
@@ -333,7 +347,6 @@ moveDownSongButton.addEventListener('click', () => {
       playlist[targetIndex],
       playlist[currentIndex],
     ];
-
   }
 });
 
@@ -445,3 +458,103 @@ if (staticContainer) {
     'Das statische Element "#right-panel" wurde für die Event Delegation nicht gefunden.',
   );
 }
+
+// ### Dropdownliste in der Main Page für Theme-Auswahl ###
+
+// Stellen Sie sicher, dass Sie diese Module importieren können.
+// Das ist im Main Process oder in einem Preload-Skript/Renderer Process (mit nodeIntegration) möglich.
+
+function getThemeOptions() {
+  // Definieren Sie den Pfad zu Ihrem themes-Ordner.
+  // __dirname ist der Pfad zum aktuellen Skript.
+  // Passen Sie den Pfad relativ zu Ihrem Projekt an.
+  const themesDir = path.join(__dirname, 'themes');
+
+  let themeNames = [];
+
+  try {
+    // 1. Alle Dateien und Ordner im Verzeichnis auslesen
+    const files = fs.readdirSync(themesDir);
+
+    // 2. Nur die Dateien behalten, die auf '.json' enden
+    const jsonFiles = files.filter((file) => file.endsWith('.json'));
+
+    // 3. Dateinamen ohne die Erweiterung extrahieren
+    themeNames = jsonFiles.map((file) => path.parse(file).name);
+  } catch (err) {
+    console.error('Fehler beim Lesen des themes-Ordners:', err);
+    // Fallback oder Fehlerbehandlung
+  }
+
+  // Fügt eine Standardoption hinzu, falls diese nicht als Datei existiert
+  themeNames.unshift('default');
+
+  return themeNames;
+}
+
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const themeSelector = document.getElementById('theme-selector');
+
+  try {
+    // 1. Die Anfrage an den Main Process über die exponierte API stellen
+    // window.themeAPI.getThemes() ruft den ipcMain.handle('get-theme-list', ...) auf
+    const themeNames = await window.electronAPI.getThemes();
+
+    // 2. Bestehende Optionen entfernen (außer die initialen Default-Optionen)
+    // Setzen Sie den innerHTML auf einen leeren String oder nur auf die <option value="default">
+    themeSelector.innerHTML = '';
+
+    // 3. Dropdown-Liste dynamisch befüllen
+    themeNames.forEach((theme) => {
+      const option = document.createElement('option');
+
+      // Wert der Option: Dateiname (z.B. "dark")
+      option.value = theme;
+
+      // Angezeigter Text: Erster Buchstabe groß (z.B. "Dark")
+      option.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+
+      themeSelector.appendChild(option);
+    });
+  } catch (error) {
+    console.error(
+      'Konnte Theme-Liste nicht abrufen oder Dropdown befüllen:',
+      error,
+    );
+    // Fehlerbehandlung in der UI, falls die Kommunikation fehlschlägt
+  }
+});
+
+// Dropdownliste aktualisiert das Theme des ausgewählten Songs
+const themeSelector = document.getElementById('theme-selector');
+
+themeSelector.addEventListener('change', async (event) => {
+    // 1. Prüfen, ob ein Song ausgewählt ist
+    if (!selectedSong) {
+        console.warn('Kein Song ausgewählt. Das Theme kann nicht zugewiesen werden.');
+        return; // Vorgang abbrechen, wenn kein Song ausgewählt ist
+    }
+
+    // 2. Den neuen Theme-Namen aus der Dropdown-Auswahl ermitteln
+    const newThemeName = event.target.value;
+
+    // 3. Den 'data-song-theme' Attributwert des ausgewählten Songs aktualisieren
+    selectedSong.setAttribute('data-song-theme', newThemeName);
+
+    // 4. Das neue Theme laden und anwenden (Verwenden der vorhandenen Funktionen)
+
+    const themeData = await fetchThemeStyles(newThemeName);
+
+    if (themeData) {
+        // Wende Styles auf den Root an (ändert die Darstellung der Folien rechts)
+        applyThemeStyles(themeData, document.documentElement); 
+        
+        // Sende die Styles an das Beamer-Fenster
+        sendThemeToMain(themeData); 
+        
+        // Optional: Visuelles Feedback im UI
+        // Sie könnten hier eine kurze Nachricht anzeigen, dass das Theme angewendet wurde
+    }
+});

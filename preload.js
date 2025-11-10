@@ -18,7 +18,6 @@ contextBridge.exposeInMainWorld(
     // Besser: Lassen Sie den Main Process die FS-Operationen durchführen
     // readConfig: (path) => require('fs').readFileSync(path, 'utf-8')
 
-
     openAddSongWindow: () => ipcRenderer.send('open-add-song-window'),
     addNewSong: (songData) => ipcRenderer.invoke('add-new-song', songData),
 
@@ -35,20 +34,27 @@ contextBridge.exposeInMainWorld(
     onSongSelected: (callback) =>
       ipcRenderer.on('song-selected', (event, songData) => callback(songData)),
 
-    openSongOnBeamer: (content) => ipcRenderer.send('open-song-on-beamer', content),
+    openSongOnBeamer: (content) =>
+      ipcRenderer.send('open-song-on-beamer', content),
     onContentReceived: (callback) => {
-        // Nutzt ipcRenderer.on, um auf jede Nachricht auf dem Kanal 'load-song-content' zu hören.
-        ipcRenderer.on('load-song-content', (event, content) => callback(content));
+      // Nutzt ipcRenderer.on, um auf jede Nachricht auf dem Kanal 'load-song-content' zu hören.
+      ipcRenderer.on('load-song-content', (event, content) =>
+        callback(content),
+      );
     },
     // für Beamer Theme Styles
-    sendThemeToMain: (themeData) => ipcRenderer.send('apply-theme-styles-to-beamer', themeData),
+    sendThemeToMain: (themeData) =>
+      ipcRenderer.send('apply-theme-styles-to-beamer', themeData),
     receiveThemeFromMain: (channel, callback) => {
-        // Nur Kanäle erlauben, die vom Hauptprozess kommen (Sicherheit)
-        let validChannels = ['update-beamer-theme']; 
-        if (validChannels.includes(channel)) {
-            // Der Callback wird ausgeführt, wenn Daten auf diesem Kanal empfangen werden
-            ipcRenderer.on(channel, (event, ...args) => callback(...args));
-        }
-    }
+      // Nur Kanäle erlauben, die vom Hauptprozess kommen (Sicherheit)
+      let validChannels = ['update-beamer-theme'];
+      if (validChannels.includes(channel)) {
+        // Der Callback wird ausgeführt, wenn Daten auf diesem Kanal empfangen werden
+        ipcRenderer.on(channel, (event, ...args) => callback(...args));
+      }
+    },
+
+    // Dropdownliste mit Themes
+    getThemes: () => ipcRenderer.invoke('get-theme-list'),
   },
 );

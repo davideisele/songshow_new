@@ -1,5 +1,6 @@
 const { app, Menu, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 // ### Datenbank-Setup mit better-sqlite3 ###
 
@@ -418,4 +419,28 @@ ipcMain.on('apply-theme-styles-to-beamer', (event, themeData) => {
         songPresentationWindow.webContents.send('update-beamer-theme', themeData);
     }
     // Wenn das Fenster nicht existiert, wird nichts gesendet (bis zum Laden).
+});
+
+
+// Dropdownliste für Themes im Hauptfenster
+ipcMain.handle('get-theme-list', async () => {
+    // Pfad zum 'themes'-Ordner (angenommen, er liegt neben main.js und index.html)
+    const themesDir = path.join(__dirname, 'themes'); 
+    
+    try {
+        const files = fs.readdirSync(themesDir);
+        
+        // Dateinamen filtern und die Dateierweiterung '.json' entfernen
+        const themeNames = files
+            .filter(file => file.endsWith('.json'))
+            .map(file => path.parse(file).name);
+            
+        // Rückgabe der Theme-Namen an den Renderer
+        return [...themeNames]; 
+        
+    } catch (error) {
+        console.error('Fehler beim Lesen des themes-Ordners:', error);
+        // Im Fehlerfall eine leere Liste zurückgeben
+        return ['default']; 
+    }
 });
