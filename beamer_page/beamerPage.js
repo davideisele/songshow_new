@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Listener registrieren
         window.electronAPI.onContentReceived((content) => {
             
-            const contentDiv = document.getElementById('song-content'); // Ersetzen Sie 'song-content' durch die ID Ihres Elements
+            const contentDiv = document.querySelector('.slide-content'); // Ersetzen Sie 'song-content' durch die ID Ihres Elements
             
             // Text in das Element einfügen (ggf. Zeilenumbrüche für HTML formatieren)
             contentDiv.innerHTML = content.replace(/\n/g, '<br>'); 

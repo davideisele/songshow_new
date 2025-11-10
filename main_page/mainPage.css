@@ -159,7 +159,7 @@ button:active {
 
 .song-slide {
     margin-bottom: 20px;
-    border-radius: 5px;
+    /* border-radius: 5px; */
     /* Der äußere Div bekommt die Label-Farbe als Hintergrund */
     /* Die spezifische Farbe wird durch .label-verse, .label-chorus etc. gesetzt */
     size: 5;
@@ -184,7 +184,7 @@ button:active {
 /* STYLES FÜR DEN INNEREN INHALTS-DIV (WEISS) */
 .slide-inner-content {
     background-color: white; /* Der innere Kasten ist Weiß */
-    padding: 15px; /* Abstand zwischen dem inneren Text und dem farbigen Rand */
+    /* padding: 15px; Abstand zwischen dem inneren Text und dem farbigen Rand */
     border-top: none; /* Kein Rahmen oben, da der Header direkt anschließt */
     height: 100%;
 }
@@ -193,6 +193,10 @@ button:active {
     /* Stellt sicher, dass der Text im inneren Bereich gut sichtbar ist */
     color: #333; 
     line-height: 1.6;
+    padding: 5%;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis; /* Optional, fügt "..." hinzu, wenn der Text abgeschnitten wird */
 }
 
 /* FARBDEFINITIONEN (Wie zuvor, jetzt als Hintergrund für .song-slide) */

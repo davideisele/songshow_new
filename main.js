@@ -1,4 +1,4 @@
-const { app, Menu, BrowserWindow, ipcMain } = require('electron');
+const { app, Menu, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
 
 // ### Datenbank-Setup mit better-sqlite3 ###
@@ -25,29 +25,28 @@ db.exec(`
 
 // IPC-Handler zum Abrufen aller Songs
 ipcMain.handle('get-all-songs', () => {
-    // Führe die Datenbankabfrage aus
-    const stmt = db.prepare('SELECT id, title, author FROM songs ORDER BY title');
-    return stmt.all();
+  // Führe die Datenbankabfrage aus
+  const stmt = db.prepare('SELECT id, title, author FROM songs ORDER BY title');
+  return stmt.all();
 });
 
 // IPC-Handler zum Abrufen eines bestimmten Songs
 ipcMain.handle('get-song-details', (event, songId) => {
-    const stmt = db.prepare('SELECT * FROM songs WHERE id = ?');
-    return stmt.get(songId);
+  const stmt = db.prepare('SELECT * FROM songs WHERE id = ?');
+  return stmt.get(songId);
 });
 
 // IPC-Handler zum Löschen eines Songs
 ipcMain.handle('delete-song', (event, songId) => {
-    try {
-        const stmt = db.prepare('DELETE FROM songs WHERE id = ?');
-        const info = stmt.run(songId);
-        return { success: true, changes: info.changes };
-    } catch (error) {
-        console.error('Database DELETE error:', error);
-        return { success: false, message: error.message };
-    }
+  try {
+    const stmt = db.prepare('DELETE FROM songs WHERE id = ?');
+    const info = stmt.run(songId);
+    return { success: true, changes: info.changes };
+  } catch (error) {
+    console.error('Database DELETE error:', error);
+    return { success: false, message: error.message };
+  }
 });
-
 
 // ### Electron App Setup ###
 
@@ -83,7 +82,6 @@ app.whenReady().then(() => {
   // createAddSongWindow();
   // createSongCollectionWindow();
 
-
   // Wichtig für macOS: Wenn keine Fenster geöffnet sind, soll ein neues erstellt werden,
   // wenn das Dock-Icon angeklickt wird (nachdem das letzte Fenster geschlossen wurde).
   app.on('activate', () => {
@@ -100,7 +98,6 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
-
 
 // ### Menüleiste ###
 
@@ -152,8 +149,8 @@ const menuBar = [
         label: 'Manually',
         click: () => {
           console.log('Import "Manually" clicked');
-          if (!addSongWindow) { 
-             createAddSongWindow();
+          if (!addSongWindow) {
+            createAddSongWindow();
           }
         },
       },
@@ -162,8 +159,8 @@ const menuBar = [
         label: 'Song-Collection',
         click: () => {
           console.log('Import "Song-Collection" clicked');
-          if (!songCollectionWindow) { 
-              createSongCollectionWindow(); 
+          if (!songCollectionWindow) {
+            createSongCollectionWindow();
           }
         },
       },
@@ -186,91 +183,89 @@ let addSongWindow;
 let songCollectionWindow;
 
 function createAddSongWindow() {
+  // Erstellung eines neuen Browserfensters
+  addSongWindow = new BrowserWindow({
+    width: 600,
+    height: 850,
+    title: 'Add New Song (manually)',
+    modal: true, // Macht das Fenster modal (blockiert Hauptfenster)
 
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'), // Wichtig für IPC
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
 
-    // Erstellung eines neuen Browserfensters
-    addSongWindow = new BrowserWindow({
-        width: 600,
-        height: 850,
-        title: 'Add New Song (manually)',
-        modal: true, // Macht das Fenster modal (blockiert Hauptfenster)
+  // Lädt das Formular-HTML
+  addSongWindow.loadFile(path.join(__dirname, './other_pages/importSong.html'));
 
-        webPreferences: {
-            preload: path.join(__dirname, 'preload.js'), // Wichtig für IPC
-            nodeIntegration: false,
-            contextIsolation: true,
-        }
-    });
-
-    // Lädt das Formular-HTML
-    addSongWindow.loadFile(path.join(__dirname, './other_pages/importSong.html'));
-
-    // Entfernt das Fensterobjekt, wenn es geschlossen wird
-    addSongWindow.on('closed', () => {
-        addSongWindow = null;
-    });
+  // Entfernt das Fensterobjekt, wenn es geschlossen wird
+  addSongWindow.on('closed', () => {
+    addSongWindow = null;
+  });
 }
 
 // IPC-Handler, um das Fenster vom Hauptfenster aus zu öffnen
 ipcMain.on('open-add-song-window', () => {
-    if (!addSongWindow) {
-        createAddSongWindow();
-    }
+  if (!addSongWindow) {
+    createAddSongWindow();
+  }
 });
 
 // IPC-Handler zum Speichern eines neuen Songs
 ipcMain.handle('add-new-song', (event, songData) => {
-    try {
-        const stmt = db.prepare(`
+  try {
+    const stmt = db.prepare(`
             INSERT INTO songs (title, author, lyrics, original_order, theme) 
             VALUES (@title, @author, @lyrics, @originalOrder, @theme)
         `);
-        
-        const info = stmt.run({
-            title: songData.title,
-            author: songData.author || '',
-            lyrics: songData.lyrics,
-            originalOrder: songData.originalOrder || '',
-            theme: songData.theme || 'default'
-        });
-        
-        return { success: true, id: info.lastInsertRowid };
-    } catch (error) {
-        console.error('Database INSERT error:', error);
-        return { success: false, message: error.message };
-    }
+
+    const info = stmt.run({
+      title: songData.title,
+      author: songData.author || '',
+      lyrics: songData.lyrics,
+      originalOrder: songData.originalOrder || '',
+      theme: songData.theme || 'default',
+    });
+
+    return { success: true, id: info.lastInsertRowid };
+  } catch (error) {
+    console.error('Database INSERT error:', error);
+    return { success: false, message: error.message };
+  }
 });
-
-
 
 // Funktion zum Erstellen des Song-Collection-Fensters
 function createSongCollectionWindow() {
-    songCollectionWindow = new BrowserWindow({
-        width: 1000,
-        height: 800,
-        title: 'Song Collection Management',
-        webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
-            nodeIntegration: false,
-            contextIsolation: true,
-        }
-    });
+  songCollectionWindow = new BrowserWindow({
+    width: 1000,
+    height: 800,
+    title: 'Song Collection Management',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
 
-    // Lädt die Sammlungs-HTML
-    songCollectionWindow.loadFile(path.join(__dirname, './other_pages/songCollection.html'));
+  // Lädt die Sammlungs-HTML
+  songCollectionWindow.loadFile(
+    path.join(__dirname, './other_pages/songCollection.html'),
+  );
 
-    // Optional: Öffnet die Entwickler-Tools für dieses Fenster
-    songCollectionWindow.webContents.openDevTools();
+  // Optional: Öffnet die Entwickler-Tools für dieses Fenster
+  songCollectionWindow.webContents.openDevTools();
 
-    // Entfernt das Fensterobjekt, wenn es geschlossen wird
-    songCollectionWindow.on('closed', () => {
-        songCollectionWindow = null;
-    });
+  // Entfernt das Fensterobjekt, wenn es geschlossen wird
+  songCollectionWindow.on('closed', () => {
+    songCollectionWindow = null;
+  });
 }
 
 ipcMain.handle('update-song', (event, songData) => {
-    try {
-        const stmt = db.prepare(`
+  try {
+    const stmt = db.prepare(`
             UPDATE songs 
             SET title = @title, 
                 author = @author, 
@@ -279,79 +274,81 @@ ipcMain.handle('update-song', (event, songData) => {
                 theme = @theme
             WHERE id = @id
         `);
-        
-        const info = stmt.run({
-            id: songData.id,
-            title: songData.title,
-            author: songData.author || '',
-            lyrics: songData.lyrics,
-            originalOrder: songData.originalOrder || '',
-            theme: songData.theme || 'default'
-        });
-        
-        return { success: true, changes: info.changes };
-    } catch (error) {
-        console.error('Database UPDATE error:', error);
-        return { success: false, message: error.message };
-    }
+
+    const info = stmt.run({
+      id: songData.id,
+      title: songData.title,
+      author: songData.author || '',
+      lyrics: songData.lyrics,
+      originalOrder: songData.originalOrder || '',
+      theme: songData.theme || 'default',
+    });
+
+    return { success: true, changes: info.changes };
+  } catch (error) {
+    console.error('Database UPDATE error:', error);
+    return { success: false, message: error.message };
+  }
 });
 
 // IPC-Handler zum Abrufen der Songtexte für die Anzeige rechts
 ipcMain.handle('get-song-lyrics', (event, songId) => {
-    const stmt = db.prepare('SELECT lyrics FROM songs WHERE id = ?');
-    const result = stmt.get(songId);
-    return result ? result.lyrics : 'Lyrics not found.';
+  const stmt = db.prepare('SELECT lyrics FROM songs WHERE id = ?');
+  const result = stmt.get(songId);
+  return result ? result.lyrics : 'Lyrics not found.';
 });
 
-
-let songSelectWindow; 
+let songSelectWindow;
 
 // NEU: Funktion zum Erstellen des Song-Auswahlfensters
 function createSongSelectWindow() {
-    // Stellen Sie sicher, dass nur ein Fenster offen ist
-    if (songSelectWindow) {
-        songSelectWindow.focus();
-        return;
-    }
+  // Stellen Sie sicher, dass nur ein Fenster offen ist
+  if (songSelectWindow) {
+    songSelectWindow.focus();
+    return;
+  }
 
-    songSelectWindow = new BrowserWindow({
-        width: 500,
-        height: 350,
-        title: 'Song auswählen',
-        modal: true, 
-        parent: mainWindow, // Definiert das Hauptfenster als Elternteil
-        webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
-            nodeIntegration: false,
-            contextIsolation: true,
-        }
-    });
+  songSelectWindow = new BrowserWindow({
+    width: 500,
+    height: 350,
+    title: 'Song auswählen',
+    modal: true,
+    parent: mainWindow, // Definiert das Hauptfenster als Elternteil
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
 
-    songSelectWindow.loadFile(path.join(__dirname, './other_pages/songSelect2Add.html'));
+  songSelectWindow.loadFile(
+    path.join(__dirname, './other_pages/songSelect2Add.html'),
+  );
 
-    songSelectWindow.on('closed', () => {
-        songSelectWindow = null;
-    });
+  songSelectWindow.on('closed', () => {
+    songSelectWindow = null;
+  });
 }
 
 // NEU: IPC-Handler vom Renderer, um das Auswahlfenster zu öffnen
 ipcMain.on('open-song-select-window', () => {
-    createSongSelectWindow();
+  createSongSelectWindow();
 });
 
 // NEU: IPC-Handler vom Auswahlfenster zum Hauptfenster
 ipcMain.on('send-selected-song', (event, songData) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        // Sende die Daten an den Renderer des Hauptfensters
-        mainWindow.webContents.send('song-selected', songData);
-    }
-    // Schließe das Auswahlfenster
-    if (songSelectWindow) {
-        songSelectWindow.close();
-    }
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    // Sende die Daten an den Renderer des Hauptfensters
+    mainWindow.webContents.send('song-selected', songData);
+  }
+  // Schließe das Auswahlfenster
+  if (songSelectWindow) {
+    songSelectWindow.close();
+  }
 });
 
-// IPC-Handler zum Öffnen eines Songs auf dem Beamer-Fenster
+// ### IPC-Handler zum Öffnen eines Songs auf dem Beamer-Fenster ###
+
 let songPresentationWindow = null;
 var beamerWindow = false;
 
@@ -361,35 +358,54 @@ ipcMain.on('open-song-on-beamer', (event, content) => {
   songPresentation(content);
 });
 
-function songPresentation(content){
+function songPresentation(content) {
   if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
-      songPresentationWindow.webContents.send('load-song-content', content);
-      return;
+    songPresentationWindow.webContents.send('load-song-content', content);
+    return;
   }
 
+  const displays = screen.getAllDisplays();
+  let targetDisplay = null;
+  if (displays.length > 1) {
+    // Option 1: Wählen Sie den zweiten Bildschirm
+    targetDisplay = displays[1];
+  } else {
+    // Option 2: Es gibt nur einen Bildschirm (den primären)
+    targetDisplay = screen.getPrimaryDisplay();
+  }
+
+  // Die Koordinaten des Zielbildschirms
+  const { x, y } = targetDisplay.bounds;
+
   songPresentationWindow = new BrowserWindow({
-        width: 500,
-        height: 350,
-        title: 'Song Präsentation',
-        parent: mainWindow, // Definiert das Hauptfenster als Elternteil
-        focusable: false,
-        webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
-            nodeIntegration: false,
-            contextIsolation: true,
-        }
-    });
+    x: x,
+    y: y,
 
-    songPresentationWindow.loadFile(path.join(__dirname, './beamer_page/beamerPage.html'));
+    fullscreen: true,
+    frame: false,
+    autoHideMenuBar: true,
 
-    songPresentationWindow.webContents.on('did-finish-load', () => {
-        // Der Listener in beamerPage.js ist jetzt registriert.
-        console.log('Beamer Page hat geladen. Sende Inhalt.');
-        songPresentationWindow.webContents.send('load-song-content', content);
-    });
+    title: 'Song Präsentation',
 
-    songPresentationWindow.on('closed', () => {
-        songPresentationWindow = null;
-    });
+    focusable: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+
+  songPresentationWindow.loadFile(
+    path.join(__dirname, './beamer_page/beamerPage.html'),
+  );
+
+  songPresentationWindow.webContents.on('did-finish-load', () => {
+    // Der Listener in beamerPage.js ist jetzt registriert.
+    console.log('Beamer Page hat geladen. Sende Inhalt.');
+    songPresentationWindow.webContents.send('load-song-content', content);
+  });
+
+  songPresentationWindow.on('closed', () => {
+    songPresentationWindow = null;
+  });
 }
-
