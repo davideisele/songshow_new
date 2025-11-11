@@ -486,7 +486,10 @@ function selectSlide(slideElement) {
     // 3. Logik zum Öffnen des Beamers
     const slideContent = slideElement.querySelector('.slide-content');
     const content = slideContent.innerHTML;
+    lastSlideContent = content;
+    currentSpecialMode = 'slide';
     window.electronAPI.openSongOnBeamer(content);
+    window.electronAPI.showSlide();
 }
 
 // --- 1. Bestehender Click-Listener (für manuelle Auswahl) ---
@@ -654,5 +657,100 @@ themeSelector.addEventListener('change', async (event) => {
         
         // Optional: Visuelles Feedback im UI
         // Sie könnten hier eine kurze Nachricht anzeigen, dass das Theme angewendet wurde
+    }
+});
+
+
+// ### Button Implementation für Blackscreen, Hintergrund und Desktop anzeigen ###
+let currentSpecialMode = 'slide'; // Kann 'slide', 'black', 'background', oder 'desktop' sein
+// let lastSlideContent = ''; // Speichert den Inhalt der Folie, bevor ein Spezialmodus aktiviert wurde
+
+// Referenzen zu den neuen Buttons abrufen
+const blackScreenButton = document.getElementById('black-screen');
+const showBackgroundButton = document.getElementById('show-background');
+const showDesktopButton = document.getElementById('show-desktop');
+
+
+// --- Blackscreen Logik ---
+if (blackScreenButton) {
+    blackScreenButton.addEventListener('click', () => {
+        if (currentSpecialMode === 'black') {
+            // Zustand ist bereits Blackscreen -> Zurück zur letzten Folie
+            currentSpecialMode = 'slide';
+            window.electronAPI.showSlide();
+            console.log(currentSpecialMode);
+        } else {
+            // Zustand ist eine Folie/Hintergrund/Desktop -> Auf Blackscreen wechseln
+            currentSpecialMode = 'black';
+            // Senden Sie einen speziellen Befehl für Blackscreen an den Beamer
+            window.electronAPI.showBlackscreen(); 
+        }
+    });
+}
+
+// --- Hintergrund Logik ---
+if (showBackgroundButton) {
+    showBackgroundButton.addEventListener('click', () => {
+        if (currentSpecialMode === 'background') {
+            // Zustand ist Hintergrund -> Zurück zur letzten Folie
+            currentSpecialMode = 'slide';
+            window.electronAPI.showSlide();
+        } else {
+            // Zustand ist eine Folie/Blackscreen/Desktop -> Nur Hintergrund anzeigen
+            currentSpecialMode = 'background';
+            // Senden Sie einen speziellen Befehl, um nur den Hintergrund anzuzeigen
+            window.electronAPI.showBackgroundOnly(); 
+        }
+    });
+}
+
+// --- Desktop Logik ---
+if (showDesktopButton) {
+    showDesktopButton.addEventListener('click', () => {
+        if (currentSpecialMode === 'desktop') {
+            // Zustand ist Desktop -> Zurück zur letzten Folie
+            currentSpecialMode = 'slide';
+            window.electronAPI.showSlide();
+        } else {
+            // Zustand ist eine Folie/Blackscreen/Hintergrund -> Desktop anzeigen
+            currentSpecialMode = 'desktop';
+            // Senden Sie einen speziellen Befehl, um den Desktop anzuzeigen
+            window.electronAPI.showDesktop();
+        }
+    });
+}
+
+
+// ### Hotkey-Logik für die Main Page ###
+
+document.addEventListener('keydown', (event) => {
+    // Stellen Sie sicher, dass das Event nicht ausgeführt wird, 
+    // wenn der Benutzer gerade in ein Textfeld tippt (z.B. Suche)
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return;
+    }
+
+    // Holen Sie die Referenzen zu den Buttons, um deren Klick-Events auszulösen
+    const nextButton = document.getElementById('next-slide');
+    const prevButton = document.getElementById('prev-slide');
+
+    if (!nextButton || !prevButton) {
+        console.error('Die Navigations-Buttons wurden nicht gefunden.');
+        return;
+    }
+
+    // Pfeiltaste Rechts oder Pfeiltaste Runter (für die nächste Folie)
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        // Verhindert das Standard-Scrollen des Browsers
+        event.preventDefault(); 
+        // Löst das Klick-Event des "Nächste Folie"-Buttons aus
+        nextButton.click(); 
+    } 
+    // Pfeiltaste Links oder Pfeiltaste Hoch (für die vorherige Folie)
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        // Verhindert das Standard-Scrollen des Browsers
+        event.preventDefault();
+        // Löst das Klick-Event des "Vorherige Folie"-Buttons aus
+        prevButton.click();
     }
 });

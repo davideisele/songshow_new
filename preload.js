@@ -36,6 +36,12 @@ contextBridge.exposeInMainWorld(
 
     openSongOnBeamer: (content) =>
       ipcRenderer.send('open-song-on-beamer', content),
+
+    showBlackscreen: () => ipcRenderer.invoke('show-blackscreen'),
+    showBackgroundOnly: () => ipcRenderer.invoke('show-background-only'),
+    showDesktop: () => ipcRenderer.invoke('show-desktop'),
+    showSlide: () => ipcRenderer.invoke('show-slide'),
+
     onContentReceived: (callback) => {
       // Nutzt ipcRenderer.on, um auf jede Nachricht auf dem Kanal 'load-song-content' zu hören.
       ipcRenderer.on('load-song-content', (event, content) =>
@@ -56,5 +62,19 @@ contextBridge.exposeInMainWorld(
 
     // Dropdownliste mit Themes
     getThemes: () => ipcRenderer.invoke('get-theme-list'),
+
+    // Beamer Blackscreen/Background/Desktop Modi
+    // Methode zum Empfangen von Inhalts-Updates
+    onUpdateContent: (callback) => {
+        // Achtung: Wir entfernen Listener erst beim nächsten Aufruf, 
+        // um Memory Leaks zu verhindern.
+        ipcRenderer.removeAllListeners('update-slide-content'); 
+        ipcRenderer.on('update-slide-content', (event, content) => callback(content));
+    },
+    // Methode zum Empfangen von Modus-Befehlen
+    onSetDisplayMode: (callback) => {
+        ipcRenderer.removeAllListeners('set-display-mode'); 
+        ipcRenderer.on('set-display-mode', (event, mode) => callback(mode));
+    }
   },
 );

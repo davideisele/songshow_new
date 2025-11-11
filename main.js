@@ -376,13 +376,13 @@ function songPresentation(content) {
     x: x,
     y: y,
 
-    fullscreen: true,
-    frame: false,
+    fullscreen: false,
+    frame: true,
     autoHideMenuBar: true,
 
     title: 'Song Präsentation',
 
-    focusable: false,
+    focusable: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -443,4 +443,34 @@ ipcMain.handle('get-theme-list', async () => {
         // Im Fehlerfall eine leere Liste zurückgeben
         return ['default']; 
     }
+});
+
+
+// ### Button Implementation für Blackscreen, Hintergrund und Desktop anzeigen ###
+ipcMain.handle('show-blackscreen', () => {
+  if (songPresentationWindow) {
+    songPresentationWindow.webContents.send('set-display-mode', 'black');
+    console.log('Main-Prozess: Blackscreen angefordert');
+  }
+});
+
+ipcMain.handle('show-background-only', () => {
+  if (songPresentationWindow) {
+    songPresentationWindow.webContents.send('set-display-mode', 'background');
+    console.log('Main-Prozess: Hintergrund angefordert');
+  }
+});
+
+ipcMain.handle('show-desktop', () => {
+  if (songPresentationWindow) {
+    songPresentationWindow.webContents.send('set-display-mode', 'desktop');
+    console.log('Main-Prozess: Desktop angefordert');
+  }
+});
+
+ipcMain.handle('show-slide', () => {
+  if (songPresentationWindow) {
+    songPresentationWindow.webContents.send('set-display-mode', 'slide');
+    console.log('Main-Prozess: Slide angefordert');
+  }
 });
