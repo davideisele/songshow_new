@@ -2,6 +2,7 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 
+
 // 1. Definition der API, die dem Renderer-Prozess zur Verfügung gestellt wird
 contextBridge.exposeInMainWorld(
   // Globaler Name, unter dem die API im Renderer verfügbar ist (z.B. window.electronAPI)
@@ -75,6 +76,12 @@ contextBridge.exposeInMainWorld(
     onSetDisplayMode: (callback) => {
         ipcRenderer.removeAllListeners('set-display-mode'); 
         ipcRenderer.on('set-display-mode', (event, mode) => callback(mode));
+    },
+
+    // Hotkey Funktionen
+    loadHotkeys: () => {
+        // Ruft den Main Process auf, um die Datei zu lesen und die Daten zurückzugeben
+        return ipcRenderer.invoke('load-hotkeys-config');
     }
   },
 );

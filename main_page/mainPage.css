@@ -238,3 +238,36 @@ button:active {
     background-color: #6c757d; /* Graublau */
     color: #6c757d;
 }
+
+/* Styles für die Modis Blackscreen, Hintergrund und Desktop */
+
+/* #beamer-body {
+    background-color: var(--beamer-background-color, white);
+} */
+
+/* Modus Blackscreen */
+#beamer-body.black-mode {
+    background-color: black !important; /* Macht den gesamten Hintergrund schwarz */
+}
+#beamer-body.black-mode #slide-text-container {
+    display: none !important; /* Versteckt den Text */
+}
+
+/* Modus Hintergrund: Text wird versteckt, aber der Body-Hintergrund bleibt sichtbar */
+#beamer-body.background-mode #slide-text-container {
+    font-size: 0 !important; /* Versteckt den Text */
+}
+
+/* Modus Desktop: Alles unsichtbar machen, wenn Sie Transparenz im BrowserWindow aktiviert haben */
+#beamer-body.desktop-mode {
+    /* Angenommen, Sie haben im main.js 'transparent: true, frame: false' gesetzt */
+    background-color: transparent !important;
+}
+#beamer-body.desktop-mode #slide-text-container {
+    display: none !important;
+}
+
+/* Standard: Stellt sicher, dass der Text im normalen Modus sichtbar ist */
+#slide-text-container {
+    display: block; 
+}

@@ -376,9 +376,10 @@ function songPresentation(content) {
     x: x,
     y: y,
 
-    fullscreen: false,
-    frame: true,
+    fullscreen: true,
+    frame: false,
     autoHideMenuBar: true,
+    transparent: true,
 
     title: 'Song Präsentation',
 
@@ -450,27 +451,38 @@ ipcMain.handle('get-theme-list', async () => {
 ipcMain.handle('show-blackscreen', () => {
   if (songPresentationWindow) {
     songPresentationWindow.webContents.send('set-display-mode', 'black');
-    console.log('Main-Prozess: Blackscreen angefordert');
   }
 });
 
 ipcMain.handle('show-background-only', () => {
   if (songPresentationWindow) {
     songPresentationWindow.webContents.send('set-display-mode', 'background');
-    console.log('Main-Prozess: Hintergrund angefordert');
   }
 });
 
 ipcMain.handle('show-desktop', () => {
   if (songPresentationWindow) {
     songPresentationWindow.webContents.send('set-display-mode', 'desktop');
-    console.log('Main-Prozess: Desktop angefordert');
+
   }
 });
 
 ipcMain.handle('show-slide', () => {
   if (songPresentationWindow) {
     songPresentationWindow.webContents.send('set-display-mode', 'slide');
-    console.log('Main-Prozess: Slide angefordert');
   }
+});
+
+// ### Hotkey Laden ###
+const hotkeysPath = path.join(__dirname, 'hotkeys.json');
+
+// Listener für den Aufruf aus dem Renderer-Prozess
+ipcMain.handle('load-hotkeys-config', async (event) => {
+    try {
+        const data = fs.readFileSync(hotkeysPath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Fehler beim Laden der Hotkeys-Konfiguration:', error);
+        return {}; // Wichtig: Immer ein Fallback zurückgeben
+    }
 });

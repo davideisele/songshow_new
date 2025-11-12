@@ -8,7 +8,7 @@
 
 /* Modus Hintergrund: Text wird versteckt, aber der Body-Hintergrund bleibt sichtbar */
 #beamer-body.background-mode #slide-text-container {
-    display: none !important; /* Versteckt den Text */
+    visibility: hidden !important; /* Versteckt den Text */
 }
 
 /* Modus Desktop: Alles unsichtbar machen, wenn Sie Transparenz im BrowserWindow aktiviert haben */

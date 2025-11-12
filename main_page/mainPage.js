@@ -663,7 +663,6 @@ themeSelector.addEventListener('change', async (event) => {
 
 // ### Button Implementation für Blackscreen, Hintergrund und Desktop anzeigen ###
 let currentSpecialMode = 'slide'; // Kann 'slide', 'black', 'background', oder 'desktop' sein
-// let lastSlideContent = ''; // Speichert den Inhalt der Folie, bevor ein Spezialmodus aktiviert wurde
 
 // Referenzen zu den neuen Buttons abrufen
 const blackScreenButton = document.getElementById('black-screen');
@@ -678,7 +677,6 @@ if (blackScreenButton) {
             // Zustand ist bereits Blackscreen -> Zurück zur letzten Folie
             currentSpecialMode = 'slide';
             window.electronAPI.showSlide();
-            console.log(currentSpecialMode);
         } else {
             // Zustand ist eine Folie/Hintergrund/Desktop -> Auf Blackscreen wechseln
             currentSpecialMode = 'black';
@@ -723,34 +721,115 @@ if (showDesktopButton) {
 
 // ### Hotkey-Logik für die Main Page ###
 
+// document.addEventListener('keydown', (event) => {
+//     // Stellen Sie sicher, dass das Event nicht ausgeführt wird, 
+//     // wenn der Benutzer gerade in ein Textfeld tippt (z.B. Suche)
+//     if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+//         return;
+//     }
+
+//     // Holen Sie die Referenzen zu den Buttons, um deren Klick-Events auszulösen
+//     const nextButton = document.getElementById('next-slide');
+//     const prevButton = document.getElementById('prev-slide');
+
+//     if (!nextButton || !prevButton) {
+//         console.error('Die Navigations-Buttons wurden nicht gefunden.');
+//         return;
+//     }
+
+//     // Pfeiltaste Rechts oder Pfeiltaste Runter (für die nächste Folie)
+//     if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+//         // Verhindert das Standard-Scrollen des Browsers
+//         event.preventDefault(); 
+//         // Löst das Klick-Event des "Nächste Folie"-Buttons aus
+//         nextButton.click(); 
+//     } 
+//     // Pfeiltaste Links oder Pfeiltaste Hoch (für die vorherige Folie)
+//     else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+//         // Verhindert das Standard-Scrollen des Browsers
+//         event.preventDefault();
+//         // Löst das Klick-Event des "Vorherige Folie"-Buttons aus
+//         prevButton.click();
+//     }
+
+//     else if (event.key === ' '){
+//       event.preventDefault();
+//       blackScreenButton.click();
+//     }
+
+//     else if (event.key === 'b'){
+//       event.preventDefault();
+//       showBackgroundButton.click();
+//     }
+
+//     else if (event.key === 'd'){
+//       event.preventDefault();
+//       showDesktopButton.click();
+//     }
+// });
+
+
+let hotkeyConfig = {};
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Laden der Hotkeys über die im Preload-Skript definierte API
+    // Die 'hotkeyApi' ist durch die Context Bridge im 'window'-Objekt verfügbar
+    if (window.electronAPI && typeof window.electronAPI.loadHotkeys === 'function') {
+        hotkeyConfig = await window.electronAPI.loadHotkeys();
+        // console.log('Geladene Hotkeys:', hotkeyConfig);
+    } else {
+        console.error('hotkeyApi ist nicht verfügbar. Ist das Preload-Skript korrekt eingerichtet?');
+        // Fallback-Logik, falls das Laden fehlschlägt
+    }
+});
+
 document.addEventListener('keydown', (event) => {
-    // Stellen Sie sicher, dass das Event nicht ausgeführt wird, 
-    // wenn der Benutzer gerade in ein Textfeld tippt (z.B. Suche)
+    // ... Überprüfung, ob der Benutzer in ein Textfeld tippt (bleibt gleich)
     if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
         return;
     }
 
-    // Holen Sie die Referenzen zu den Buttons, um deren Klick-Events auszulösen
-    const nextButton = document.getElementById('next-slide');
-    const prevButton = document.getElementById('prev-slide');
+    // Verhindert das Standard-Scrollen/Verhalten des Browsers, wenn ein Hotkey erkannt wird
+    event.preventDefault(); 
+    
+    // Iterieren über die geladene Konfiguration
+    for (const action in hotkeyConfig) {
+        if (hotkeyConfig[action].includes(event.key)) {
+            let targetButton = null;
 
-    if (!nextButton || !prevButton) {
-        console.error('Die Navigations-Buttons wurden nicht gefunden.');
-        return;
-    }
+            // Mapping von Konfigurations-Aktion zu Button-ID
+            switch (action) {
+                case 'nextSlide':
+                    targetButton = document.getElementById('next-slide');
+                    // console.log('Next Slide Hotkey gedrückt' + action);
+                    break;
+                case 'prevSlide':
+                    targetButton = document.getElementById('prev-slide');
+                    break;
+                case 'toggleBlackScreen':
+                    // Stellen Sie sicher, dass Sie hier die richtige ID/Variable für blackScreenButton haben
+                    // Da Ihr ursprünglicher Code 'blackScreenButton.click()' verwendet, 
+                    // müssen Sie diese Variable in Ihrem Code definieren (z.B. durch getElementById)
+                    // Hier ein Beispiel für die Verwendung einer ID:
+                    targetButton = blackScreenButton;
+                    break;
+                case 'toggleBackground':
+                    targetButton = showBackgroundButton;
+                    break;
+                case 'toggleDesktop':
+                    targetButton = showDesktopButton;
+                    break;
+                default:
+                    console.warn(`Unbekannte Hotkey-Aktion in JSON: ${action}`);
+                    return; // Beendet die Verarbeitung für diesen Hotkey
+            }
 
-    // Pfeiltaste Rechts oder Pfeiltaste Runter (für die nächste Folie)
-    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-        // Verhindert das Standard-Scrollen des Browsers
-        event.preventDefault(); 
-        // Löst das Klick-Event des "Nächste Folie"-Buttons aus
-        nextButton.click(); 
-    } 
-    // Pfeiltaste Links oder Pfeiltaste Hoch (für die vorherige Folie)
-    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-        // Verhindert das Standard-Scrollen des Browsers
-        event.preventDefault();
-        // Löst das Klick-Event des "Vorherige Folie"-Buttons aus
-        prevButton.click();
+            if (targetButton) {
+                targetButton.click(); // Führt die Aktion aus
+                return; // Beendet die Funktion nach dem Auslösen des Hotkeys
+            } else {
+                console.error(`Der Ziel-Button für die Aktion '${action}' wurde nicht gefunden.`);
+            }
+        }
     }
 });
