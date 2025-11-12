@@ -1,13 +1,15 @@
 {
   ".slide-content": {
-    "height": "100%",
     "text-align": "center",
     "color": "#333",
-    "background-color": "white",
-    "line-height": 1.6,
-    "padding": "5%",
-    "white-space": "nowrap",
-    "overflow": "hidden",
-    "text-overflow": "ellipsis"
+    "background-color": "white"
+  },
+
+  ".translation-line": { 
+    "color": "pink",
+    "font-size": "0.9em",
+    "font-style": "italic",
+    "display": "block",
+    "margin-top": "0.1em"
   }
 }

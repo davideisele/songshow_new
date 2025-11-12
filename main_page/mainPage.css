@@ -192,14 +192,26 @@ button:active {
 
 .slide-content {
     height: 100%;
-    text-align: var(--slide-text-align, center);
-    color: var(--slide-color, white);
-    background-color: var(--slide-background-color, black); 
+    text-align: var(--slide-content-text-align, center);
+    color: var(--slide-content-color, white);
+    background-color: var(--slide-content-background-color, black); 
     line-height: 1.6;
     padding: 5%;
     white-space: nowrap; 
     overflow: hidden;
     text-overflow: ellipsis; /* Optional, fügt "..." hinzu, wenn der Text abgeschnitten wird */
+}
+
+.translation-line {
+    /* Macht die Übersetzung kursiv */
+    font-style: italic; 
+    /* Lässt die Schrift kleiner erscheinen */
+    font-size: var(--translation-line-font-size, 0.9em); 
+    /* Kann eine andere Farbe verwenden, um sie zu unterscheiden */
+    color: var(--translation-line-color, grey);
+    /* Stellt sicher, dass das <span> als Block angezeigt wird, um den Zeilenumbruch zu erzwingen, 
+       was bei Verwendung von <br> nicht nötig ist, aber bei flex/grid Layouts hilfreich sein kann */
+    /* display: block; */
 }
 
 /* MARKIERUNG DER AUSGEWÄHLTEN FOLIE */

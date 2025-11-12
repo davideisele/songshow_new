@@ -16,19 +16,47 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Funktion zum Anwenden der Theme-Styles lokal
-function applyThemeStylesToLocal(themeData, targetElement) {
-  const slideContentStyles = themeData['.slide-content'];
+// function applyThemeStylesToLocal(themeData, targetElement) {
+//   const slideContentStyles = themeData['.slide-content'];
 
-  if (slideContentStyles) {
-    for (const [property, value] of Object.entries(slideContentStyles)) {
-      console.log(
-        `Beamer Page: Setting CSS variable --slide-${property} to ${value}`,
-      );
-      const cssVariable = `--slide-${property}`;
-      targetElement.style.setProperty(cssVariable, value);
+//   if (slideContentStyles) {
+//     for (const [property, value] of Object.entries(slideContentStyles)) {
+//       console.log(
+//         `Beamer Page: Setting CSS variable --slide-${property} to ${value}`,
+//       );
+//       const cssVariable = `--slide-${property}`;
+//       targetElement.style.setProperty(cssVariable, value);
+//     }
+//   }else {
+//     console.log('Beamer Page: No .slide-content styles found in theme data.');}
+// }
+
+
+function applyThemeStylesToLocal(themeData, targetElement) {
+  // Gehen Sie alle Selektoren (Schlüssel) in der themeData durch
+  for (const selector in themeData) {
+    if (themeData.hasOwnProperty(selector)) {
+      const styles = themeData[selector];
+      
+      // Entfernen Sie das führende '.' (falls vorhanden) und bereinigen Sie den Selektor
+      // um ihn als Basis für die CSS-Variable zu verwenden.
+      // Beispiel: '.slide-content' wird zu 'slide-content'
+      //          '.translation-line' wird zu 'translation-line'
+      const baseName = selector.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+
+      // Gehen Sie die einzelnen CSS-Eigenschaften für diesen Selektor durch
+      if (styles) {
+        for (const [property, value] of Object.entries(styles)) {
+          // Erstellen Sie eine eindeutige CSS-Variable.
+          // Beispiel: --slide-content-text-align
+          // Beispiel: --translation-line-color
+          const cssVariable = `--${baseName}-${property}`;
+          
+          targetElement.style.setProperty(cssVariable, value);
+        }
+      }
     }
-  }else {
-    console.log('Beamer Page: No .slide-content styles found in theme data.');}
+  }
 }
 
 // -------------------------------------------------------------

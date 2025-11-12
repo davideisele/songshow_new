@@ -45,54 +45,6 @@ const songListContainer = document.getElementById('song-schedule');
 var playlist = [];
 var selectedSong = null;
 
-// addSongButton.addEventListener('click', () => {
-//   console.log('Add song button clicked');
-//   const newSongItem = document.createElement('button');
-//   newSongItem.classList.add('song-item');
-//   newSongItem.innerHTML = 'song ' + (playlist.length + 1);
-
-//   // Drag-and-Drop-Funktionalität hinzufügen (Start)
-//   newSongItem.setAttribute('draggable', 'true');
-//   newSongItem.addEventListener('dragstart', () => {
-//     // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen (z. B. mit geringerer Opazität)
-//     newSongItem.classList.add('dragging');
-//     draggedItem = newSongItem;
-
-//     // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
-//     placeholder = document.createElement('div');
-//     placeholder.classList.add('drag-placeholder');
-
-//     // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
-//     setTimeout(() => newSongItem.classList.add('hide'), 0);
-//   });
-
-//   newSongItem.addEventListener('dragend', () => {
-//     // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
-//     newSongItem.classList.remove('dragging');
-//     newSongItem.classList.remove('hide');
-//     draggedItem = null;
-
-//     if (placeholder && placeholder.parentNode) {
-//       placeholder.parentNode.removeChild(placeholder);
-//     }
-//     placeholder = null;
-
-//     updatePlaylistArray();
-//   });
-//   // Drag-and-Drop-Funktionalität hinzufügen (End)
-
-//   songListContainer.appendChild(newSongItem);
-//   playlist.push(newSongItem);
-// });
-
-// songListContainer.addEventListener('click', (event) => {
-//   if (event.target && event.target.classList.contains('song-item')) {
-//     // Ruft die neue Funktion auf, um die Auswahl zu verwalten
-//     selectSong(event.target);
-//     console.log('Song item clicked:', event.target.innerHTML);
-//   }
-// });
-
 async function createAndAppendSongButton(songData) {
   const newSongItem = document.createElement('button');
   newSongItem.textContent = songData.title;
@@ -164,16 +116,42 @@ async function fetchThemeStyles(themeName) {
 }
 
 // Funktion zum Anwenden der Theme-Styles
-function applyThemeStyles(themeData, targetElement) {
-  // Gehen Sie die Styles für den Selektor durch, den Sie in der JSON-Datei definiert haben
-  const slideContentStyles = themeData['.slide-content'];
+// function applyThemeStyles(themeData, targetElement) {
+//   // Gehen Sie die Styles für den Selektor durch, den Sie in der JSON-Datei definiert haben
+//   const slideContentStyles = themeData['.slide-content'];
 
-  if (slideContentStyles) {
-    // Setzen Sie jede Eigenschaft als CSS Custom Property auf dem Ziel-Element
-    for (const [property, value] of Object.entries(slideContentStyles)) {
-      // Beispiel: 'text-align' wird zu '--slide-text-align'
-      const cssVariable = `--slide-${property}`;
-      targetElement.style.setProperty(cssVariable, value);
+//   if (slideContentStyles) {
+//     // Setzen Sie jede Eigenschaft als CSS Custom Property auf dem Ziel-Element
+//     for (const [property, value] of Object.entries(slideContentStyles)) {
+//       // Beispiel: 'text-align' wird zu '--slide-text-align'
+//       const cssVariable = `--slide-${property}`;
+//       targetElement.style.setProperty(cssVariable, value);
+//     }
+//   }
+// }
+function applyThemeStyles(themeData, targetElement) {
+  // Gehen Sie alle Selektoren (Schlüssel) in der themeData durch
+  for (const selector in themeData) {
+    if (themeData.hasOwnProperty(selector)) {
+      const styles = themeData[selector];
+      
+      // Entfernen Sie das führende '.' (falls vorhanden) und bereinigen Sie den Selektor
+      // um ihn als Basis für die CSS-Variable zu verwenden.
+      // Beispiel: '.slide-content' wird zu 'slide-content'
+      //          '.translation-line' wird zu 'translation-line'
+      const baseName = selector.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+
+      // Gehen Sie die einzelnen CSS-Eigenschaften für diesen Selektor durch
+      if (styles) {
+        for (const [property, value] of Object.entries(styles)) {
+          // Erstellen Sie eine eindeutige CSS-Variable.
+          // Beispiel: --slide-content-text-align
+          // Beispiel: --translation-line-color
+          const cssVariable = `--${baseName}-${property}`;
+          
+          targetElement.style.setProperty(cssVariable, value);
+        }
+      }
     }
   }
 }
@@ -194,99 +172,144 @@ addSongButton.addEventListener('click', () => {
 
 // ** GEÄNDERT: Click-Handler wurde auf async geändert und ruft Lyrics ab **
 songListContainer.addEventListener('click', async (event) => {
-  if (event.target && event.target.classList.contains('song-item')) {
-    // Ruft die Funktion auf, um die Auswahl zu verwalten
-    selectSong(event.target);
-      
-    const songId = event.target.getAttribute('data-song-id');
-    const songTheme = event.target.getAttribute('data-song-theme');
+    if (event.target && event.target.classList.contains('song-item')) {
+        // Ruft die Funktion auf, um die Auswahl zu verwalten
+        selectSong(event.target);
 
-    if (songId) {
-      if (songTheme) {
+        const songId = event.target.getAttribute('data-song-id');
+        const songTheme = event.target.getAttribute('data-song-theme');
 
-        // Hier habe ich etwas eingefügt
-        const themeData = await fetchThemeStyles(songTheme);
+        if (songId) {
+            if (songTheme) {
+                const themeData = await fetchThemeStyles(songTheme);
 
-        if (themeData) {
-          applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
-          sendThemeToMain(themeData); // Senden Sie die Styles an das Beamer-Fenster
-        }
-      }
-
-
-      // Rufe die Lyrics aus der Datenbank ab
-      const lyrics = await window.electronAPI.getSongLyrics(songId);
-      const rightPanel = document.getElementById('right-panel');
-      const slides = lyrics.split('---').map((slide) => slide.trim());
-      let slidesHTML = '';
-      let lastLabel = '';
-      let lastLabelClass = '';
-
-      slides.forEach((slideText, index) => {
-        if (slideText) {
-          let label = ``; // Standard-Label
-          let content = slideText;
-          let labelClass = 'default-label'; // Standard-Klasse für CSS
-          let labelFound = false;
-
-          const labelMatch = slideText.match(/^\[(.*?)\]\s*[\r\n]/);
-
-          if (labelMatch) {
-            labelFound = true;
-            label = labelMatch[1].trim();
-            content = slideText.substring(labelMatch[0].length).trim();
-            const baseLabel = label.split(' ')[0].toLowerCase();
-
-            if (baseLabel.includes('verse')) {
-              labelClass = 'label-verse';
-            } else if (
-              baseLabel.includes('chorus') ||
-              baseLabel.includes('refrain')
-            ) {
-              labelClass = 'label-chorus';
-            } else if (baseLabel.includes('bridge')) {
-              labelClass = 'label-bridge';
-            } else if (
-              baseLabel.includes('intro') ||
-              baseLabel.includes('outro') ||
-              baseLabel.includes('tag')
-            ) {
-              labelClass = 'label-transition';
+                if (themeData) {
+                    applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
+                    sendThemeToMain(themeData); // Senden Sie die Styles an das Beamer-Fenster
+                }
             }
 
-            lastLabel = label;
-            lastLabelClass = labelClass;
-          } else if (lastLabel !== '') {
-            label = `${lastLabel} (...)`;
-            labelClass = lastLabelClass;
-          } else {
-          }
+            // Rufe die Lyrics aus der Datenbank ab
+            const fullLyrics = await window.electronAPI.getSongLyrics(songId);
+            const rightPanel = document.getElementById('right-panel');
 
-          const formattedText = content.replace(/\n/g, '<br>');
+            // 1. Extrahiere Originaltext und Übersetzung
+            // Der Originaltext ist alles VOR der geschweiften Klammer
+            const originalLyricsMatch = fullLyrics.match(/^(.*)\s*\{/s);
+            const originalText = originalLyricsMatch ? originalLyricsMatch[1].trim() : fullLyrics.trim();
 
-          slidesHTML += `
-          <div class="song-slide ${labelClass}" data-slide-index="${index}">
-              <div class="slide-header">
-                <p class="slide-label">${label}</p>
-              </div>
-              <div class="slide-inner-content">
-                <div class="slide-content">${formattedText}</div>
-              </div>
-            </div>
-          `;
+            // Die Übersetzung ist der Inhalt INNERHALB der geschweiften Klammern
+            const translationMatch = fullLyrics.match(/\{([\s\S]*)\}/);
+            const translationText = translationMatch ? translationMatch[1].trim() : '';
+
+            // Teile den Originaltext in Slides (basierend auf '---')
+            const originalSlides = originalText.split('---').map((slide) => slide.trim());
+
+            // Teile den Übersetzungstext in einzelne Zeilen
+            // Wichtig: Wir müssen hier die Struktur des Originaltextes ignorieren (Labels wie [Chorus]),
+            // da die Übersetzung nur die reinen Zeilen enthält.
+            const translationLines = translationText
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0); // Leere Zeilen entfernen
+
+
+            let slidesHTML = '';
+            let lastLabel = '';
+            let lastLabelClass = '';
+            let translationLineIndex = 0; // Zähler für die Zeilen der Übersetzung
+
+            // 2. Verarbeite die Original-Slides und synchronisiere die Übersetzung
+            originalSlides.forEach((slideText, index) => {
+                if (slideText) {
+                    let label = ``; // Standard-Label
+                    let content = slideText;
+                    let labelClass = 'default-label'; // Standard-Klasse für CSS
+                    let labelFound = false;
+
+                    const labelMatch = slideText.match(/^\[(.*?)\]\s*[\r\n]/);
+
+                    // Extrahiere das Label und den reinen Inhalt
+                    if (labelMatch) {
+                        labelFound = true;
+                        label = labelMatch[1].trim();
+                        content = slideText.substring(labelMatch[0].length).trim();
+                        const baseLabel = label.split(' ')[0].toLowerCase();
+
+                        // Setze die Label-Klasse
+                        if (baseLabel.includes('verse')) {
+                            labelClass = 'label-verse';
+                        } else if (
+                            baseLabel.includes('chorus') ||
+                            baseLabel.includes('refrain')
+                        ) {
+                            labelClass = 'label-chorus';
+                        } else if (baseLabel.includes('bridge')) {
+                            labelClass = 'label-bridge';
+                        } else if (
+                            baseLabel.includes('intro') ||
+                            baseLabel.includes('outro') ||
+                            baseLabel.includes('tag')
+                        ) {
+                            labelClass = 'label-transition';
+                        }
+
+                        lastLabel = label;
+                        lastLabelClass = labelClass;
+                    } else if (lastLabel !== '') {
+                        label = `${lastLabel} (...)`;
+                        labelClass = lastLabelClass;
+                    } else {
+                        // Kein Label im aktuellen Slide und auch kein vorheriges Label gefunden
+                    }
+
+                    // Teile den **bereinigten Inhalt** in Originalzeilen
+                    const originalLines = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+                    let mergedContent = [];
+
+                    // Führe Original- und Übersetzungszeilen zusammen
+                    originalLines.forEach(originalLine => {
+                        // Füge die Originalzeile hinzu
+                        mergedContent.push(originalLine);
+
+                        // Füge die entsprechende Übersetzungszeile hinzu, falls verfügbar
+                        if (translationLineIndex < translationLines.length) {
+                            // Füge die Übersetzungszeile hinzu und setze sie in ein Span mit einer Klasse,
+                            // um sie bei Bedarf anders stylen zu können (z.B. kursiv, kleiner)
+                            mergedContent.push(`<span class="translation-line">${translationLines[translationLineIndex]}</span>`);
+                            translationLineIndex++;
+                        }
+                    });
+
+                    // 3. Erzeuge das endgültige HTML
+                    // Ersetze \n durch <br> im zusammengeführten Inhalt
+                    // Da wir das Array `mergedContent` verwenden, fügen wir <br> zwischen den Zeilen ein.
+                    const formattedText = mergedContent.join('<br>');
+
+
+                    slidesHTML += `
+                        <div class="song-slide ${labelClass}" data-slide-index="${index}">
+                            <div class="slide-header">
+                                <p class="slide-label">${label}</p>
+                            </div>
+                            <div class="slide-inner-content">
+                                <div class="slide-content">${formattedText}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            if (rightPanel) {
+                rightPanel.innerHTML = `
+                    <h2>Songtext: ${event.target.textContent}</h2>
+                    <div id="slides-container">
+                        ${slidesHTML}
+                    </div>
+                `;
+            }
         }
-      });
-
-      if (rightPanel) {
-        rightPanel.innerHTML = `
-          <h2>Songtext: ${event.target.textContent}</h2>
-          <div id="slides-container">
-            ${slidesHTML}
-          </div>
-        `;
-      }
     }
-  }
 });
 
 // Funktion zum Auswählen eines Songs
@@ -721,54 +744,6 @@ if (showDesktopButton) {
 
 // ### Hotkey-Logik für die Main Page ###
 
-// document.addEventListener('keydown', (event) => {
-//     // Stellen Sie sicher, dass das Event nicht ausgeführt wird, 
-//     // wenn der Benutzer gerade in ein Textfeld tippt (z.B. Suche)
-//     if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-//         return;
-//     }
-
-//     // Holen Sie die Referenzen zu den Buttons, um deren Klick-Events auszulösen
-//     const nextButton = document.getElementById('next-slide');
-//     const prevButton = document.getElementById('prev-slide');
-
-//     if (!nextButton || !prevButton) {
-//         console.error('Die Navigations-Buttons wurden nicht gefunden.');
-//         return;
-//     }
-
-//     // Pfeiltaste Rechts oder Pfeiltaste Runter (für die nächste Folie)
-//     if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-//         // Verhindert das Standard-Scrollen des Browsers
-//         event.preventDefault(); 
-//         // Löst das Klick-Event des "Nächste Folie"-Buttons aus
-//         nextButton.click(); 
-//     } 
-//     // Pfeiltaste Links oder Pfeiltaste Hoch (für die vorherige Folie)
-//     else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-//         // Verhindert das Standard-Scrollen des Browsers
-//         event.preventDefault();
-//         // Löst das Klick-Event des "Vorherige Folie"-Buttons aus
-//         prevButton.click();
-//     }
-
-//     else if (event.key === ' '){
-//       event.preventDefault();
-//       blackScreenButton.click();
-//     }
-
-//     else if (event.key === 'b'){
-//       event.preventDefault();
-//       showBackgroundButton.click();
-//     }
-
-//     else if (event.key === 'd'){
-//       event.preventDefault();
-//       showDesktopButton.click();
-//     }
-// });
-
-
 let hotkeyConfig = {};
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -800,11 +775,11 @@ document.addEventListener('keydown', (event) => {
             // Mapping von Konfigurations-Aktion zu Button-ID
             switch (action) {
                 case 'nextSlide':
-                    targetButton = document.getElementById('next-slide');
+                    targetButton = nextButton;
                     // console.log('Next Slide Hotkey gedrückt' + action);
                     break;
                 case 'prevSlide':
-                    targetButton = document.getElementById('prev-slide');
+                    targetButton = prevButton;
                     break;
                 case 'toggleBlackScreen':
                     // Stellen Sie sicher, dass Sie hier die richtige ID/Variable für blackScreenButton haben
