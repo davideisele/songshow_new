@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./themeManager.css">
+    <title>Theme Manager</title>
+</head>
+<body>
+   <div class="selector-group">
+        <label for="theme-select">Select a Theme:</label>
+        <select id="theme-select">
+            <option value="">--- Select Theme ---</option>
+        </select>
+        <button id="add-new-theme">Add new Theme</button>
+        <button id="delete-selected-theme">Delete Selected Theme</button>
+    </div>
+    <div id="theme-details-container">
+        <h2>Theme edit</h2>
+        <form id="theme-details-form">
+            <!-- Hidden ID field to know which record to update -->
+            <input type="hidden" id="id" name="id">
+
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <div>
+                <h3>Main-Text-Settings</h3>
+                <label for="text-color">Text-Color:</label>
+                <input type="color" id="text-color" oninput="updateThemePreview(); enableControls()" value="#ffffff">
+
+                <label for="font">Font:</label>
+                <select id="slide-font-family" onchange="updateThemePreview(); enableControls()">
+                        <option value="Inter, sans-serif">Inter (Sans-Serif)</option>
+                        <option value="Georgia, serif">Georgia (Serif)</option>
+                        <option value="Courier New, monospace">Courier New (Monospace)</option>
+                    </select>
+
+                <label for="font-size">Font Size:</label>
+                <input type="number" id="font-size" name="font-size" min="8" max="72" value="12">
+
+                <label for="font-style">Font Style:</label>
+                <input type="hidden" id="font-style" name="font-style" value="">
+
+                <button type="button" id="font-bold" data-style="bold" aria-pressed="false" title="Fett (Bold)">
+                    B
+                </button>
+                <button type="button" id="font-italic" data-style="italic" aria-pressed="false" title="Kursiv (Italic)">
+                    I
+                </button>
+                <button type="button" id="font-underline" data-style="underline" aria-pressed="false" title="Unterstrichen (Underline)">
+                    U
+                </button>
+
+                <label for="font-align">Font Align:</label>
+                <select id="font-align" name="font-align" onchange="updateThemePreview(); enableControls()">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                </select>
+
+                <label for="top">Top:</label>
+                <input type="text" id="top" name="top" value="auto">
+
+                <label for="bottom">Bottom:</label>
+                <input type="text" id="bottom" name="bottom" value="auto">
+
+                <label for="left">Left:</label>
+                <input type="text" id="left" name="left" value="auto">
+
+                <label for="right">Right:</label>
+                <input type="text" id="right" name="right" value="auto">
+            </div>
+
+            <label for="background">Background</label>
+            <select name="background-option" id="background-option" onchange="toggleBackgroundOptions()">
+                <option value="color">Color</option>
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+            </select>
+
+
+            <div id="background-color-container">
+                <label for="background-color">Background Color</label>
+                <input type="color" id="background-color" oninput="updateThemePreview(); enableControls()">
+            </div>
+
+            <div id="background-image-container" style="display: none;">
+                <label for="background-image-file">Background Image</label>
+                <button id="select-image-button" type="button">Select Image</button>
+                <span id="display-image-path"></span>
+            </div>
+            <div id="background-video-container" style="display: none;">
+                <label for="background-video-file">Background Video</label>
+                <button id="select-video-button" type="button">Select Video</button>
+                <span id="display-video-path"></span>
+            </div>
+            <div>
+                <h3>Second-Language-Settings</h3>
+                <label for="second-text-color">Text-Color:</label>
+                <input type="color" id="second-text-color" oninput="updateThemePreview(); enableControls()" value="#ffffff">
+
+                <label for="second-font-family">Font:</label>
+                <select id="second-font-family" onchange="updateThemePreview(); enableControls()">
+                        <option value="Inter, sans-serif">Inter (Sans-Serif)</option>
+                        <option value="Georgia, serif">Georgia (Serif)</option>
+                        <option value="Courier New, monospace">Courier New (Monospace)</option>
+                    </select>
+
+                <label for="second-font-size">Font Size:</label>
+                <input type="number" id="second-font-size" name="second-font-size" min="8" max="72" value="12">
+
+                <label for="second-font-style">Font Style:</label>
+                <input type="hidden" id="second-font-style" name="second-font-style" value="">
+                <button type="button" id="second-font-bold" data-style="bold" aria-pressed="false" title="Fett (Bold)">
+                    B
+                </button>
+                <button type="button" id="second-font-italic" data-style="italic" aria-pressed="false" title="Kursiv (Italic)">
+                    I
+                </button>
+                <button type="button" id="second-font-underline" data-style="underline" aria-pressed="false" title="Unterstrichen (Underline)">
+                    U
+                </button>
+
+                <label for="second-font-align">Font Align:</label>
+                <select id="second-font-align" name="second-font-align" onchange="updateThemePreview(); enableControls()">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                </select>
+            </div>
+        
+            <div class="live-preview">
+            <h2 class="live-preview-text">Live Preview</h2>
+            <div id="preview">
+                <div id="preview-slide-content" class="slide-content">
+                    Dies ist ein Haupt-Text
+                </div>
+                <div id="preview-translation-line" class="translation-line">
+                    (Dies ist die Übersetzungszeile)
+                </div>
+            </div>
+        
+        </div>
+            <div class="action-buttons">
+                <button type="submit" id="save-button">Safe (Edit)</button>
+                <button type="button" id="delete-button">Delete</button>
+            </div>
+        </form>
+    </div>
+</body>
+<script src="./themeManager.js"></script>
+</html>

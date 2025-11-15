@@ -1,9 +1,9 @@
 {
+  "background-video": "../Backgrounds/14605624_1920_1080_30fps.mp4",
   ".slide-content": {
     "text-align": "center",
-    "color": "#333",
-    "font-size": "20px",
-    "background-color": "white"
+    "color": "white",
+    "background-color": "transparent"
   },
 
   ".translation-line": { 
@@ -14,3 +14,4 @@
     "margin-top": "0.1em"
   }
 }
+

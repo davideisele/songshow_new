@@ -1,6 +1,6 @@
 /* Modus Blackscreen */
 #beamer-body.black-mode {
-    background-color: black !important; /* Macht den gesamten Hintergrund schwarz */
+    background-color: #000000 !important; /* Macht den gesamten Hintergrund schwarz */
 }
 #beamer-body.black-mode #slide-text-container {
     display: none !important; /* Versteckt den Text */

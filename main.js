@@ -1,4 +1,4 @@
-const { app, Menu, BrowserWindow, ipcMain, screen } = require('electron');
+const { app, Menu, BrowserWindow, ipcMain, screen, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -81,6 +81,7 @@ app.whenReady().then(() => {
   createMenu();
   // createAddSongWindow();
   // createSongCollectionWindow();
+  createThemeManagerWindow();
 
   // Wichtig für macOS: Wenn keine Fenster geöffnet sind, soll ein neues erstellt werden,
   // wenn das Dock-Icon angeklickt wird (nachdem das letzte Fenster geschlossen wurde).
@@ -156,6 +157,14 @@ const menuBar = [
         click: () => {
           if (!songCollectionWindow) {
             createSongCollectionWindow();
+          }
+        },
+      },
+      {
+        label: 'Theme Manager',
+        click: () => {
+          if (!themeManagerWindow) {
+            createThemeManagerWindow();
           }
         },
       },
@@ -414,6 +423,7 @@ function songPresentation(content) {
 ipcMain.on('apply-theme-styles-to-beamer', (event, themeData) => {
     // 1. Speichere die Theme-Daten IMMER, wenn sie vom Hauptfenster kommen
     lastThemeData = themeData;
+    console.log("themeData in Main", themeData)
 
     // 2. Versuche, die Daten sofort zu senden, WENN das Fenster bereits existiert
     if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
@@ -447,6 +457,101 @@ ipcMain.handle('get-theme-list', async () => {
 });
 
 
+// ### Theme Manager Window ###
+
+let themeManagerWindow;
+
+function createThemeManagerWindow() {
+  // Stellen Sie sicher, dass nur ein Fenster offen ist
+  if (themeManagerWindow) {
+    themeManagerWindow.focus();
+    return;
+  }
+
+  themeManagerWindow = new BrowserWindow({
+    width: 1200,
+    height: 900,
+    title: 'Theme Manager',
+    modal: false,
+    parent: mainWindow, // Definiert das Hauptfenster als Elternteil
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+
+  themeManagerWindow.loadFile(
+    path.join(__dirname, './themeManager/themeManager.html'),
+  );
+
+  themeManagerWindow.on('closed', () => {
+    themeManagerWindow = null;
+  });
+}
+
+const themesDir = path.join(__dirname, 'themes');
+
+// --- READ (Details) ---
+ipcMain.handle('get-theme-details', async (event, themeName) => {
+    const filePath = path.join(themesDir, `${themeName}.json`);
+
+    try {
+        const data = fs.readFileSync(filePath, 'utf-8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error(`Fehler beim Laden von Theme ${themeName}:`, error);
+        throw new Error(`Theme ${themeName} konnte nicht geladen werden.`);
+    }
+});
+
+// --- CREATE / UPDATE (SAVE) ---
+ipcMain.handle('save-theme', async (event, themeData) => {
+    // Der Theme-Name wird als Dateiname verwendet
+    const themeName = themeData.name;
+    if (!themeName) {
+        throw new Error('Theme-Name fehlt in den Daten.');
+    }
+    
+    const filePath = path.join(themesDir, `${themeName}.json`);
+    
+    // Löschen des temporären 'id' Feldes, falls es existiert und nicht gespeichert werden soll
+    const dataToSave = { ...themeData };
+    if (dataToSave.id && typeof dataToSave.id === 'number') {
+        delete dataToSave.id; 
+    }
+
+    try {
+        // JSON formatiert speichern (2 Leerzeichen Einrückung)
+        fs.writeFileSync(filePath, JSON.stringify(dataToSave, null, 2), 'utf-8');
+        return { success: true, message: `Theme ${themeName} gespeichert.` };
+    } catch (error) {
+        console.error(`Fehler beim Speichern von Theme ${themeName}:`, error);
+        throw new Error(`Theme ${themeName} konnte nicht gespeichert werden.`);
+    }
+});
+
+// --- DELETE ---
+ipcMain.handle('delete-theme-file', async (event, themeName) => {
+    const filePath = path.join(themesDir, `${themeName}.json`);
+
+    try {
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            return { success: true, message: `Theme ${themeName} gelöscht.` };
+        } else {
+            throw new Error('Datei existiert nicht.');
+        }
+    } catch (error) {
+        console.error(`Fehler beim Löschen von Theme ${themeName}:`, error);
+        throw new Error(`Theme ${themeName} konnte nicht gelöscht werden.`);
+    }
+});
+
+
+
+
+
 // ### Button Implementation für Blackscreen, Hintergrund und Desktop anzeigen ###
 ipcMain.handle('show-blackscreen', () => {
   if (songPresentationWindow) {
@@ -462,7 +567,8 @@ ipcMain.handle('show-background-only', () => {
 
 ipcMain.handle('show-desktop', () => {
   if (songPresentationWindow) {
-    songPresentationWindow.webContents.send('set-display-mode', 'desktop');
+    // songPresentationWindow.webContents.send('set-display-mode', 'desktop');
+    songPresentationWindow.close();
 
   }
 });
@@ -484,5 +590,29 @@ ipcMain.handle('load-hotkeys-config', async (event) => {
     } catch (error) {
         console.error('Fehler beim Laden der Hotkeys-Konfiguration:', error);
         return {}; // Wichtig: Immer ein Fallback zurückgeben
+    }
+});
+
+// Hanler für File auswahl
+
+ipcMain.handle('dialog:openFile', async (event, type) => {
+    const properties = type === 'video' 
+        ? ['openFile'] 
+        : ['openFile']; // Sie können hier 'openFile', 'multiSelections' usw. hinzufügen
+    
+    const filters = type === 'video' 
+        ? [{ name: 'Videos', extensions: ['mp4', 'webm', 'ogg'] }] 
+        : [{ name: 'Images', extensions: ['jpg', 'png', 'gif'] }];
+
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+        properties: properties,
+        filters: filters
+    });
+
+    if (canceled) {
+        return null;
+    } else {
+        // Gibt den tatsächlichen Pfad zurück
+        return filePaths[0]; 
     }
 });

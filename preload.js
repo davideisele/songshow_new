@@ -63,6 +63,9 @@ contextBridge.exposeInMainWorld(
 
     // Dropdownliste mit Themes
     getThemes: () => ipcRenderer.invoke('get-theme-list'),
+    getThemeDetails: (themeName) => ipcRenderer.invoke('get-theme-details', themeName),
+    saveTheme: (themeData) => ipcRenderer.invoke('save-theme', themeData),
+    deleteThemeFile: (themeName) => ipcRenderer.invoke('delete-theme-file', themeName),
 
     // Beamer Blackscreen/Background/Desktop Modi
     // Methode zum Empfangen von Inhalts-Updates
@@ -82,6 +85,7 @@ contextBridge.exposeInMainWorld(
     loadHotkeys: () => {
         // Ruft den Main Process auf, um die Datei zu lesen und die Daten zurückzugeben
         return ipcRenderer.invoke('load-hotkeys-config');
-    }
+    },
+    openFileDialog: (type) => ipcRenderer.invoke('dialog:openFile', type)
   },
 );

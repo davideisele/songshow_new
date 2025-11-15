@@ -184,27 +184,55 @@ button:active {
 
 /* STYLES FÜR DEN INNEREN INHALTS-DIV (WEISS) */
 .slide-inner-content {
-    background-color: white; /* Der innere Kasten ist Weiß */
-    /* padding: 15px; Abstand zwischen dem inneren Text und dem farbigen Rand */
+    background-color: var(--slide-content-background-color, transparent);
+    --padding-left: 0px;
+    padding-left: var(--padding-left);
     border-top: none; /* Kein Rahmen oben, da der Header direkt anschließt */
     height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+.slide-inner-content.x5-large {
+    padding-left: calc(var(--padding-left)*5);
 }
 
 .slide-content {
     height: 100%;
     text-align: var(--slide-content-text-align, center);
     color: var(--slide-content-color, white);
-    background-color: var(--slide-content-background-color, black); 
+    
+    position: relative;
+    top: var(--slide-content-top, auto);
+    left: var(--slide-content-left, auto);
+    right: var(--slide-content-right, auto);
+    bottom: var(--slide-content-bottom, auto);
+    
+    font-size: var(--slide-content-font-size, 12px);
+    font-family: var(--slide-content-font-family, sans-serif);
+    font-weight: var(--slide-content-font-weight, normal);
+    font-style: var(--slide-content-font-style, normal);
+    text-decoration: var(--slide-content-text-decoration, none);
     line-height: 1.6;
     padding: 5%;
     white-space: nowrap; 
     overflow: hidden;
     text-overflow: ellipsis; /* Optional, fügt "..." hinzu, wenn der Text abgeschnitten wird */
 }
+.slide-content.x5-large {
+    font-size: calc(var(--slide-content-font-size) * 5); 
+    top: calc(var(--text-top) * 5);
+    left: calc(var(--text-left)*5);
+    right: calc(var(--text-right)*5);
+    bottom: calc(var(--text-bottom)*5);
+}
 
 .translation-line {
     /* Macht die Übersetzung kursiv */
-    font-style: italic; 
+    font-family: var(--translation-line-font-family, sans-serif);
+    font-weight: var(--translation-line-font-weight, normal);
+    font-style: var(--translation-line-font-style, normal);
+    text-decoration: var(--translation-line-text-decoration, none);
     /* Lässt die Schrift kleiner erscheinen */
     font-size: var(--translation-line-font-size, 0.9em); 
     /* Kann eine andere Farbe verwenden, um sie zu unterscheiden */
@@ -212,6 +240,28 @@ button:active {
     /* Stellt sicher, dass das <span> als Block angezeigt wird, um den Zeilenumbruch zu erzwingen, 
        was bei Verwendung von <br> nicht nötig ist, aber bei flex/grid Layouts hilfreich sein kann */
     /* display: block; */
+}
+
+.background-video {
+    /* Positionierung */
+    /* Absolute Positionierung innerhalb des .slide-content Containers */
+    position: absolute; 
+    top: 0;
+    left: 0;
+    z-index: -1; /* Legt das Video HINTER alle Inhalte von .slide-content */
+    
+    /* Größe und Skalierung (für volle Abdeckung des Elternelements) */
+    width: 100%; 
+    height: 100%; 
+    
+    /* Stellt sicher, dass das Video den gesamten Bereich ausfüllt, 
+       ohne das Seitenverhältnis zu verzerren (es wird beschnitten) */
+    object-fit: cover; 
+    
+    /* Standard-Hintergrund, falls das Video nicht lädt */
+    background-color: #333; 
+    /* Optional: Übernimmt abgerundete Ecken vom Elternelement, das in theme.json 8px hat */
+    border-radius: 8px; 
 }
 
 /* MARKIERUNG DER AUSGEWÄHLTEN FOLIE */

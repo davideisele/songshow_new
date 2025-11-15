@@ -33,30 +33,175 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 function applyThemeStylesToLocal(themeData, targetElement) {
-  // Gehen Sie alle Selektoren (Schlüssel) in der themeData durch
-  for (const selector in themeData) {
-    if (themeData.hasOwnProperty(selector)) {
-      const styles = themeData[selector];
-      
+    console.log("Beamer Page: Applying theme styles locally.", themeData);
+  // WICHTIG: Erstellen Sie eine Kopie von themeData, da wir das Objekt modifizieren.
+  const processedThemeData = JSON.parse(JSON.stringify(themeData)); 
+  console.log("Beamer Page: Processed Theme Data:", processedThemeData);
+
+  // 1. Zuerst die Video-Prüfung durchführen
+  if (processedThemeData.hasOwnProperty('background-video')) {
+    console.log("Beamer Page: Theme enthält ein Hintergrundvideo.");
+    const videoPath = processedThemeData['background-video'];
+    // Aufruf der neuen, globalen Funktion
+    handleVideoBackground(videoPath, processedThemeData); 
+    
+    // Das background-video-Objekt aus processedThemeData entfernen
+    delete processedThemeData['background-video']; 
+
+    // Wir lassen die background-color des .slide-content jetzt unberührt,
+    // damit der semi-transparente Overlay über dem globalen Video sichtbar ist.
+    
+  } else {
+    // Sicherstellen, dass alle vorhandenen Videos entfernt werden, wenn das Theme keines hat
+    removeVideoBackground();
+  }
+  
+  // Gehen Sie alle Selektoren (Schlüssel) in der processedThemeData durch
+  for (const selector in processedThemeData) {
+    if (processedThemeData.hasOwnProperty(selector)) {
+      const styles = processedThemeData[selector];
+
       // Entfernen Sie das führende '.' (falls vorhanden) und bereinigen Sie den Selektor
-      // um ihn als Basis für die CSS-Variable zu verwenden.
-      // Beispiel: '.slide-content' wird zu 'slide-content'
-      //          '.translation-line' wird zu 'translation-line'
       const baseName = selector.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
 
       // Gehen Sie die einzelnen CSS-Eigenschaften für diesen Selektor durch
       if (styles) {
         for (const [property, value] of Object.entries(styles)) {
-          // Erstellen Sie eine eindeutige CSS-Variable.
-          // Beispiel: --slide-content-text-align
-          // Beispiel: --translation-line-color
           const cssVariable = `--${baseName}-${property}`;
-          
           targetElement.style.setProperty(cssVariable, value);
         }
       }
     }
   }
+}
+
+
+/**
+ * HILFSFUNKTION: Stellt sicher, dass ein Wrapper-DIV für den reinen Text-Inhalt existiert.
+ * Dies ist notwendig, damit die Aktualisierung des Textes (innerHTML) das Video-Element nicht löscht.
+ * @param {HTMLElement} slideContentContainer - Das .slide-content Element.
+ * @returns {HTMLElement} Der Text-Wrapper.
+ */
+function ensureTextWrapper(slideContentContainer) {
+    let textWrapper = slideContentContainer.querySelector('.slide-text-wrapper');
+
+    if (!textWrapper) {
+        textWrapper = document.createElement('div');
+        textWrapper.className = 'slide-text-wrapper';
+        // Stellt sicher, dass der Text über dem .slide-content Hintergrund liegt (zIndex 1 vom Container)
+        textWrapper.style.position = 'relative'; 
+        textWrapper.style.zIndex = '2'; 
+        textWrapper.style.width = '100%';
+        textWrapper.style.height = '100%';
+
+        // Verschiebe alle NICHT-Video-Kindelemente in den neuen Wrapper
+        const childrenToMove = [];
+        Array.from(slideContentContainer.childNodes).forEach(child => {
+            // Wir ignorieren hier bewusst alle statischen <video>-Tags, falls sie noch im HTML sind.
+            if (child.nodeType !== Node.ELEMENT_NODE || (child.tagName !== 'VIDEO' && !child.classList.contains('background-video'))) {
+                childrenToMove.push(child);
+            }
+        });
+
+        // HINWEIS: Wir müssen die Nodes entfernen und dann wieder hinzufügen.
+        childrenToMove.forEach(child => {
+             // Überprüfen, ob das Kindelement noch zum Container gehört, bevor es verschoben wird
+             if (child.parentNode === slideContentContainer) {
+                 textWrapper.appendChild(child); // Verschiebt die Node
+             }
+        });
+        
+        // Füge den Wrapper dem Container hinzu
+        slideContentContainer.appendChild(textWrapper);
+    }
+    return textWrapper;
+}
+
+
+/**
+ * Erstellt oder aktualisiert das <video>-Element für den globalen Hintergrund (<body>).
+ * @param {string} videoPath - Der Pfad zur Videodatei.
+ * @param {object} themeData - Das gesamte Theme-Objekt (für background-poster, etc.).
+ */
+function handleVideoBackground(videoPath, themeData) {
+    const body = document.body;
+    const videoId = `theme-background-video-global`;
+    let videoElement = document.getElementById(videoId);
+
+    // **WICHTIG:** Stelle sicher, dass der .slide-content Wrapper für den Text existiert.
+    // Dies muss für JEDEN .slide-content Container passieren.
+    // document.querySelectorAll('.slide-content').forEach(ensureTextWrapper);
+
+    // 2. Video-Erstellung und -Injection (EINMALIG im body)
+    if (!videoElement) {
+        console.log("videolog does not exist")
+        videoElement = document.createElement('video');
+        videoElement.id = videoId;
+        videoElement.className = 'background-video'; // Klasse für das Styling (in styles.css)
+        videoElement.autoplay = true;
+        videoElement.loop = true;
+        videoElement.muted = true;
+        videoElement.playsinline = true; 
+
+        // Füge das Video als erstes Kind in den BODY ein
+        body.prepend(videoElement);
+        
+        // Sorge dafür, dass der Rest des Body-Inhalts über dem Video liegt
+        body.style.position = 'relative';
+        body.style.zIndex = '1'; 
+    }else{
+        console.log("Video Element does exist")
+    }
+    
+    // 3. Pfad-Setzung (Source-Element-Management)
+    const actualVideoPath = videoPath; 
+    
+    const source = videoElement.querySelector('source') || document.createElement('source');
+    if (!source.parentElement) {
+        videoElement.appendChild(source);
+    }
+    
+    // WICHTIGE KORREKTUR: Nur laden, wenn sich der Pfad ändert! 
+    // Dies verhindert den Neustart bei jedem Folienwechsel.
+    if (source.getAttribute('src') !== actualVideoPath) {
+        source.setAttribute('src', actualVideoPath);
+        source.setAttribute('type', 'video/mp4');
+        videoElement.load(); 
+        videoElement.play().catch(e => console.log("Video Play Error:", e)); 
+    }
+
+    if (themeData && themeData['background-poster']) {
+        videoElement.setAttribute('poster', themeData['background-poster']);
+    }
+}
+
+/**
+ * Entfernt das globale <video>-Element.
+ */
+function removeVideoBackground() {
+    const videoId = `theme-background-video-global`;
+    const videoElement = document.getElementById(videoId);
+    
+    if (videoElement) {
+        videoElement.remove();
+        
+        // Setze die body-Styles zurück
+        const body = document.body;
+        body.style.position = '';
+        body.style.zIndex = '';
+    }
+    
+    // Außerdem müssen wir die Text-Wrapper aus allen Containern entfernen, wenn kein Video mehr da ist
+    document.querySelectorAll('.slide-content').forEach(parent => {
+         const textWrapper = parent.querySelector('.slide-text-wrapper');
+         if (textWrapper) {
+             // Verschiebe den Inhalt des Wrappers zurück in den Hauptcontainer, bevor der Wrapper gelöscht wird
+             while (textWrapper.firstChild) {
+                 parent.appendChild(textWrapper.firstChild);
+             }
+             textWrapper.remove();
+         }
+    });
 }
 
 // -------------------------------------------------------------

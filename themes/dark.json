@@ -1,12 +1,22 @@
 {
+  "name": "dark",
+  "background-option": "video",
   ".slide-content": {
-    "text-align": "center",
-    "color": "white",
-    "background-color": "black"
+    "color": "#000000",
+    "background-color": "transparent",
+    "font-family": "Courier New, monospace",
+    "font-size": "12px",
+    "text-align": "left",
+    "top": "auto",
+    "bottom": "auto",
+    "left": "auto",
+    "right": "auto"
   },
   ".translation-line": {
-    "color": "red",
-    "font-size": "0.9em",
-    "font-style": "italic"
-  }
+    "color": "#b9b8ff",
+    "font-family": "Courier New, monospace",
+    "font-size": "px",
+    "text-align": "center"
+  },
+  "background-video": "/Users/d.eisele/Privat/Beamer-Projekt/songshow_new/Backgrounds/14605624_1920_1080_30fps.mp4"
 }
