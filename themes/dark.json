@@ -4,7 +4,7 @@
   ".slide-content": {
     "color": "#ffffff",
     "background-color": "#000000",
-    "font-family": "Courier New, monospace",
+    "font-family": "Inter, sans-serif",
     "font-size": "12px",
     "text-align": "left",
     "top": "auto",

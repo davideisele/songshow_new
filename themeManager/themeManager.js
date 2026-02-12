@@ -174,17 +174,19 @@ function deserializeThemeToForm(theme) {
   // 2. Sichtbarkeit der Container aktualisieren
   // Wir rufen deine existierende Funktion manuell auf
   if (typeof toggleBackgroundOptions === 'function') {
-      toggleBackgroundOptions();
+    toggleBackgroundOptions();
   }
 
   // 3. Pfade in den Spans anzeigen (falls vorhanden)
   if (bgOption === 'image' && theme['background-image']) {
-      document.getElementById('display-image-path').textContent = theme['background-image'];
-      // Wichtig: Auch die Variable für serialize wieder füllen, falls der User direkt speichert
-      localFilePaths.image = theme['background-image']; 
+    document.getElementById('display-image-path').textContent =
+      theme['background-image'];
+    // Wichtig: Auch die Variable für serialize wieder füllen, falls der User direkt speichert
+    localFilePaths.image = theme['background-image'];
   } else if (bgOption === 'video' && theme['background-video']) {
-      document.getElementById('display-video-path').textContent = theme['background-video'];
-      localFilePaths.video = theme['background-video'];
+    document.getElementById('display-video-path').textContent =
+      theme['background-video'];
+    localFilePaths.video = theme['background-video'];
   }
 
   // Live Preview aktualisieren
@@ -455,6 +457,8 @@ async function saveTheme(event) {
     await electronAPI.saveTheme(themeData);
 
     alert(`Theme "${name}" erfolgreich gespeichert.`);
+    const savedThemeName = document.getElementById('name').value;
+    window.electronAPI.notifyThemeChanged(savedThemeName);
     await loadThemeList();
 
     // Neues Theme im Dropdown auswählen, falls erfolgreich erstellt

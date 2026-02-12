@@ -759,36 +759,68 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Dropdownliste aktualisiert das Theme des ausgewählten Songs
 const themeSelector = document.getElementById('theme-selector');
 
-themeSelector.addEventListener('change', async (event) => {
-  // 1. Prüfen, ob ein Song ausgewählt ist
-  if (!selectedSong) {
-    console.warn(
-      'Kein Song ausgewählt. Das Theme kann nicht zugewiesen werden.',
-    );
-    return; // Vorgang abbrechen, wenn kein Song ausgewählt ist
-  }
+// 1. Die Logik in eine eigenständige Funktion auslagern
+async function reloadTheme(themeName) {
+  if (!selectedSong) return;
 
-  // 2. Den neuen Theme-Namen aus der Dropdown-Auswahl ermitteln
-  const newThemeName = event.target.value;
-
-  // 3. Den 'data-song-theme' Attributwert des ausgewählten Songs aktualisieren
-  selectedSong.setAttribute('data-song-theme', newThemeName);
-
-  // 4. Das neue Theme laden und anwenden (Verwenden der vorhandenen Funktionen)
-
-  const themeData = await fetchThemeStyles(newThemeName);
+  console.log(`Lade Theme neu: ${themeName}`);
+  const themeData = await fetchThemeStyles(themeName);
 
   if (themeData) {
-    // Wende Styles auf den Root an (ändert die Darstellung der Folien rechts)
     applyThemeStyles(themeData, document.documentElement);
-
-    // Sende die Styles an das Beamer-Fenster
     sendThemeToMain(themeData);
+    // Hier könntest du auch deserializeThemeToForm(themeData) aufrufen, 
+    // falls die Formularfelder sich auch aktualisieren sollen!
+  }
+}
 
-    // Optional: Visuelles Feedback im UI
-    // Sie könnten hier eine kurze Nachricht anzeigen, dass das Theme angewendet wurde
+// 2. Den Event-Listener anpassen
+themeSelector.addEventListener('change', (event) => {
+  const newThemeName = event.target.value;
+  selectedSong.setAttribute('data-song-theme', newThemeName);
+  reloadTheme(newThemeName);
+});
+
+window.electronAPI.onThemeUpdated((themeName) => {
+  console.log(`Signal empfangen: Theme ${themeName} wurde aktualisiert.`);
+  
+  // Nur neu laden, wenn das geänderte Theme auch gerade ausgewählt ist
+  if (themeSelector.value === themeName) {
+    reloadTheme(themeName);
   }
 });
+
+// # Mit einer neuen ReloadThem Logik testen und eventuell ersetzen
+// themeSelector.addEventListener('change', async (event) => {
+//   // 1. Prüfen, ob ein Song ausgewählt ist
+//   if (!selectedSong) {
+//     console.warn(
+//       'Kein Song ausgewählt. Das Theme kann nicht zugewiesen werden.',
+//     );
+//     return; // Vorgang abbrechen, wenn kein Song ausgewählt ist
+//   }
+
+//   // 2. Den neuen Theme-Namen aus der Dropdown-Auswahl ermitteln
+//   const newThemeName = event.target.value;
+
+//   // 3. Den 'data-song-theme' Attributwert des ausgewählten Songs aktualisieren
+//   selectedSong.setAttribute('data-song-theme', newThemeName);
+
+//   // 4. Das neue Theme laden und anwenden (Verwenden der vorhandenen Funktionen)
+
+//   const themeData = await fetchThemeStyles(newThemeName);
+
+//   if (themeData) {
+//     // Wende Styles auf den Root an (ändert die Darstellung der Folien rechts)
+//     applyThemeStyles(themeData, document.documentElement);
+
+//     // Sende die Styles an das Beamer-Fenster
+//     sendThemeToMain(themeData);
+
+//     // Optional: Visuelles Feedback im UI
+//     // Sie könnten hier eine kurze Nachricht anzeigen, dass das Theme angewendet wurde
+//   }
+// });
 
 // ### Button Implementation für Blackscreen, Hintergrund und Desktop anzeigen ###
 let currentSpecialMode = 'slide'; // Kann 'slide', 'black', 'background', oder 'desktop' sein

@@ -67,6 +67,14 @@ contextBridge.exposeInMainWorld(
     saveTheme: (themeData) => ipcRenderer.invoke('save-theme', themeData),
     deleteThemeFile: (themeName) => ipcRenderer.invoke('delete-theme-file', themeName),
 
+    // Theme-Dropdown im Hauptfenster aktualisieren, wenn im Theme Manager Änderungen vorgenommen wurden
+    // Nachricht vom Editor senden: "Ich bin fertig mit Speichern!"
+    notifyThemeChanged: (themeName) => ipcRenderer.send('theme-updated', themeName),
+
+    // Im Hauptfenster auf diese Nachricht warten
+    onThemeUpdated: (callback) => ipcRenderer.on('theme-updated-signal', (event, themeName) => callback(themeName)),
+
+
     // Beamer Blackscreen/Background/Desktop Modi
     // Methode zum Empfangen von Inhalts-Updates
     onUpdateContent: (callback) => {

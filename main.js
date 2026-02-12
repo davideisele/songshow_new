@@ -558,6 +558,18 @@ ipcMain.handle('delete-theme-file', async (event, themeName) => {
     }
 });
 
+// Theme-Dropdown im Hauptfenster aktualisieren, wenn im Theme Manager Änderungen vorgenommen wurden
+ipcMain.on('theme-updated', (event, themeName) => {
+  // Sende das Signal an alle offenen Fenster (Hauptfenster & Beamer)
+  // mainWindow ist die Variable deines Hauptfensters
+  mainWindow.webContents.send('theme-updated-signal', themeName);
+  
+  // Falls das Beamer-Fenster auch direkt informiert werden soll:
+  if (beamerWindow) {
+    beamerWindow.webContents.send('theme-updated-signal', themeName);
+  }
+});
+
 
 
 
