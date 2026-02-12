@@ -54,6 +54,11 @@ let mainWindow;
 
 // 1. Funktion zum Erstellen des Hauptfensters
 const createWindow = () => {
+  
+  const workerPath = path.join(__dirname, 'pdf.worker.mjs');
+  process.env.PDFJS_WORKER_SRC = workerPath;
+
+
   mainWindow = new BrowserWindow({
     width: 1388,
     height: 991,
@@ -61,6 +66,8 @@ const createWindow = () => {
       // Wichtig für Sicherheit: ermöglicht die Nutzung von Node.js-APIs im Renderer-Prozess
       // über ein Preload-Skript
       preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false, // Wichtig: Deaktiviert
+      contextIsolation: true, // Wichtig: Aktiviert
       // Damit ich HTML-Dateien in HTML einbauen kann als Webview
       webviewTag: true,
     },
@@ -81,7 +88,7 @@ app.whenReady().then(() => {
   createMenu();
   // createAddSongWindow();
   // createSongCollectionWindow();
-  createThemeManagerWindow();
+  // createThemeManagerWindow();
 
   // Wichtig für macOS: Wenn keine Fenster geöffnet sind, soll ein neues erstellt werden,
   // wenn das Dock-Icon angeklickt wird (nachdem das letzte Fenster geschlossen wurde).
@@ -615,4 +622,22 @@ ipcMain.handle('dialog:openFile', async (event, type) => {
         // Gibt den tatsächlichen Pfad zurück
         return filePaths[0]; 
     }
+});
+
+
+//  PDF Laden
+ipcMain.handle('open-pdf-select-dialog', async (event) => {
+  const result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+    properties: ['openFile'],
+    filters: [
+      { name: 'PDF-Dateien', extensions: ['pdf'] }
+    ]
+  });
+
+  if (result.canceled) {
+    return null; // Nichts ausgewählt
+  }
+  
+  // Gibt den Pfad der ersten ausgewählten Datei zurück
+  return result.filePaths[0];
 });

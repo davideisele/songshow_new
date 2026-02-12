@@ -1,9 +1,9 @@
 {
   "name": "dark",
-  "background-option": "video",
+  "background-option": "color",
   ".slide-content": {
-    "color": "#000000",
-    "background-color": "transparent",
+    "color": "#ffffff",
+    "background-color": "#000000",
     "font-family": "Courier New, monospace",
     "font-size": "12px",
     "text-align": "left",
@@ -17,6 +17,5 @@
     "font-family": "Courier New, monospace",
     "font-size": "px",
     "text-align": "center"
-  },
-  "background-video": "/Users/d.eisele/Privat/Beamer-Projekt/songshow_new/Backgrounds/14605624_1920_1080_30fps.mp4"
+  }
 }

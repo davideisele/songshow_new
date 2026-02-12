@@ -314,6 +314,13 @@ button:active {
 #beamer-body.black-mode #slide-text-container {
     display: none !important; /* Versteckt den Text */
 }
+#beamer-body.black-mode .slide-inner-content {
+    background-color: transparent !important;
+}
+/* Das Video verstecken */
+#beamer-body.black-mode .background-video {
+    display: none !important;
+}
 
 /* Modus Hintergrund: Text wird versteckt, aber der Body-Hintergrund bleibt sichtbar */
 #beamer-body.background-mode #slide-text-container {

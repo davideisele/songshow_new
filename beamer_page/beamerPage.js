@@ -246,8 +246,6 @@ function resetDisplayModes() {
 if (window.electronAPI && window.electronAPI.onSetDisplayMode) {
     window.electronAPI.onSetDisplayMode((mode) => {
         
-        console.log(`BeamerPage: Empfange Modus-Wechsel zu: ${mode}`);
-        
         // Immer alle Klassen entfernen, bevor der neue Modus gesetzt wird
         resetDisplayModes(); 
 

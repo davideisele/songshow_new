@@ -1,6 +1,10 @@
 /* Modus Blackscreen */
 #beamer-body.black-mode {
     background-color: #000000 !important; /* Macht den gesamten Hintergrund schwarz */
+    min-height: 100vh; /* Stellt sicher, dass der Body die volle Höhe des Viewports einnimmt */
+}
+#beamer-body.black-mode .slide-inner-content {
+    background-color: transparent !important;
 }
 #beamer-body.black-mode #slide-text-container {
     display: none !important; /* Versteckt den Text */
