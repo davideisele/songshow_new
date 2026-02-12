@@ -1,31 +1,31 @@
 // --- Datenstruktur-Helfer ---
 
 let localFilePaths = {
-    image: '',
-    video: ''
+  image: '',
+  video: '',
 };
 
 async function selectBackgroundImage() {
-    console.log("Select Image")
-    const filePath = await window.electronAPI.openFileDialog('image');
-    
-    if (filePath) {
-        localFilePaths.image = filePath;
-        document.getElementById('display-image-path').textContent = filePath;
-        enableControls(true); 
-    }
-};
+  console.log('Select Image');
+  const filePath = await window.electronAPI.openFileDialog('image');
+
+  if (filePath) {
+    localFilePaths.image = filePath;
+    document.getElementById('display-image-path').textContent = filePath;
+    enableControls(true);
+  }
+}
 
 async function selectBackgroundVideo() {
-    console.log("Select Video")
-    const filePath = await window.electronAPI.openFileDialog('video');
-    
-    if (filePath) {
-        localFilePaths.video = filePath;
-        document.getElementById('display-video-path').textContent = filePath;
-        enableControls(true); 
-    }
-};
+  console.log('Select Video');
+  const filePath = await window.electronAPI.openFileDialog('video');
+
+  if (filePath) {
+    localFilePaths.video = filePath;
+    document.getElementById('display-video-path').textContent = filePath;
+    enableControls(true);
+  }
+}
 
 function createEmptyTheme(name) {
   return {
@@ -75,23 +75,24 @@ function serializeFormToTheme(themeName) {
   // Hintergrund-Optionen (Anpassung für Electron)
   delete theme['background-image'];
   delete theme['background-video'];
-  
+
   if (backgroundOption === 'image') {
-      // Nutze den gespeicherten lokalen Pfad
-      const imagePath = localFilePaths.image;
-      if (imagePath) {
-          theme['background-image'] = imagePath;
-      }
+    // Nutze den gespeicherten lokalen Pfad
+    const imagePath = localFilePaths.image;
+    if (imagePath) {
+      theme['background-image'] = imagePath;
+    }
   } else if (backgroundOption === 'video') {
-      // Nutze den gespeicherten lokalen Pfad
-      const videoPath = localFilePaths.video;
-      if (videoPath) {
-          theme['background-video'] = videoPath;
-          mainText['background-color'] = 'transparent';
-          console.log("Video path set in theme:", videoPath);
-      }
-  } else if (backgroundOption === 'color'){
-      mainText['background-color'] = document.getElementById('background-color').value;
+    // Nutze den gespeicherten lokalen Pfad
+    const videoPath = localFilePaths.video;
+    if (videoPath) {
+      theme['background-video'] = videoPath;
+      mainText['background-color'] = 'transparent';
+      console.log('Video path set in theme:', videoPath);
+    }
+  } else if (backgroundOption === 'color') {
+    mainText['background-color'] =
+      document.getElementById('background-color').value;
   }
 
   // II. Haupt-Text (.slide-content) - IDs sind nun direkt im HTML
@@ -131,8 +132,9 @@ function serializeFormToTheme(themeName) {
 function deserializeThemeToForm(theme) {
   document.getElementById('id').value = theme.id || '';
   document.getElementById('name').value = theme.name || '';
-  document.getElementById('background-option').value =
-    theme['background-option'] || 'color';
+  // # Wenns klappt, kann das hier später gelöscht werden
+  // document.getElementById('background-option').value =
+  //   theme['background-option'] || 'color';
 
   // Haupt-Text
   const mainText = theme['.slide-content'] || {};
@@ -163,6 +165,27 @@ function deserializeThemeToForm(theme) {
   document.getElementById('second-font-align').value =
     secondLang['text-align'] || 'left';
   loadFontStyleButtons('second', secondLang);
+
+  // Hintergrund-Optionen
+  // 1. Wert setzen
+  const bgOption = theme['background-option'] || 'color';
+  document.getElementById('background-option').value = bgOption;
+
+  // 2. Sichtbarkeit der Container aktualisieren
+  // Wir rufen deine existierende Funktion manuell auf
+  if (typeof toggleBackgroundOptions === 'function') {
+      toggleBackgroundOptions();
+  }
+
+  // 3. Pfade in den Spans anzeigen (falls vorhanden)
+  if (bgOption === 'image' && theme['background-image']) {
+      document.getElementById('display-image-path').textContent = theme['background-image'];
+      // Wichtig: Auch die Variable für serialize wieder füllen, falls der User direkt speichert
+      localFilePaths.image = theme['background-image']; 
+  } else if (bgOption === 'video' && theme['background-video']) {
+      document.getElementById('display-video-path').textContent = theme['background-video'];
+      localFilePaths.video = theme['background-video'];
+  }
 
   // Live Preview aktualisieren
   updateThemePreview(theme);
@@ -353,7 +376,7 @@ function toggleFontStyle(event) {
   button.setAttribute('aria-pressed', !isPressed);
   updateThemePreview();
   enableControls();
-  console.log("Font style toggled", button.id);
+  console.log('Font style toggled', button.id);
 }
 
 // --- Electron IPC Interaktion (Backend) ---
@@ -559,9 +582,7 @@ function setupEventListeners() {
     .addEventListener('click', deleteTheme);
 
   // Formular Aktionen
-  document
-    .getElementById('save-button')
-    .addEventListener('click', saveTheme);
+  document.getElementById('save-button').addEventListener('click', saveTheme);
   document
     .getElementById('delete-button')
     .addEventListener('click', deleteTheme);
@@ -589,38 +610,42 @@ function setupEventListeners() {
     button.addEventListener('click', toggleFontStyle);
   });
 
-  document.getElementById('select-image-button').addEventListener('click', selectBackgroundImage);
-  document.getElementById('select-video-button').addEventListener('click', selectBackgroundVideo);
+  document
+    .getElementById('select-image-button')
+    .addEventListener('click', selectBackgroundImage);
+  document
+    .getElementById('select-video-button')
+    .addEventListener('click', selectBackgroundVideo);
 }
 
 function toggleBackgroundOptions() {
-    // Das ausgewählte Element auslesen
-    const selectElement = document.getElementById('background-option');
-    const selectedValue = selectElement.value;
+  // Das ausgewählte Element auslesen
+  const selectElement = document.getElementById('background-option');
+  const selectedValue = selectElement.value;
 
-    // Die Container-Elemente
-    const colorContainer = document.getElementById('background-color-container');
-    const imageContainer = document.getElementById('background-image-container');
-    const videoContainer = document.getElementById('background-video-container');
+  // Die Container-Elemente
+  const colorContainer = document.getElementById('background-color-container');
+  const imageContainer = document.getElementById('background-image-container');
+  const videoContainer = document.getElementById('background-video-container');
 
-    // Alle Container standardmäßig verstecken (oder 'none' setzen)
-    colorContainer.style.display = 'none';
-    imageContainer.style.display = 'none';
-    videoContainer.style.display = 'none';
+  // Alle Container standardmäßig verstecken (oder 'none' setzen)
+  colorContainer.style.display = 'none';
+  imageContainer.style.display = 'none';
+  videoContainer.style.display = 'none';
 
-    // Nur den relevanten Container anzeigen
-    if (selectedValue === 'color') {
-        colorContainer.style.display = 'block';
-    } else if (selectedValue === 'image') {
-        imageContainer.style.display = 'block';
-    } else if (selectedValue === 'video') {
-        videoContainer.style.display = 'block';
-    }
-    
-    // Optional: Die Funktionen, die du bereits im 'oninput' hattest, kannst du hier bei Bedarf auch aufrufen, 
-    // z.B. wenn eine Auswahl das Theme-Vorschaubild beeinflussen soll.
-    // updateThemePreview(); 
-    // enableControls();
+  // Nur den relevanten Container anzeigen
+  if (selectedValue === 'color') {
+    colorContainer.style.display = 'block';
+  } else if (selectedValue === 'image') {
+    imageContainer.style.display = 'block';
+  } else if (selectedValue === 'video') {
+    videoContainer.style.display = 'block';
+  }
+
+  // Optional: Die Funktionen, die du bereits im 'oninput' hattest, kannst du hier bei Bedarf auch aufrufen,
+  // z.B. wenn eine Auswahl das Theme-Vorschaubild beeinflussen soll.
+  // updateThemePreview();
+  // enableControls();
 }
 
 /**

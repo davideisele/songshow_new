@@ -88,7 +88,7 @@ app.whenReady().then(() => {
   createMenu();
   // createAddSongWindow();
   // createSongCollectionWindow();
-  // createThemeManagerWindow();
+  createThemeManagerWindow();
 
   // Wichtig für macOS: Wenn keine Fenster geöffnet sind, soll ein neues erstellt werden,
   // wenn das Dock-Icon angeklickt wird (nachdem das letzte Fenster geschlossen wurde).
@@ -495,6 +495,9 @@ function createThemeManagerWindow() {
   themeManagerWindow.on('closed', () => {
     themeManagerWindow = null;
   });
+
+  // Optional: Öffnet die Entwickler-Tools
+  themeManagerWindow.webContents.openDevTools();
 }
 
 const themesDir = path.join(__dirname, 'themes');
