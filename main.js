@@ -562,14 +562,15 @@ ipcMain.handle('delete-theme-file', async (event, themeName) => {
 ipcMain.on('theme-updated', (event, themeName) => {
   // Sende das Signal an alle offenen Fenster (Hauptfenster & Beamer)
   // mainWindow ist die Variable deines Hauptfensters
-  mainWindow.webContents.send('theme-updated-signal', themeName);
+  if (mainWindow && !mainWindow.webContents.isDestroyed()) {
+    mainWindow.webContents.send('theme-updated-signal', themeName);
+  }
   
   // Falls das Beamer-Fenster auch direkt informiert werden soll:
-  if (beamerWindow) {
-    beamerWindow.webContents.send('theme-updated-signal', themeName);
-  }
+  // if (beamerWindow && !beamerWindow.webContents.isDestroyed()) {
+  //   beamerWindow.webContents.send('theme-updated-signal', themeName);
+  // }
 });
-
 
 
 

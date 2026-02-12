@@ -388,6 +388,7 @@ function toggleFontStyle(event) {
  */
 async function loadThemeList() {
   const select = document.getElementById('theme-select');
+  const currentSelection = select.value;
   select.innerHTML = '<option value="">--- Select Theme ---</option>'; // Zurücksetzen
 
   try {
@@ -398,6 +399,10 @@ async function loadThemeList() {
       option.value = name;
       option.textContent = name;
       select.appendChild(option);
+      // Die Auswahl wiederherstellen
+      if (currentSelection) {
+        select.value = currentSelection;
+      }
     });
   } catch (error) {
     console.error('Fehler beim Laden der Theme-Liste:', error);

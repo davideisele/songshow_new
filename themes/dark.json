@@ -14,7 +14,7 @@
   },
   ".translation-line": {
     "color": "#b9b8ff",
-    "font-family": "Courier New, monospace",
+    "font-family": "Inter, sans-serif",
     "font-size": "px",
     "text-align": "center"
   }
