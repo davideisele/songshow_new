@@ -88,7 +88,7 @@ app.whenReady().then(() => {
   createMenu();
   // createAddSongWindow();
   // createSongCollectionWindow();
-  createThemeManagerWindow();
+  // createThemeManagerWindow();
 
   // Wichtig für macOS: Wenn keine Fenster geöffnet sind, soll ein neues erstellt werden,
   // wenn das Dock-Icon angeklickt wird (nachdem das letzte Fenster geschlossen wurde).
@@ -307,6 +307,12 @@ ipcMain.handle('get-song-lyrics', (event, songId) => {
   const stmt = db.prepare('SELECT lyrics FROM songs WHERE id = ?');
   const result = stmt.get(songId);
   return result ? result.lyrics : 'Lyrics not found.';
+});
+
+ipcMain.handle('get-song-order', async (event, songId) => {
+  const stmt = db.prepare('SELECT original_order FROM songs WHERE id = ?');
+  const result = stmt.get(songId);
+  return result ? result.original_order : '';
 });
 
 let songSelectWindow;

@@ -158,7 +158,7 @@ function applyThemeStyles(themeData, targetElement) {
           // Beispiel: --slide-content-text-align
           // Beispiel: --translation-line-color
           const cssVariable = `--${baseName}-${property}`;
-          console.log( "Styles",cssVariable + value)
+          console.log('Styles', cssVariable + value);
 
           targetElement.style.setProperty(cssVariable, value);
         }
@@ -168,83 +168,94 @@ function applyThemeStyles(themeData, targetElement) {
 }
 
 function handleVideoBackground(videoPath, themeData) {
-        // Wähle ALLE .slide-content Elemente
-        const slideContentContainers = document.querySelectorAll('.slide-inner-content'); 
-        
-        if (slideContentContainers.length === 0) {
-            console.warn('Kein Element mit der Klasse .slide-content gefunden. Video-Hintergrund kann nicht angewendet werden.');
-            removeVideoBackground();
-            return;
-        }
+  // Wähle ALLE .slide-content Elemente
+  const slideContentContainers = document.querySelectorAll(
+    '.slide-inner-content',
+  );
 
-        // 1. Container-Vorbereitungen und Video-Erstellung/Aktualisierung für JEDEN Container
-        slideContentContainers.forEach((slideContentContainer, index) => {
-            // Jedes Video erhält eine eindeutige ID
-            const videoId = `theme-background-video-${index}`;
-            // Suche das Video innerhalb DIESES Containers
-            let videoElement = slideContentContainer.querySelector(`#${videoId}`);
-            
-            // 1a. Container-Vorbereitungen (wichtig für absolute Positionierung des Videos)
-            slideContentContainer.style.position = 'relative';
-            slideContentContainer.style.zIndex = '1'; // Inhaltsebene
-            slideContentContainer.style.overflow = 'hidden'; 
+  if (slideContentContainers.length === 0) {
+    console.warn(
+      'Kein Element mit der Klasse .slide-content gefunden. Video-Hintergrund kann nicht angewendet werden.',
+    );
+    removeVideoBackground();
+    return;
+  }
 
-            // 1b. Video-Erstellung und -Injection
-            if (!videoElement) {
-                videoElement = document.createElement('video');
-                videoElement.id = videoId;
-                videoElement.className = 'background-video'; // Klasse für das Styling (in styles.css)
-                videoElement.autoplay = true;
-                videoElement.loop = true;
-                videoElement.muted = true;
-                videoElement.playsinline = true; 
+  // 1. Container-Vorbereitungen und Video-Erstellung/Aktualisierung für JEDEN Container
+  slideContentContainers.forEach((slideContentContainer, index) => {
+    // Jedes Video erhält eine eindeutige ID
+    const videoId = `theme-background-video-${index}`;
+    // Suche das Video innerhalb DIESES Containers
+    let videoElement = slideContentContainer.querySelector(`#${videoId}`);
 
-                // Füge das Video als erstes Kind in den Container ein (unter den Text-Inhalt)
-                slideContentContainer.prepend(videoElement);
-            }
-            
-            // 1c. Pfad-Setzung (Source-Element-Management)
-            const source = videoElement.querySelector('source') || document.createElement('source');
-            if (!source.parentElement) {
-                videoElement.appendChild(source);
-            }
-            
-            const actualVideoPath = videoPath; 
-            
-            if (source.getAttribute('src') !== actualVideoPath) {
-                source.setAttribute('src', actualVideoPath);
-                source.setAttribute('type', 'video/mp4');
-                // Das Video muss neu geladen werden, wenn sich der Pfad ändert
-                videoElement.load(); 
-            }
+    // 1a. Container-Vorbereitungen (wichtig für absolute Positionierung des Videos)
+    slideContentContainer.style.position = 'relative';
+    slideContentContainer.style.zIndex = '1'; // Inhaltsebene
+    slideContentContainer.style.overflow = 'hidden';
 
-            if (themeData && themeData['background-poster']) {
-                videoElement.setAttribute('poster', themeData['background-poster']);
-            }
-        });
-        
-        // Cleanup: Alte Videos aus vorherigen Läufen entfernen, die keine eindeutige ID haben (falls vorhanden)
-        document.querySelectorAll('video.background-video:not([id^="theme-background-video-"])').forEach(oldVideo => oldVideo.remove());
+    // 1b. Video-Erstellung und -Injection
+    if (!videoElement) {
+      videoElement = document.createElement('video');
+      videoElement.id = videoId;
+      videoElement.className = 'background-video'; // Klasse für das Styling (in styles.css)
+      videoElement.autoplay = true;
+      videoElement.loop = true;
+      videoElement.muted = true;
+      videoElement.playsinline = true;
+
+      // Füge das Video als erstes Kind in den Container ein (unter den Text-Inhalt)
+      slideContentContainer.prepend(videoElement);
     }
 
-    /**
-     * Entfernt das <video>-Element aus dem DOM.
-     */
-    function removeVideoBackground() {
-    // Finde alle Video-Elemente, die wir erstellt haben
-    const videoElements = document.querySelectorAll('[id^="theme-background-video-"]');
-    
-    videoElements.forEach(videoElement => {
-        const parent = videoElement.parentElement;
-        videoElement.remove();
-        
-        // Setze die durch JS hinzugefügten Container-Styles ZURÜCK
-        if (parent && parent.classList.contains('slide-content')) {
-             parent.style.position = '';
-             parent.style.zIndex = '';
-             parent.style.overflow = '';
-        }
-    });
+    // 1c. Pfad-Setzung (Source-Element-Management)
+    const source =
+      videoElement.querySelector('source') || document.createElement('source');
+    if (!source.parentElement) {
+      videoElement.appendChild(source);
+    }
+
+    const actualVideoPath = videoPath;
+
+    if (source.getAttribute('src') !== actualVideoPath) {
+      source.setAttribute('src', actualVideoPath);
+      source.setAttribute('type', 'video/mp4');
+      // Das Video muss neu geladen werden, wenn sich der Pfad ändert
+      videoElement.load();
+    }
+
+    if (themeData && themeData['background-poster']) {
+      videoElement.setAttribute('poster', themeData['background-poster']);
+    }
+  });
+
+  // Cleanup: Alte Videos aus vorherigen Läufen entfernen, die keine eindeutige ID haben (falls vorhanden)
+  document
+    .querySelectorAll(
+      'video.background-video:not([id^="theme-background-video-"])',
+    )
+    .forEach((oldVideo) => oldVideo.remove());
+}
+
+/**
+ * Entfernt das <video>-Element aus dem DOM.
+ */
+function removeVideoBackground() {
+  // Finde alle Video-Elemente, die wir erstellt haben
+  const videoElements = document.querySelectorAll(
+    '[id^="theme-background-video-"]',
+  );
+
+  videoElements.forEach((videoElement) => {
+    const parent = videoElement.parentElement;
+    videoElement.remove();
+
+    // Setze die durch JS hinzugefügten Container-Styles ZURÜCK
+    if (parent && parent.classList.contains('slide-content')) {
+      parent.style.position = '';
+      parent.style.zIndex = '';
+      parent.style.overflow = '';
+    }
+  });
 }
 
 // Funktion zum Anwenden der Theme-Styles auf Beamer-Fenster
@@ -315,6 +326,22 @@ songListContainer.addEventListener('click', async (event) => {
       let lastLabelClass = '';
       let translationLineIndex = 0; // Zähler für die Zeilen der Übersetzung
 
+      const originalOrder = await window.electronAPI.getSongOrder(songId);
+      const translateShort = (short) => {
+        if (short.startsWith('V')) return `Verse ${short.slice(1)}`; // V10 -> Verse 10
+        if (short.startsWith('C')) return `Chorus ${short.slice(1)}`;
+        if (short === 'T') return 'Tag';
+        if (short === 'E') return 'Ending';
+        return short; // Falls nichts passt, gib das Original zurück
+      };
+      const order = originalOrder
+        .split(/\s*,\s*/)
+        .map((short) => translateShort(short));
+
+      console.log('Original Order from DB:', order);
+
+      let slideList = [];
+
       // 2. Verarbeite die Original-Slides und synchronisiere die Übersetzung
       originalSlides.forEach((slideText, index) => {
         if (slideText) {
@@ -345,7 +372,9 @@ songListContainer.addEventListener('click', async (event) => {
             } else if (
               baseLabel.includes('intro') ||
               baseLabel.includes('outro') ||
-              baseLabel.includes('tag')
+              baseLabel.includes('tag') ||
+              baseLabel.includes('pre-chorus') ||
+              baseLabel.includes('other')
             ) {
               labelClass = 'label-transition';
             }
@@ -387,7 +416,15 @@ songListContainer.addEventListener('click', async (event) => {
           // Da wir das Array `mergedContent` verwenden, fügen wir <br> zwischen den Zeilen ein.
           const formattedText = mergedContent.join('<br>');
 
-          slidesHTML += `
+          slideList.push({
+            labelClass: labelClass,
+            index: index,
+            label: label,
+            formattedText: formattedText,
+          });
+
+          if (!originalOrder) {
+            slidesHTML += `
                         <div class="song-slide ${labelClass}" data-slide-index="${index}">
                             <div class="slide-header">
                                 <p class="slide-label">${label}</p>
@@ -397,8 +434,33 @@ songListContainer.addEventListener('click', async (event) => {
                             </div>
                         </div>
                     `;
+          }
         }
       });
+      if (originalOrder) {
+        const sortedList = order.flatMap((baseLabel) => {
+          return slideList.filter((item) => item.label.startsWith(baseLabel));
+        });
+        const finalList = sortedList.map((item, i) => ({ ...item, index: i }));
+        console.log(finalList);
+
+        finalList.forEach((item, i) => {
+          // Destructuring, um die Variablen direkt aus dem Objekt zu ziehen
+          const { labelClass, label, formattedText } = item;
+
+          // Wir nutzen i als neuen Index, damit die Slides von 0 bis Ende durchnummeriert sind
+          slidesHTML += `
+        <div class="song-slide ${labelClass}" data-slide-index="${i}">
+            <div class="slide-header">
+                <p class="slide-label">${label}</p>
+            </div>
+            <div class="slide-inner-content">
+                <div class="slide-content">${formattedText}</div>
+            </div>
+        </div>
+    `;
+        });
+      }
 
       if (rightPanel) {
         rightPanel.innerHTML = `
@@ -769,7 +831,7 @@ async function reloadTheme(themeName) {
   if (themeData) {
     applyThemeStyles(themeData, document.documentElement);
     sendThemeToMain(themeData);
-    // Hier könntest du auch deserializeThemeToForm(themeData) aufrufen, 
+    // Hier könntest du auch deserializeThemeToForm(themeData) aufrufen,
     // falls die Formularfelder sich auch aktualisieren sollen!
   }
 }
@@ -783,7 +845,7 @@ themeSelector.addEventListener('change', (event) => {
 
 window.electronAPI.onThemeUpdated((themeName) => {
   console.log(`Signal empfangen: Theme ${themeName} wurde aktualisiert.`);
-  
+
   // Nur neu laden, wenn das geänderte Theme auch gerade ausgewählt ist
   if (themeSelector.value === themeName) {
     reloadTheme(themeName);

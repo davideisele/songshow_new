@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld(
     deleteSong: (songId) => ipcRenderer.invoke('delete-song', songId),
     updateSong: (songData) => ipcRenderer.invoke('update-song', songData),
     getSongLyrics: (songId) => ipcRenderer.invoke('get-song-lyrics', songId),
+    getSongOrder: (songId) => ipcRenderer.invoke('get-song-order', songId),
 
     openSongSelectWindow: () => ipcRenderer.send('open-song-select-window'), // Hauptfenster öffnet Modal
     sendSelectedSong: (songData) =>

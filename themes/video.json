@@ -13,8 +13,8 @@
     "right": "auto"
   },
   ".translation-line": {
-    "color": "#000000",
-    "font-family": "",
+    "color": "#ffffff",
+    "font-family": "Courier New, monospace",
     "font-size": "px",
     "text-align": "left"
   },
