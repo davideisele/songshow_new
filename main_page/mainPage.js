@@ -282,14 +282,6 @@ songListContainer.addEventListener('click', async (event) => {
     const songTheme = event.target.getAttribute('data-song-theme');
 
     if (songId) {
-      if (songTheme) {
-        const themeData = await fetchThemeStyles(songTheme);
-
-        if (themeData) {
-          applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
-          sendThemeToMain(themeData); // Senden Sie die Styles an das Beamer-Fenster
-        }
-      }
 
       // Rufe die Lyrics aus der Datenbank ab
       const fullLyrics = await window.electronAPI.getSongLyrics(songId);
@@ -470,6 +462,16 @@ songListContainer.addEventListener('click', async (event) => {
                     </div>
                 `;
       }
+
+      if (songTheme) {
+        const themeData = await fetchThemeStyles(songTheme);
+
+        if (themeData) {
+          applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
+          sendThemeToMain(themeData); // Senden Sie die Styles an das Beamer-Fenster
+        }
+      }
+
     }
   }
 });
