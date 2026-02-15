@@ -272,151 +272,146 @@ addSongButton.addEventListener('click', () => {
   window.electronAPI.openSongSelectWindow();
 });
 
-// ** GEÄNDERT: Click-Handler wurde auf async geändert und ruft Lyrics ab **
-songListContainer.addEventListener('click', async (event) => {
-  if (event.target && event.target.classList.contains('song-item')) {
-    // Ruft die Funktion auf, um die Auswahl zu verwalten
-    selectSong(event.target);
+async function loadSelectedSongSlides(event) {
+  // Ruft die Funktion auf, um die Auswahl zu verwalten
+  selectSong(event.target);
 
-    const songId = event.target.getAttribute('data-song-id');
-    const songTheme = event.target.getAttribute('data-song-theme');
+  const songId = event.target.getAttribute('data-song-id');
+  const songTheme = event.target.getAttribute('data-song-theme');
 
-    if (songId) {
+  if (songId) {
+    // Rufe die Lyrics aus der Datenbank ab
+    const fullLyrics = await window.electronAPI.getSongLyrics(songId);
+    const rightPanel = document.getElementById('right-panel');
 
-      // Rufe die Lyrics aus der Datenbank ab
-      const fullLyrics = await window.electronAPI.getSongLyrics(songId);
-      const rightPanel = document.getElementById('right-panel');
+    // 1. Extrahiere Originaltext und Übersetzung
+    // Der Originaltext ist alles VOR der geschweiften Klammer
+    const originalLyricsMatch = fullLyrics.match(/^(.*)\s*\{/s);
+    const originalText = originalLyricsMatch
+      ? originalLyricsMatch[1].trim()
+      : fullLyrics.trim();
 
-      // 1. Extrahiere Originaltext und Übersetzung
-      // Der Originaltext ist alles VOR der geschweiften Klammer
-      const originalLyricsMatch = fullLyrics.match(/^(.*)\s*\{/s);
-      const originalText = originalLyricsMatch
-        ? originalLyricsMatch[1].trim()
-        : fullLyrics.trim();
+    // Die Übersetzung ist der Inhalt INNERHALB der geschweiften Klammern
+    const translationMatch = fullLyrics.match(/\{([\s\S]*)\}/);
+    const translationText = translationMatch ? translationMatch[1].trim() : '';
 
-      // Die Übersetzung ist der Inhalt INNERHALB der geschweiften Klammern
-      const translationMatch = fullLyrics.match(/\{([\s\S]*)\}/);
-      const translationText = translationMatch
-        ? translationMatch[1].trim()
-        : '';
+    // Teile den Originaltext in Slides (basierend auf '---')
+    const originalSlides = originalText
+      .split('---')
+      .map((slide) => slide.trim());
 
-      // Teile den Originaltext in Slides (basierend auf '---')
-      const originalSlides = originalText
-        .split('---')
-        .map((slide) => slide.trim());
+    // Teile den Übersetzungstext in einzelne Zeilen
+    // Wichtig: Wir müssen hier die Struktur des Originaltextes ignorieren (Labels wie [Chorus]),
+    // da die Übersetzung nur die reinen Zeilen enthält.
+    const translationLines = translationText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0); // Leere Zeilen entfernen
 
-      // Teile den Übersetzungstext in einzelne Zeilen
-      // Wichtig: Wir müssen hier die Struktur des Originaltextes ignorieren (Labels wie [Chorus]),
-      // da die Übersetzung nur die reinen Zeilen enthält.
-      const translationLines = translationText
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0); // Leere Zeilen entfernen
+    let slidesHTML = '';
+    let lastLabel = '';
+    let lastLabelClass = '';
+    let translationLineIndex = 0; // Zähler für die Zeilen der Übersetzung
 
-      let slidesHTML = '';
-      let lastLabel = '';
-      let lastLabelClass = '';
-      let translationLineIndex = 0; // Zähler für die Zeilen der Übersetzung
+    const originalOrder = await window.electronAPI.getSongOrder(songId);
+    const translateShort = (short) => {
+      if (short.startsWith('V')) return `Verse ${short.slice(1)}`; // V10 -> Verse 10
+      if (short.startsWith('C')) return `Chorus ${short.slice(1)}`;
+      if (short === 'T') return 'Tag';
+      if (short === 'E') return 'Ending';
+      return short; // Falls nichts passt, gib das Original zurück
+    };
+    const order = originalOrder
+      .split(/\s*,\s*/)
+      .map((short) => translateShort(short));
 
-      const originalOrder = await window.electronAPI.getSongOrder(songId);
-      const translateShort = (short) => {
-        if (short.startsWith('V')) return `Verse ${short.slice(1)}`; // V10 -> Verse 10
-        if (short.startsWith('C')) return `Chorus ${short.slice(1)}`;
-        if (short === 'T') return 'Tag';
-        if (short === 'E') return 'Ending';
-        return short; // Falls nichts passt, gib das Original zurück
-      };
-      const order = originalOrder
-        .split(/\s*,\s*/)
-        .map((short) => translateShort(short));
+    console.log('Original Order from DB:', order);
 
-      console.log('Original Order from DB:', order);
+    let slideList = [];
 
-      let slideList = [];
+    // 2. Verarbeite die Original-Slides und synchronisiere die Übersetzung
+    originalSlides.forEach((slideText, index) => {
+      if (slideText) {
+        let label = ``; // Standard-Label
+        let content = slideText;
+        let labelClass = 'default-label'; // Standard-Klasse für CSS
+        let labelFound = false;
 
-      // 2. Verarbeite die Original-Slides und synchronisiere die Übersetzung
-      originalSlides.forEach((slideText, index) => {
-        if (slideText) {
-          let label = ``; // Standard-Label
-          let content = slideText;
-          let labelClass = 'default-label'; // Standard-Klasse für CSS
-          let labelFound = false;
+        const labelMatch = slideText.match(/^\[(.*?)\]\s*[\r\n]/);
 
-          const labelMatch = slideText.match(/^\[(.*?)\]\s*[\r\n]/);
+        // Extrahiere das Label und den reinen Inhalt
+        if (labelMatch) {
+          labelFound = true;
+          label = labelMatch[1].trim();
+          content = slideText.substring(labelMatch[0].length).trim();
+          const baseLabel = label.split(' ')[0].toLowerCase();
 
-          // Extrahiere das Label und den reinen Inhalt
-          if (labelMatch) {
-            labelFound = true;
-            label = labelMatch[1].trim();
-            content = slideText.substring(labelMatch[0].length).trim();
-            const baseLabel = label.split(' ')[0].toLowerCase();
-
-            // Setze die Label-Klasse
-            if (baseLabel.includes('verse')) {
-              labelClass = 'label-verse';
-            } else if (
-              baseLabel.includes('chorus') ||
-              baseLabel.includes('refrain')
-            ) {
-              labelClass = 'label-chorus';
-            } else if (baseLabel.includes('bridge')) {
-              labelClass = 'label-bridge';
-            } else if (
-              baseLabel.includes('intro') ||
-              baseLabel.includes('outro') ||
-              baseLabel.includes('tag') ||
-              baseLabel.includes('pre-chorus') ||
-              baseLabel.includes('other')
-            ) {
-              labelClass = 'label-transition';
-            }
-
-            lastLabel = label;
-            lastLabelClass = labelClass;
-          } else if (lastLabel !== '') {
-            label = `${lastLabel} (...)`;
-            labelClass = lastLabelClass;
-          } else {
-            // Kein Label im aktuellen Slide und auch kein vorheriges Label gefunden
+          // Setze die Label-Klasse
+          if (baseLabel.includes('verse')) {
+            labelClass = 'label-verse';
+          } else if (
+            baseLabel.includes('chorus') ||
+            baseLabel.includes('refrain')
+          ) {
+            labelClass = 'label-chorus';
+          } else if (baseLabel.includes('bridge')) {
+            labelClass = 'label-bridge';
+          } else if (
+            baseLabel.includes('intro') ||
+            baseLabel.includes('outro') ||
+            baseLabel.includes('tag') ||
+            baseLabel.includes('pre-chorus') ||
+            baseLabel.includes('other')
+          ) {
+            labelClass = 'label-transition';
           }
 
-          // Teile den **bereinigten Inhalt** in Originalzeilen
-          const originalLines = content
-            .split('\n')
-            .map((line) => line.trim())
-            .filter((line) => line.length > 0);
-          let mergedContent = [];
+          lastLabel = label;
+          lastLabelClass = labelClass;
+        } else if (lastLabel !== '') {
+          label = `${lastLabel} (...)`;
+          labelClass = lastLabelClass;
+        } else {
+          // Kein Label im aktuellen Slide und auch kein vorheriges Label gefunden
+        }
 
-          // Führe Original- und Übersetzungszeilen zusammen
-          originalLines.forEach((originalLine) => {
-            // Füge die Originalzeile hinzu
-            mergedContent.push(originalLine);
+        // Teile den **bereinigten Inhalt** in Originalzeilen
+        const originalLines = content
+          .split('\n')
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
+        let mergedContent = [];
 
-            // Füge die entsprechende Übersetzungszeile hinzu, falls verfügbar
-            if (translationLineIndex < translationLines.length) {
-              // Füge die Übersetzungszeile hinzu und setze sie in ein Span mit einer Klasse,
-              // um sie bei Bedarf anders stylen zu können (z.B. kursiv, kleiner)
-              mergedContent.push(
-                `<span class="translation-line">${translationLines[translationLineIndex]}</span>`,
-              );
-              translationLineIndex++;
-            }
-          });
+        // Führe Original- und Übersetzungszeilen zusammen
+        originalLines.forEach((originalLine) => {
+          // Füge die Originalzeile hinzu
+          mergedContent.push(originalLine);
 
-          // 3. Erzeuge das endgültige HTML
-          // Ersetze \n durch <br> im zusammengeführten Inhalt
-          // Da wir das Array `mergedContent` verwenden, fügen wir <br> zwischen den Zeilen ein.
-          const formattedText = mergedContent.join('<br>');
+          // Füge die entsprechende Übersetzungszeile hinzu, falls verfügbar
+          if (translationLineIndex < translationLines.length) {
+            // Füge die Übersetzungszeile hinzu und setze sie in ein Span mit einer Klasse,
+            // um sie bei Bedarf anders stylen zu können (z.B. kursiv, kleiner)
+            mergedContent.push(
+              `<span class="translation-line">${translationLines[translationLineIndex]}</span>`,
+            );
+            translationLineIndex++;
+          }
+        });
 
-          slideList.push({
-            labelClass: labelClass,
-            index: index,
-            label: label,
-            formattedText: formattedText,
-          });
+        // 3. Erzeuge das endgültige HTML
+        // Ersetze \n durch <br> im zusammengeführten Inhalt
+        // Da wir das Array `mergedContent` verwenden, fügen wir <br> zwischen den Zeilen ein.
+        const formattedText = mergedContent.join('<br>');
 
-          if (!originalOrder) {
-            slidesHTML += `
+        slideList.push({
+          labelClass: labelClass,
+          index: index,
+          label: label,
+          formattedText: formattedText,
+        });
+
+        if (!originalOrder) {
+          slidesHTML += `
                         <div class="song-slide ${labelClass}" data-slide-index="${index}">
                             <div class="slide-header">
                                 <p class="slide-label">${label}</p>
@@ -426,22 +421,22 @@ songListContainer.addEventListener('click', async (event) => {
                             </div>
                         </div>
                     `;
-          }
         }
+      }
+    });
+    if (originalOrder) {
+      const sortedList = order.flatMap((baseLabel) => {
+        return slideList.filter((item) => item.label.startsWith(baseLabel));
       });
-      if (originalOrder) {
-        const sortedList = order.flatMap((baseLabel) => {
-          return slideList.filter((item) => item.label.startsWith(baseLabel));
-        });
-        const finalList = sortedList.map((item, i) => ({ ...item, index: i }));
-        console.log(finalList);
+      const finalList = sortedList.map((item, i) => ({ ...item, index: i }));
+      console.log(finalList);
 
-        finalList.forEach((item, i) => {
-          // Destructuring, um die Variablen direkt aus dem Objekt zu ziehen
-          const { labelClass, label, formattedText } = item;
+      finalList.forEach((item, i) => {
+        // Destructuring, um die Variablen direkt aus dem Objekt zu ziehen
+        const { labelClass, label, formattedText } = item;
 
-          // Wir nutzen i als neuen Index, damit die Slides von 0 bis Ende durchnummeriert sind
-          slidesHTML += `
+        // Wir nutzen i als neuen Index, damit die Slides von 0 bis Ende durchnummeriert sind
+        slidesHTML += `
         <div class="song-slide ${labelClass}" data-slide-index="${i}">
             <div class="slide-header">
                 <p class="slide-label">${label}</p>
@@ -451,28 +446,33 @@ songListContainer.addEventListener('click', async (event) => {
             </div>
         </div>
     `;
-        });
-      }
+      });
+    }
 
-      if (rightPanel) {
-        rightPanel.innerHTML = `
+    if (rightPanel) {
+      rightPanel.innerHTML = `
                     <h2>Songtext: ${event.target.textContent}</h2>
                     <div id="slides-container">
                         ${slidesHTML}
                     </div>
                 `;
-      }
-
-      if (songTheme) {
-        const themeData = await fetchThemeStyles(songTheme);
-
-        if (themeData) {
-          applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
-          sendThemeToMain(themeData); // Senden Sie die Styles an das Beamer-Fenster
-        }
-      }
-
     }
+
+    if (songTheme) {
+      const themeData = await fetchThemeStyles(songTheme);
+
+      if (themeData) {
+        applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
+        sendThemeToMain(themeData); // Senden Sie die Styles an das Beamer-Fenster
+      }
+    }
+  }
+}
+
+// ** GEÄNDERT: Click-Handler wurde auf async geändert und ruft Lyrics ab **
+songListContainer.addEventListener('click', async (event) => {
+  if (event.target && event.target.classList.contains('song-item')) {
+    loadSelectedSongSlides(event);
   }
 });
 
@@ -940,6 +940,54 @@ if (showDesktopButton) {
       window.electronAPI.showDesktop();
     }
   });
+}
+
+// ### PDF, Audio, Video Logik ###
+window.electronAPI.onPDFSelected((pdfPaths) => {
+  console.log('PDF ausgewählt:', pdfPaths);
+  pdfPaths.filePaths.forEach((pdfPath) => {
+    createAndAppendPDFButton(pdfPath);
+  });
+});
+
+// PDF-Button-Logik
+async function createAndAppendPDFButton(pdfPath) {
+  const newPDFItem = document.createElement('button');
+  newPDFItem.textContent = pdfPath.split('/').pop(); // Setze den Namen des PDFs als Text
+  newPDFItem.classList.add('pdf-item');
+  newPDFItem.setAttribute('pdf-id', pdfPath); // WICHTIG: Speichere die ID
+  // Drag-and-Drop-Funktionalität hinzufügen (Start)
+  newPDFItem.setAttribute('draggable', 'true');
+  newPDFItem.addEventListener('dragstart', () => {
+    // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen
+    newPDFItem.classList.add('dragging');
+    draggedItem = newPDFItem;
+
+    // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
+    placeholder = document.createElement('div');
+    placeholder.classList.add('drag-placeholder');
+
+    // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
+    setTimeout(() => newPDFItem.classList.add('hide'), 0);
+  });
+
+  newPDFItem.addEventListener('dragend', () => {
+    // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
+    newPDFItem.classList.remove('dragging');
+    newPDFItem.classList.remove('hide');
+    draggedItem = null;
+
+    if (placeholder && placeholder.parentNode) {
+      placeholder.parentNode.removeChild(placeholder);
+    }
+    placeholder = null;
+
+    updatePlaylistArray();
+  });
+  // Drag-and-Drop-Funktionalität hinzufügen (End)
+
+  songListContainer.appendChild(newPDFItem);
+  playlist.push(newPDFItem); // Zur internen Verfolgung hinzufügen
 }
 
 // ### Hotkey-Logik für die Main Page ###

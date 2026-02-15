@@ -1,4 +1,11 @@
-const { app, Menu, BrowserWindow, ipcMain, screen, dialog } = require('electron');
+const {
+  app,
+  Menu,
+  BrowserWindow,
+  ipcMain,
+  screen,
+  dialog,
+} = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -26,7 +33,9 @@ db.exec(`
 // IPC-Handler zum Abrufen aller Songs
 ipcMain.handle('get-all-songs', () => {
   // Führe die Datenbankabfrage aus
-  const stmt = db.prepare('SELECT id, title, author,lyrics, original_order, last_used_order, theme, last_used FROM songs ORDER BY title');
+  const stmt = db.prepare(
+    'SELECT id, title, author,lyrics, original_order, last_used_order, theme, last_used FROM songs ORDER BY title',
+  );
   return stmt.all();
 });
 
@@ -54,10 +63,8 @@ let mainWindow;
 
 // 1. Funktion zum Erstellen des Hauptfensters
 const createWindow = () => {
-  
   const workerPath = path.join(__dirname, 'pdf.worker.mjs');
   process.env.PDFJS_WORKER_SRC = workerPath;
-
 
   mainWindow = new BrowserWindow({
     width: 1388,
@@ -131,7 +138,7 @@ const menuBar = [
     : []),
   // Individuelle Menüs
   {
-    label: 'Import',
+    label: 'Songs',
     submenu: [
       {
         label: 'Form txt',
@@ -142,13 +149,11 @@ const menuBar = [
       },
       {
         label: 'Form CCLI',
-        click: () => {
-        },
+        click: () => {},
       },
       {
         label: 'Form Genius',
-        click: () => {
-        },
+        click: () => {},
       },
       {
         label: 'Manually',
@@ -173,6 +178,47 @@ const menuBar = [
           if (!themeManagerWindow) {
             createThemeManagerWindow();
           }
+        },
+      },
+    ],
+  },
+  {
+    label: 'Add',
+    submenu: [
+      {
+        label: 'PDF',
+        click: async () => {
+          const pdfPath = await dialog.showOpenDialog({
+            title: 'PDF auswählen',
+            properties: ['openFile', 'multiSelections'],
+            buttonLabel: 'PDF hinzufügen',
+            filters: [{ name: 'PDF-Dateien', extensions: ['pdf'] }],
+          });
+          if (!pdfPath.canceled && pdfPath.filePaths.length > 0) {
+            mainWindow.webContents.send('selected-pdf', pdfPath);
+          }
+        },
+      },
+      {
+        label: 'Audio',
+        click: async () => {
+          const audioPath = await dialog.showOpenDialog({
+            title: 'Audio auswählen',
+            properties: ['openFile', 'multiSelections'],
+            buttonLabel: 'Audio hinzufügen',
+            filters: [{ name: 'Audio-Dateien', extensions: ['mp3', 'wav', 'flac'] }],
+          });
+        },
+      },
+      {
+        label: 'Video',
+        click: async () => {
+          const videoPath = await dialog.showOpenDialog({
+            title: 'Video auswählen',
+            properties: ['openFile', 'multiSelections'],
+            buttonLabel: 'Video hinzufügen',
+            filters: [{ name: 'Video-Dateien', extensions: ['mp4', 'avi', 'mov'] }],
+          });
         },
       },
     ],
@@ -421,8 +467,12 @@ function songPresentation(content) {
     // Der Listener in beamerPage.js ist jetzt registriert.
     songPresentationWindow.webContents.send('load-song-content', content);
 
-    if (lastThemeData) { // 👈 Prüft, ob mainPage.js bereits Daten gesendet hat
-        songPresentationWindow.webContents.send('update-beamer-theme', lastThemeData);
+    if (lastThemeData) {
+      // 👈 Prüft, ob mainPage.js bereits Daten gesendet hat
+      songPresentationWindow.webContents.send(
+        'update-beamer-theme',
+        lastThemeData,
+      );
     } else {
     }
   });
@@ -434,41 +484,38 @@ function songPresentation(content) {
 
 // Style für das Beamer-Fenster
 ipcMain.on('apply-theme-styles-to-beamer', (event, themeData) => {
-    // 1. Speichere die Theme-Daten IMMER, wenn sie vom Hauptfenster kommen
-    lastThemeData = themeData;
-    console.log("themeData in Main", themeData)
+  // 1. Speichere die Theme-Daten IMMER, wenn sie vom Hauptfenster kommen
+  lastThemeData = themeData;
+  console.log('themeData in Main', themeData);
 
-    // 2. Versuche, die Daten sofort zu senden, WENN das Fenster bereits existiert
-    if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
-        songPresentationWindow.webContents.send('update-beamer-theme', themeData);
-    }
-    // Wenn das Fenster nicht existiert, wird nichts gesendet (bis zum Laden).
+  // 2. Versuche, die Daten sofort zu senden, WENN das Fenster bereits existiert
+  if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
+    songPresentationWindow.webContents.send('update-beamer-theme', themeData);
+  }
+  // Wenn das Fenster nicht existiert, wird nichts gesendet (bis zum Laden).
 });
-
 
 // Dropdownliste für Themes im Hauptfenster
 ipcMain.handle('get-theme-list', async () => {
-    // Pfad zum 'themes'-Ordner (angenommen, er liegt neben main.js und index.html)
-    const themesDir = path.join(__dirname, 'themes'); 
-    
-    try {
-        const files = fs.readdirSync(themesDir);
-        
-        // Dateinamen filtern und die Dateierweiterung '.json' entfernen
-        const themeNames = files
-            .filter(file => file.endsWith('.json'))
-            .map(file => path.parse(file).name);
-            
-        // Rückgabe der Theme-Namen an den Renderer
-        return [...themeNames]; 
-        
-    } catch (error) {
-        console.error('Fehler beim Lesen des themes-Ordners:', error);
-        // Im Fehlerfall eine leere Liste zurückgeben
-        return ['default']; 
-    }
-});
+  // Pfad zum 'themes'-Ordner (angenommen, er liegt neben main.js und index.html)
+  const themesDir = path.join(__dirname, 'themes');
 
+  try {
+    const files = fs.readdirSync(themesDir);
+
+    // Dateinamen filtern und die Dateierweiterung '.json' entfernen
+    const themeNames = files
+      .filter((file) => file.endsWith('.json'))
+      .map((file) => path.parse(file).name);
+
+    // Rückgabe der Theme-Namen an den Renderer
+    return [...themeNames];
+  } catch (error) {
+    console.error('Fehler beim Lesen des themes-Ordners:', error);
+    // Im Fehlerfall eine leere Liste zurückgeben
+    return ['default'];
+  }
+});
 
 // ### Theme Manager Window ###
 
@@ -510,58 +557,58 @@ const themesDir = path.join(__dirname, 'themes');
 
 // --- READ (Details) ---
 ipcMain.handle('get-theme-details', async (event, themeName) => {
-    const filePath = path.join(themesDir, `${themeName}.json`);
+  const filePath = path.join(themesDir, `${themeName}.json`);
 
-    try {
-        const data = fs.readFileSync(filePath, 'utf-8');
-        return JSON.parse(data);
-    } catch (error) {
-        console.error(`Fehler beim Laden von Theme ${themeName}:`, error);
-        throw new Error(`Theme ${themeName} konnte nicht geladen werden.`);
-    }
+  try {
+    const data = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error(`Fehler beim Laden von Theme ${themeName}:`, error);
+    throw new Error(`Theme ${themeName} konnte nicht geladen werden.`);
+  }
 });
 
 // --- CREATE / UPDATE (SAVE) ---
 ipcMain.handle('save-theme', async (event, themeData) => {
-    // Der Theme-Name wird als Dateiname verwendet
-    const themeName = themeData.name;
-    if (!themeName) {
-        throw new Error('Theme-Name fehlt in den Daten.');
-    }
-    
-    const filePath = path.join(themesDir, `${themeName}.json`);
-    
-    // Löschen des temporären 'id' Feldes, falls es existiert und nicht gespeichert werden soll
-    const dataToSave = { ...themeData };
-    if (dataToSave.id && typeof dataToSave.id === 'number') {
-        delete dataToSave.id; 
-    }
+  // Der Theme-Name wird als Dateiname verwendet
+  const themeName = themeData.name;
+  if (!themeName) {
+    throw new Error('Theme-Name fehlt in den Daten.');
+  }
 
-    try {
-        // JSON formatiert speichern (2 Leerzeichen Einrückung)
-        fs.writeFileSync(filePath, JSON.stringify(dataToSave, null, 2), 'utf-8');
-        return { success: true, message: `Theme ${themeName} gespeichert.` };
-    } catch (error) {
-        console.error(`Fehler beim Speichern von Theme ${themeName}:`, error);
-        throw new Error(`Theme ${themeName} konnte nicht gespeichert werden.`);
-    }
+  const filePath = path.join(themesDir, `${themeName}.json`);
+
+  // Löschen des temporären 'id' Feldes, falls es existiert und nicht gespeichert werden soll
+  const dataToSave = { ...themeData };
+  if (dataToSave.id && typeof dataToSave.id === 'number') {
+    delete dataToSave.id;
+  }
+
+  try {
+    // JSON formatiert speichern (2 Leerzeichen Einrückung)
+    fs.writeFileSync(filePath, JSON.stringify(dataToSave, null, 2), 'utf-8');
+    return { success: true, message: `Theme ${themeName} gespeichert.` };
+  } catch (error) {
+    console.error(`Fehler beim Speichern von Theme ${themeName}:`, error);
+    throw new Error(`Theme ${themeName} konnte nicht gespeichert werden.`);
+  }
 });
 
 // --- DELETE ---
 ipcMain.handle('delete-theme-file', async (event, themeName) => {
-    const filePath = path.join(themesDir, `${themeName}.json`);
+  const filePath = path.join(themesDir, `${themeName}.json`);
 
-    try {
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-            return { success: true, message: `Theme ${themeName} gelöscht.` };
-        } else {
-            throw new Error('Datei existiert nicht.');
-        }
-    } catch (error) {
-        console.error(`Fehler beim Löschen von Theme ${themeName}:`, error);
-        throw new Error(`Theme ${themeName} konnte nicht gelöscht werden.`);
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      return { success: true, message: `Theme ${themeName} gelöscht.` };
+    } else {
+      throw new Error('Datei existiert nicht.');
     }
+  } catch (error) {
+    console.error(`Fehler beim Löschen von Theme ${themeName}:`, error);
+    throw new Error(`Theme ${themeName} konnte nicht gelöscht werden.`);
+  }
 });
 
 // Theme-Dropdown im Hauptfenster aktualisieren, wenn im Theme Manager Änderungen vorgenommen wurden
@@ -571,15 +618,12 @@ ipcMain.on('theme-updated', (event, themeName) => {
   if (mainWindow && !mainWindow.webContents.isDestroyed()) {
     mainWindow.webContents.send('theme-updated-signal', themeName);
   }
-  
+
   // Falls das Beamer-Fenster auch direkt informiert werden soll:
   // if (beamerWindow && !beamerWindow.webContents.isDestroyed()) {
   //   beamerWindow.webContents.send('theme-updated-signal', themeName);
   // }
 });
-
-
-
 
 // ### Button Implementation für Blackscreen, Hintergrund und Desktop anzeigen ###
 ipcMain.handle('show-blackscreen', () => {
@@ -598,7 +642,6 @@ ipcMain.handle('show-desktop', () => {
   if (songPresentationWindow) {
     // songPresentationWindow.webContents.send('set-display-mode', 'desktop');
     songPresentationWindow.close();
-
   }
 });
 
@@ -613,53 +656,49 @@ const hotkeysPath = path.join(__dirname, 'hotkeys.json');
 
 // Listener für den Aufruf aus dem Renderer-Prozess
 ipcMain.handle('load-hotkeys-config', async (event) => {
-    try {
-        const data = fs.readFileSync(hotkeysPath, 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Fehler beim Laden der Hotkeys-Konfiguration:', error);
-        return {}; // Wichtig: Immer ein Fallback zurückgeben
-    }
+  try {
+    const data = fs.readFileSync(hotkeysPath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Fehler beim Laden der Hotkeys-Konfiguration:', error);
+    return {}; // Wichtig: Immer ein Fallback zurückgeben
+  }
 });
 
 // Hanler für File auswahl
 
 ipcMain.handle('dialog:openFile', async (event, type) => {
-    const properties = type === 'video' 
-        ? ['openFile'] 
-        : ['openFile']; // Sie können hier 'openFile', 'multiSelections' usw. hinzufügen
-    
-    const filters = type === 'video' 
-        ? [{ name: 'Videos', extensions: ['mp4', 'webm', 'ogg'] }] 
-        : [{ name: 'Images', extensions: ['jpg', 'png', 'gif'] }];
+  const properties = type === 'video' ? ['openFile'] : ['openFile']; // Sie können hier 'openFile', 'multiSelections' usw. hinzufügen
 
-    const { canceled, filePaths } = await dialog.showOpenDialog({
-        properties: properties,
-        filters: filters
-    });
+  const filters =
+    type === 'video'
+      ? [{ name: 'Videos', extensions: ['mp4', 'webm', 'ogg'] }]
+      : [{ name: 'Images', extensions: ['jpg', 'png', 'gif'] }];
 
-    if (canceled) {
-        return null;
-    } else {
-        // Gibt den tatsächlichen Pfad zurück
-        return filePaths[0]; 
-    }
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    properties: properties,
+    filters: filters,
+  });
+
+  if (canceled) {
+    return null;
+  } else {
+    // Gibt den tatsächlichen Pfad zurück
+    return filePaths[0];
+  }
 });
-
 
 //  PDF Laden
 ipcMain.handle('open-pdf-select-dialog', async (event) => {
   const result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
     properties: ['openFile'],
-    filters: [
-      { name: 'PDF-Dateien', extensions: ['pdf'] }
-    ]
+    filters: [{ name: 'PDF-Dateien', extensions: ['pdf'] }],
   });
 
   if (result.canceled) {
     return null; // Nichts ausgewählt
   }
-  
+
   // Gibt den Pfad der ersten ausgewählten Datei zurück
   return result.filePaths[0];
 });

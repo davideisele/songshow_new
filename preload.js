@@ -2,7 +2,6 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 
-
 // 1. Definition der API, die dem Renderer-Prozess zur Verfügung gestellt wird
 contextBridge.exposeInMainWorld(
   // Globaler Name, unter dem die API im Renderer verfügbar ist (z.B. window.electronAPI)
@@ -64,37 +63,48 @@ contextBridge.exposeInMainWorld(
 
     // Dropdownliste mit Themes
     getThemes: () => ipcRenderer.invoke('get-theme-list'),
-    getThemeDetails: (themeName) => ipcRenderer.invoke('get-theme-details', themeName),
+    getThemeDetails: (themeName) =>
+      ipcRenderer.invoke('get-theme-details', themeName),
     saveTheme: (themeData) => ipcRenderer.invoke('save-theme', themeData),
-    deleteThemeFile: (themeName) => ipcRenderer.invoke('delete-theme-file', themeName),
+    deleteThemeFile: (themeName) =>
+      ipcRenderer.invoke('delete-theme-file', themeName),
 
     // Theme-Dropdown im Hauptfenster aktualisieren, wenn im Theme Manager Änderungen vorgenommen wurden
     // Nachricht vom Editor senden: "Ich bin fertig mit Speichern!"
-    notifyThemeChanged: (themeName) => ipcRenderer.send('theme-updated', themeName),
+    notifyThemeChanged: (themeName) =>
+      ipcRenderer.send('theme-updated', themeName),
 
     // Im Hauptfenster auf diese Nachricht warten
-    onThemeUpdated: (callback) => ipcRenderer.on('theme-updated-signal', (event, themeName) => callback(themeName)),
-
+    onThemeUpdated: (callback) =>
+      ipcRenderer.on('theme-updated-signal', (event, themeName) =>
+        callback(themeName),
+      ),
 
     // Beamer Blackscreen/Background/Desktop Modi
     // Methode zum Empfangen von Inhalts-Updates
     onUpdateContent: (callback) => {
-        // Achtung: Wir entfernen Listener erst beim nächsten Aufruf, 
-        // um Memory Leaks zu verhindern.
-        ipcRenderer.removeAllListeners('update-slide-content'); 
-        ipcRenderer.on('update-slide-content', (event, content) => callback(content));
+      // Achtung: Wir entfernen Listener erst beim nächsten Aufruf,
+      // um Memory Leaks zu verhindern.
+      ipcRenderer.removeAllListeners('update-slide-content');
+      ipcRenderer.on('update-slide-content', (event, content) =>
+        callback(content),
+      );
     },
     // Methode zum Empfangen von Modus-Befehlen
     onSetDisplayMode: (callback) => {
-        ipcRenderer.removeAllListeners('set-display-mode'); 
-        ipcRenderer.on('set-display-mode', (event, mode) => callback(mode));
+      ipcRenderer.removeAllListeners('set-display-mode');
+      ipcRenderer.on('set-display-mode', (event, mode) => callback(mode));
     },
+
+    // PDF, Audio, Video hinzufügen
+    onPDFSelected: (callback) =>
+      ipcRenderer.on('selected-pdf', (event, filePaths) => callback(filePaths)),
 
     // Hotkey Funktionen
     loadHotkeys: () => {
-        // Ruft den Main Process auf, um die Datei zu lesen und die Daten zurückzugeben
-        return ipcRenderer.invoke('load-hotkeys-config');
+      // Ruft den Main Process auf, um die Datei zu lesen und die Daten zurückzugeben
+      return ipcRenderer.invoke('load-hotkeys-config');
     },
-    openFileDialog: (type) => ipcRenderer.invoke('dialog:openFile', type)
+    openFileDialog: (type) => ipcRenderer.invoke('dialog:openFile', type),
   },
 );
