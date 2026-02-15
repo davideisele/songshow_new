@@ -1,3 +1,6 @@
+import * as pdfjsLib from '../node_modules/pdfjs-dist/build/pdf.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = '../node_modules/pdfjs-dist/build/pdf.worker.mjs';
+
 // ### JavaScript für die Split-View-Funktionalität ###
 
 const splitter = document.getElementById('splitter');
@@ -473,7 +476,19 @@ async function loadSelectedSongSlides(event) {
 songListContainer.addEventListener('click', async (event) => {
   if (event.target && event.target.classList.contains('song-item')) {
     loadSelectedSongSlides(event);
-  }
+  } else if (event.target && event.target.classList.contains('pdf-item')) {
+    loadSelectedPDFContent(event);
+  } else if (event.target && event.target.classList.contains('audio-item')) {
+    console.log(
+      'Audio-Item angeklickt:',
+      event.target.getAttribute('audio-id'),
+    );
+  } else if (event.target && event.target.classList.contains('video-item')) {
+    console.log(
+      'Video-Item angeklickt:',
+      event.target.getAttribute('video-id'),
+    );
+  } 
 });
 
 // Funktion zum Auswählen eines Songs
@@ -988,6 +1003,18 @@ async function createAndAppendPDFButton(pdfPath) {
 
   songListContainer.appendChild(newPDFItem);
   playlist.push(newPDFItem); // Zur internen Verfolgung hinzufügen
+}
+
+
+async function loadSelectedPDFContent(event) {
+  const pdfPath = event.target.getAttribute('pdf-id');
+  const container = document.getElementById('right-panel');
+  container.innerHTML = '';
+  
+  // 1. PDF laden
+  const loadingPDF = pdfjsLib.getDocument(pdfPath);
+  const pdf = await loadingPDF.promise;
+  console.log(`PDF geladen: ${pdfPath} mit ${pdf.numPages} Seiten.`);
 }
 
 // ### Hotkey-Logik für die Main Page ###
