@@ -1,5 +1,6 @@
 import * as pdfjsLib from '../node_modules/pdfjs-dist/build/pdf.mjs';
-pdfjsLib.GlobalWorkerOptions.workerSrc = '../node_modules/pdfjs-dist/build/pdf.worker.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  '../node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
 // ### JavaScript für die Split-View-Funktionalität ###
 
@@ -488,7 +489,7 @@ songListContainer.addEventListener('click', async (event) => {
       'Video-Item angeklickt:',
       event.target.getAttribute('video-id'),
     );
-  } 
+  }
 });
 
 // Funktion zum Auswählen eines Songs
@@ -856,8 +857,11 @@ async function reloadTheme(themeName) {
 // 2. Den Event-Listener anpassen
 themeSelector.addEventListener('change', (event) => {
   const newThemeName = event.target.value;
-  selectedSong.setAttribute('data-song-theme', newThemeName);
-  reloadTheme(newThemeName);
+  if (selectedSong) {
+    console.log('selectSong:', selectedSong);
+    selectedSong.setAttribute('data-song-theme', newThemeName);
+    reloadTheme(newThemeName);
+  }
 });
 
 window.electronAPI.onThemeUpdated((themeName) => {
@@ -1001,20 +1005,89 @@ async function createAndAppendPDFButton(pdfPath) {
   });
   // Drag-and-Drop-Funktionalität hinzufügen (End)
 
+  newPDFItem.addEventListener('click', () => {
+    selectPDF(newPDFItem);
+  });
+
   songListContainer.appendChild(newPDFItem);
   playlist.push(newPDFItem); // Zur internen Verfolgung hinzufügen
 }
 
-
 async function loadSelectedPDFContent(event) {
+  const rightPanel = document.getElementById('right-panel'); // Deine Klasse prüfen
+  if (rightPanel) {
+    rightPanel.innerHTML = `
+            <h2>PDF Dokumente</h2>
+            <div id="slides-container"></div>
+        `;
+  } else {
+    console.error('Das Element für die PDF-Anzeige wurde nicht gefunden.');
+  }
+
   const pdfPath = event.target.getAttribute('pdf-id');
-  const container = document.getElementById('right-panel');
+  const container = document.getElementById('slides-container');
   container.innerHTML = '';
-  
+
   // 1. PDF laden
   const loadingPDF = pdfjsLib.getDocument(pdfPath);
   const pdf = await loadingPDF.promise;
   console.log(`PDF geladen: ${pdfPath} mit ${pdf.numPages} Seiten.`);
+
+  // 2. Alle Seiten durchgehen und rendern
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+
+    // Slide-Struktur erstellen
+    const slideDiv = document.createElement('div');
+    slideDiv.className = 'pdf-slide';
+    slideDiv.setAttribute('data-slide-index', i - 1); // Index für die Navigation
+
+    slideDiv.innerHTML = `
+    <div class="slide-header">
+                <p class="slide-label">Seite ${i}</p>
+            </div>
+            <div class="slide-inner-content">
+                <canvas id="pdf-canvas-${i}"></canvas>
+            </div>
+        `;
+    container.appendChild(slideDiv);
+
+    // 3. Die Seite auf das Canvas zeichnen
+    const canvas = document.getElementById(`pdf-canvas-${i}`);
+    const context = canvas.getContext('2d');
+    const viewport = page.getViewport({ scale: 1.5 }); // Qualität/Größe anpassen
+
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    await page.render({
+      canvasContext: context,
+      viewport: viewport,
+    }).promise;
+  }
+}
+
+let selectedPDF = null; // Verfolgungsvariable für die aktuell ausgewählte PDF
+
+function selectPDF(pdfItem) {
+  // 1. Deselektiere das zuvor ausgewählte PDF-Element
+  if (selectedPDF && selectedPDF !== pdfItem) {
+    selectedPDF.classList.remove('selected');
+  }
+
+  // 2. Wähle das neue Element aus (Toggle-Logik)
+  pdfItem.classList.toggle('selected');
+
+  // 3. Aktualisiere die Verfolgungsvariable
+  if (pdfItem.classList.contains('selected')) {
+    selectedPDF = pdfItem;
+  } else {
+    selectedPDF = null; // Zurücksetzen, wenn die Auswahl aufgehoben wurde
+
+    // Optional: Panel leeren, wenn nichts ausgewählt ist
+    const rightPanel = document.getElementById('right-panel');
+    if (rightPanel) rightPanel.innerHTML = '';
+  }
 }
 
 // ### Hotkey-Logik für die Main Page ###

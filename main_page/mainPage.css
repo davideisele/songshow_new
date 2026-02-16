@@ -178,6 +178,18 @@ button:active {
   border: 2px dashed #000;
 }
 
+.pdf-slide canvas {
+    width: 100%;    /* Füllt die Breite des Slides aus */
+    height: auto;   /* Behält Seitenverhältnis bei */
+    display: block;
+    border: 4px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    text-align: center;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
 
 /* ### Style for Slides ### */
 
@@ -338,6 +350,7 @@ button:active {
 /* #beamer-body {
     background-color: var(--beamer-background-color, white);
 } */
+
 
 /* Modus Blackscreen */
 #beamer-body.black-mode {
