@@ -748,11 +748,15 @@ function selectSlide(slideElement) {
         <img src="${imageData}" style="width: 100%; height: 100%; object-fit: contain; max-width: none; max-height: none;" />
     </div>`;
     currentSpecialMode = 'pdf-slide';
+    blackScreenButton.classList.remove('active');
+    showBackgroundButton.classList.remove('active');
   } else {
     // Ansonsten wie bisher: Text-Inhalt
     const slideContent = slideElement.querySelector('.slide-content');
     content = slideContent ? slideContent.innerHTML : "";
     currentSpecialMode = 'slide';
+    blackScreenButton.classList.remove('active');
+    showBackgroundButton.classList.remove('active');
   }
 
   // 3. An Beamer senden
@@ -983,11 +987,13 @@ if (blackScreenButton) {
       // Zustand ist bereits Blackscreen -> Zurück zur letzten Folie
       currentSpecialMode = 'slide';
       window.electronAPI.showSlide();
+      blackScreenButton.classList.remove('active');
     } else {
       // Zustand ist eine Folie/Hintergrund/Desktop -> Auf Blackscreen wechseln
       currentSpecialMode = 'black';
       // Senden Sie einen speziellen Befehl für Blackscreen an den Beamer
       window.electronAPI.showBlackscreen();
+      blackScreenButton.classList.add('active');
     }
   });
 }
@@ -999,11 +1005,13 @@ if (showBackgroundButton) {
       // Zustand ist Hintergrund -> Zurück zur letzten Folie
       currentSpecialMode = 'slide';
       window.electronAPI.showSlide();
+      showBackgroundButton.classList.remove('active');
     } else {
       // Zustand ist eine Folie/Blackscreen/Desktop -> Nur Hintergrund anzeigen
       currentSpecialMode = 'background';
       // Senden Sie einen speziellen Befehl, um nur den Hintergrund anzuzeigen
       window.electronAPI.showBackgroundOnly();
+      showBackgroundButton.classList.add('active');
     }
   });
 }

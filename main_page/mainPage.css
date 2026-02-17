@@ -373,6 +373,18 @@ button:active {
     background-color: var(--beamer-background-color, white);
 } */
 
+#black-screen.active {
+  background-color: #d9534f; /* Ein warnendes Rot */
+  box-shadow: 0 0 10px rgba(217, 83, 79, 0.8); /* Ein leichtes Leuchten */
+  font-weight: bold;
+}
+
+#show-background.active {
+  background-color: #d9534f; /* Ein warnendes Rot */
+  box-shadow: 0 0 10px rgba(217, 83, 79, 0.8); /* Ein leichtes Leuchten */
+  font-weight: bold;
+}
+
 
 /* Modus Blackscreen */
 #beamer-body.black-mode {
@@ -393,6 +405,7 @@ button:active {
 #beamer-body.background-mode #slide-text-container {
     font-size: 0 !important; /* Versteckt den Text */
 }
+
 
 /* Modus Desktop: Alles unsichtbar machen, wenn Sie Transparenz im BrowserWindow aktiviert haben */
 #beamer-body.desktop-mode {
