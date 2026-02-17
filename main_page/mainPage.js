@@ -48,6 +48,7 @@ const songListContainer = document.getElementById('song-schedule');
 
 var playlist = [];
 var selectedSong = null;
+let placeholder = null;
 
 async function createAndAppendSongButton(songData) {
   const newSongItem = document.createElement('button');
@@ -543,9 +544,9 @@ function selectItem(newItem) {
 const removeSongButton = document.getElementById('song-remove');
 
 removeSongButton.addEventListener('click', () => {
-  if (selectedSong) {
-    songListContainer.removeChild(selectedSong);
-    const index = playlist.indexOf(selectedSong);
+  if (currentSelectedItem) {
+    songListContainer.removeChild(currentSelectedItem);
+    const index = playlist.indexOf(currentSelectedItem);
     if (index > -1) {
       playlist.splice(index, 1);
     }
@@ -553,32 +554,50 @@ removeSongButton.addEventListener('click', () => {
 });
 
 // Verschieben eines ausgewählten Songs
-const moveUpSongButton = document.getElementById('song-up');
-const moveDownSongButton = document.getElementById('song-down');
+const moveUpButton = document.getElementById('song-up');
+const moveDownButton = document.getElementById('song-down');
 
-moveUpSongButton.addEventListener('click', () => {
-  const currentIndex = playlist.indexOf(selectedSong);
-  const targetSong = playlist[currentIndex - 1];
+moveUpButton.addEventListener('click', () => {
+  // 1. Prüfen, ob überhaupt etwas ausgewählt ist
+  if (!currentSelectedItem) return;
+
+  const currentIndex = playlist.indexOf(currentSelectedItem);
 
   if (currentIndex > 0) {
-    songListContainer.insertBefore(selectedSong, targetSong);
-    updatePlaylistArray();
-  } else {
+    const targetItem = playlist[currentIndex - 1];
+    
+    // Visuell im DOM verschieben
+    songListContainer.insertBefore(currentSelectedItem, targetItem);
+    
+    // Array aktualisieren (einfacher Tausch)
+    [playlist[currentIndex], playlist[currentIndex - 1]] = [
+      playlist[currentIndex - 1],
+      playlist[currentIndex],
+    ];
+    
+    updatePlaylistArray(); // Falls du diese Funktion zum Speichern nutzt
   }
 });
 
-moveDownSongButton.addEventListener('click', () => {
-  const currentIndex = playlist.indexOf(selectedSong);
-  if (currentIndex < playlist.length - 1) {
+moveDownButton.addEventListener('click', () => {
+  if (!currentSelectedItem) return;
+
+  const currentIndex = playlist.indexOf(currentSelectedItem);
+
+  if (currentIndex !== -1 && currentIndex < playlist.length - 1) {
     const targetIndex = currentIndex + 1;
-    const targetSong = playlist[targetIndex];
+    const targetItem = playlist[targetIndex];
 
-    songListContainer.insertBefore(selectedSong, targetSong.nextSibling);
+    // Visuell im DOM verschieben: vor das übernächste Element setzen
+    songListContainer.insertBefore(currentSelectedItem, targetItem.nextSibling);
 
+    // Array im Hintergrund tauschen
     [playlist[currentIndex], playlist[targetIndex]] = [
       playlist[targetIndex],
       playlist[currentIndex],
     ];
+    
+    updatePlaylistArray();
   }
 });
 
@@ -652,7 +671,7 @@ function getDragAfterElement(container, y) {
 
 // Aktualisiert das Playlist-Array wenn die Reihenfolge geändert wurde
 function updatePlaylistArray() {
-  playlist = [...songListContainer.querySelectorAll('.song-item')];
+  playlist = [...songListContainer.querySelectorAll('.song-item, .pdf-item, .audio-item, .video-item')];
 }
 // Ende der Drag-and-Drop-Logik
 
