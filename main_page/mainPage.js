@@ -1094,7 +1094,7 @@ async function loadSelectedPDFContent(event) {
     container.appendChild(slideDiv);
 
     // 3. Die Seite auf das Canvas zeichnen
-    const canvas = document.getElementById(`pdf-canvas-${i}`);
+    const canvas = slideDiv.querySelector('canvas');
     const context = canvas.getContext('2d');
     const viewport = page.getViewport({ scale: 1.5 }); // Qualität/Größe anpassen
 
