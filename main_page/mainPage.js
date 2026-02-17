@@ -783,7 +783,7 @@ if (nextButton && prevButton && staticContainer) {
   const getAllSlides = () => {
     // Wichtig: Array.from nutzen, um die NodeList einfacher zu handhaben
     return Array.from(
-      staticContainer.querySelectorAll('[class^="song-slide"]'),
+      staticContainer.querySelectorAll('.song-slide, .pdf-slide'),
     );
   };
 
