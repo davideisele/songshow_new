@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const contentDiv = document.querySelector('.slide-content'); // Ersetzen Sie 'song-content' durch die ID Ihres Elements
 
       // Text in das Element einfügen (ggf. Zeilenumbrüche für HTML formatieren)
-      contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+    //   contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+      contentDiv.innerHTML = content;
     });
   } else {
     console.error('Beamer Page: Electron API ist nicht verfügbar.');

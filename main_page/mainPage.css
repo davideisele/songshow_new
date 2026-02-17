@@ -178,17 +178,29 @@ button:active {
   border: 2px dashed #000;
 }
 
+/* .pdf-slide{
+    padding: 30px;
+    width: 100%;
+} */
+
 .pdf-slide canvas {
     width: 100%;    /* Füllt die Breite des Slides aus */
     height: auto;   /* Behält Seitenverhältnis bei */
     display: block;
-    border: 4px solid #ddd;
-    border-radius: 4px;
-    padding: 10px;
     text-align: center;
     transition: transform 0.2s;
     cursor: pointer;
 }
+
+.slide-inner-content-pdf {
+    background-color: transparent;
+    --padding-left: 0px;
+    border: #000 solid 3px;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
 
 
 /* ### Style for Slides ### */
@@ -198,7 +210,6 @@ button:active {
     grid-template-columns: 33% 33% 33%;
     gap:5px;
     justify-content: start;
-
 }
 
 .song-slide {
@@ -239,6 +250,17 @@ button:active {
 
 .slide-inner-content.x5-large {
     padding-left: calc(var(--padding-left)*5);
+}
+
+.slide-inner-content:has(img), 
+.slide-content:has(img) {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
 }
 
 .slide-content {

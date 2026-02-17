@@ -278,7 +278,7 @@ addSongButton.addEventListener('click', () => {
 
 async function loadSelectedSongSlides(event) {
   // Ruft die Funktion auf, um die Auswahl zu verwalten
-  selectSong(event.target);
+  selectItem(event.target);
 
   const songId = event.target.getAttribute('data-song-id');
   const songTheme = event.target.getAttribute('data-song-theme');
@@ -492,21 +492,50 @@ songListContainer.addEventListener('click', async (event) => {
   }
 });
 
-// Funktion zum Auswählen eines Songs
-function selectSong(songItem) {
-  // 1. Deselektiere das zuvor ausgewählte Element
-  if (selectedSong && selectedSong !== songItem) {
-    selectedSong.classList.remove('selected');
+// // Funktion zum Auswählen eines Songs
+// function selectSong(songItem) {
+//   console.log('Song ausgewählt:', songItem.textContent);
+//   // 1. Deselektiere das zuvor ausgewählte Element
+//   if (selectedSong && selectedSong !== songItem) {
+//     selectedSong.classList.remove('selected');
+//   }
+
+//   // 2. Wähle das neue Element aus (toggle für den Fall, dass man das gleiche Element erneut klickt)
+//   songItem.classList.add('selected');
+
+//   // 3. Aktualisiere die Verfolgungsvariable
+//   if (songItem.classList.contains('selected')) {
+//     selectedSong = songItem;
+//   } else {
+//     selectedSong = null; // Deselektiert, falls es das gleiche Element war
+//   }
+// }
+
+let currentSelectedItem = null;
+
+function selectItem(newItem) {
+  // 1. Wenn bereits etwas ausgewählt ist (egal ob Song oder PDF), entferne die Markierung
+  if (currentSelectedItem) {
+    currentSelectedItem.classList.remove('selected');
   }
 
-  // 2. Wähle das neue Element aus (toggle für den Fall, dass man das gleiche Element erneut klickt)
-  songItem.classList.toggle('selected');
+  // 2. Markiere das neue Element
+  // Da du kein toggle mehr wolltest: einfach .add()
+  newItem.classList.add('selected');
 
-  // 3. Aktualisiere die Verfolgungsvariable
-  if (songItem.classList.contains('selected')) {
-    selectedSong = songItem;
+  // 3. Speichere das neue Element als das aktuell ausgewählte
+  currentSelectedItem = newItem;
+
+  // 4. Automatische Weiche: Was soll geladen werden?
+  // Wir prüfen, ob das Element eine 'pdf-id' oder eine 'song-id' (oder ähnliches) hat
+  const pdfPath = newItem.getAttribute('pdf-id');
+  
+  if (pdfPath) {
+    console.log("PDF erkannt, lade Inhalt...");
+    // Hier deine PDF-Lade-Funktion aufrufen
+    loadSelectedPDFContent({ target: newItem });
   } else {
-    selectedSong = null; // Deselektiert, falls es das gleiche Element war
+    console.log("Song erkannt, lade Inhalt...");
   }
 }
 
@@ -688,11 +717,26 @@ function selectSlide(slideElement) {
   // 2. Markierung zur neuen Folie hinzufügen
   slideElement.classList.add(highlightClass);
 
-  // 3. Logik zum Öffnen des Beamers
-  const slideContent = slideElement.querySelector('.slide-content');
-  const content = slideContent.innerHTML;
-  lastSlideContent = content;
-  currentSpecialMode = 'slide';
+  let content = "";
+  
+  // PRÜFUNG: Ist es eine PDF-Folie?
+  const canvas = slideElement.querySelector('canvas');
+  if (canvas) {
+    // Wenn ein Canvas da ist, wandeln wir es in ein Bild um
+    const imageData = canvas.toDataURL('image/png');
+    content = `
+    <div style="background-color: black; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+        <img src="${imageData}" style="width: 100%; height: 100%; object-fit: contain; max-width: none; max-height: none;" />
+    </div>`;
+    currentSpecialMode = 'pdf-slide';
+  } else {
+    // Ansonsten wie bisher: Text-Inhalt
+    const slideContent = slideElement.querySelector('.slide-content');
+    content = slideContent ? slideContent.innerHTML : "";
+    currentSpecialMode = 'slide';
+  }
+
+  // 3. An Beamer senden
   window.electronAPI.openSongOnBeamer(content);
   window.electronAPI.showSlide();
 }
@@ -701,7 +745,7 @@ function selectSlide(slideElement) {
 
 if (staticContainer) {
   staticContainer.addEventListener('click', function (event) {
-    const clickedSlide = event.target.closest('[class^="song-slide"]');
+    const clickedSlide = event.target.closest('.song-slide, .pdf-slide');
 
     if (clickedSlide) {
       selectSlide(clickedSlide);
@@ -1006,7 +1050,7 @@ async function createAndAppendPDFButton(pdfPath) {
   // Drag-and-Drop-Funktionalität hinzufügen (End)
 
   newPDFItem.addEventListener('click', () => {
-    selectPDF(newPDFItem);
+    selectItem(newPDFItem);
   });
 
   songListContainer.appendChild(newPDFItem);
@@ -1043,12 +1087,9 @@ async function loadSelectedPDFContent(event) {
     slideDiv.setAttribute('data-slide-index', i - 1); // Index für die Navigation
 
     slideDiv.innerHTML = `
-    <div class="slide-header">
-                <p class="slide-label">Seite ${i}</p>
-            </div>
-            <div class="slide-inner-content">
-                <canvas id="pdf-canvas-${i}"></canvas>
-            </div>
+        <div class="slide-inner-content-pdf">
+            <canvas id="pdf-canvas-${i}"></canvas>
+        </div>
         `;
     container.appendChild(slideDiv);
 
@@ -1069,26 +1110,26 @@ async function loadSelectedPDFContent(event) {
 
 let selectedPDF = null; // Verfolgungsvariable für die aktuell ausgewählte PDF
 
-function selectPDF(pdfItem) {
-  // 1. Deselektiere das zuvor ausgewählte PDF-Element
-  if (selectedPDF && selectedPDF !== pdfItem) {
-    selectedPDF.classList.remove('selected');
-  }
+// function selectPDF(pdfItem) {
+//   // 1. Deselektiere das zuvor ausgewählte PDF-Element
+//   if (selectedPDF && selectedPDF !== pdfItem) {
+//     selectedPDF.classList.remove('selected');
+//   }
 
-  // 2. Wähle das neue Element aus (Toggle-Logik)
-  pdfItem.classList.toggle('selected');
+//   // 2. Wähle das neue Element aus (Toggle-Logik)
+//   pdfItem.classList.toggle('selected');
 
-  // 3. Aktualisiere die Verfolgungsvariable
-  if (pdfItem.classList.contains('selected')) {
-    selectedPDF = pdfItem;
-  } else {
-    selectedPDF = null; // Zurücksetzen, wenn die Auswahl aufgehoben wurde
+//   // 3. Aktualisiere die Verfolgungsvariable
+//   if (pdfItem.classList.contains('selected')) {
+//     selectedPDF = pdfItem;
+//   } else {
+//     selectedPDF = null; // Zurücksetzen, wenn die Auswahl aufgehoben wurde
 
-    // Optional: Panel leeren, wenn nichts ausgewählt ist
-    const rightPanel = document.getElementById('right-panel');
-    if (rightPanel) rightPanel.innerHTML = '';
-  }
-}
+//     // Optional: Panel leeren, wenn nichts ausgewählt ist
+//     const rightPanel = document.getElementById('right-panel');
+//     if (rightPanel) rightPanel.innerHTML = '';
+//   }
+// }
 
 // ### Hotkey-Logik für die Main Page ###
 
