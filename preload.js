@@ -99,7 +99,13 @@ contextBridge.exposeInMainWorld(
     // PDF, Audio, Video hinzufügen
     onPDFSelected: (callback) =>
       ipcRenderer.on('selected-pdf', (event, filePaths) => callback(filePaths)),
-
+    onAudioSelected: (callback) =>
+      ipcRenderer.on('selected-audio', (event, filePaths) => callback(filePaths)),
+    onImageSelected: (callback) =>
+      ipcRenderer.on('selected-image', (event, filePaths) => callback(filePaths)),
+    onVideoSelected: (callback) =>
+      ipcRenderer.on('selected-video', (event, filePaths) => callback(filePaths)),
+      
     // Hotkey Funktionen
     loadHotkeys: () => {
       // Ruft den Main Process auf, um die Datei zu lesen und die Daten zurückzugeben

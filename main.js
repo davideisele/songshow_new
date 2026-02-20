@@ -206,8 +206,29 @@ const menuBar = [
             title: 'Audio auswählen',
             properties: ['openFile', 'multiSelections'],
             buttonLabel: 'Audio hinzufügen',
-            filters: [{ name: 'Audio-Dateien', extensions: ['mp3', 'wav', 'flac'] }],
+            filters: [
+              { name: 'Audio-Dateien', extensions: ['mp3', 'wav', 'flac'] },
+            ],
           });
+          if (!audioPath.canceled && audioPath.filePaths.length > 0) {
+            mainWindow.webContents.send('selected-audio', audioPath);
+          }
+        },
+      },
+      {
+        label: 'Image',
+        click: async () => {
+          const imagePath = await dialog.showOpenDialog({
+            title: 'Bild auswählen',
+            properties: ['openFile', 'multiSelections'],
+            buttonLabel: 'Bild hinzufügen',
+            filters: [
+              { name: 'Bild-Dateien', extensions: ['jpg', 'jpeg', 'png', 'gif'] },
+            ],
+          });
+          if (!imagePath.canceled && imagePath.filePaths.length > 0) {
+            mainWindow.webContents.send('selected-image', imagePath);
+          }
         },
       },
       {
@@ -217,8 +238,13 @@ const menuBar = [
             title: 'Video auswählen',
             properties: ['openFile', 'multiSelections'],
             buttonLabel: 'Video hinzufügen',
-            filters: [{ name: 'Video-Dateien', extensions: ['mp4', 'avi', 'mov'] }],
+            filters: [
+              { name: 'Video-Dateien', extensions: ['mp4', 'avi', 'mov'] },
+            ],
           });
+          if (!videoPath.canceled && videoPath.filePaths.length > 0) {
+            mainWindow.webContents.send('selected-video', videoPath);
+          }
         },
       },
     ],

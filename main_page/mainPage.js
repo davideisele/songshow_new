@@ -529,14 +529,31 @@ function selectItem(newItem) {
 
   // 4. Automatische Weiche: Was soll geladen werden?
   // Wir prüfen, ob das Element eine 'pdf-id' oder eine 'song-id' (oder ähnliches) hat
-  const pdfPath = newItem.getAttribute('pdf-id');
-  
-  if (pdfPath) {
-    console.log("PDF erkannt, lade Inhalt...");
-    // Hier deine PDF-Lade-Funktion aufrufen
-    loadSelectedPDFContent({ target: newItem });
-  } else {
-    console.log("Song erkannt, lade Inhalt...");
+  const type = newItem.hasAttribute('pdf-id')
+    ? 'pdf'
+    : newItem.hasAttribute('audio-id')
+      ? 'audio'
+      : newItem.hasAttribute('image-id')
+        ? 'image'
+        : newItem.hasAttribute('video-id')
+          ? 'video'
+          : 'song';
+
+  switch (type) {
+    case 'pdf':
+      loadSelectedPDFContent({ target: newItem });
+      break;
+    case 'audio':
+      loadSelectedAudioContent({ target: newItem });
+      break;
+    case 'image':
+      loadSelectedImageContent({ target: newItem });
+      break;
+    case 'video':
+      loadSelectedVideoContent({ target: newItem });
+      break;
+    default:
+      console.log('Song erkannt');
   }
 }
 
@@ -565,16 +582,16 @@ moveUpButton.addEventListener('click', () => {
 
   if (currentIndex > 0) {
     const targetItem = playlist[currentIndex - 1];
-    
+
     // Visuell im DOM verschieben
     songListContainer.insertBefore(currentSelectedItem, targetItem);
-    
+
     // Array aktualisieren (einfacher Tausch)
     [playlist[currentIndex], playlist[currentIndex - 1]] = [
       playlist[currentIndex - 1],
       playlist[currentIndex],
     ];
-    
+
     updatePlaylistArray(); // Falls du diese Funktion zum Speichern nutzt
   }
 });
@@ -596,7 +613,7 @@ moveDownButton.addEventListener('click', () => {
       playlist[targetIndex],
       playlist[currentIndex],
     ];
-    
+
     updatePlaylistArray();
   }
 });
@@ -648,7 +665,9 @@ songListContainer.addEventListener('drop', (e) => {
 function getDragAfterElement(container, y) {
   // Alle Elemente außer dem, das gerade gezogen wird
   const draggableElements = [
-    ...container.querySelectorAll('.song-item:not(.dragging)'),
+    ...container.querySelectorAll(
+      '.song-item:not(.dragging), .pdf-item:not(.dragging), .audio-item:not(.dragging), .image-item:not(.dragging), .video-item:not(.dragging)',
+    ),
   ];
   // Reduziert die Liste auf das Element, das dem y-Wert am nächsten ist
   return draggableElements.reduce(
@@ -671,7 +690,11 @@ function getDragAfterElement(container, y) {
 
 // Aktualisiert das Playlist-Array wenn die Reihenfolge geändert wurde
 function updatePlaylistArray() {
-  playlist = [...songListContainer.querySelectorAll('.song-item, .pdf-item, .audio-item, .video-item')];
+  playlist = [
+    ...songListContainer.querySelectorAll(
+      '.song-item, .pdf-item, .audio-item, .image-item, .video-item',
+    ),
+  ];
 }
 // Ende der Drag-and-Drop-Logik
 
@@ -722,53 +745,109 @@ const prevButton = document.getElementById('prev-slide');
 //   );
 // }
 
+// function selectSlide(slideElement) {
+//   if (!slideElement) return;
+
+//   // 1. Markierung von der zuvor markierten Folie entfernen
+//   const currentlyHighlighted = staticContainer.querySelector(
+//     `.${highlightClass}`,
+//   );
+//   if (currentlyHighlighted && currentlyHighlighted !== slideElement) {
+//     currentlyHighlighted.classList.remove(highlightClass);
+//   }
+
+//   // 2. Markierung zur neuen Folie hinzufügen
+//   slideElement.classList.add(highlightClass);
+
+//   let content = '';
+
+//   // PRÜFUNG: Ist es eine PDF-Folie?
+//   const canvas = slideElement.querySelector('canvas');
+//   if (canvas) {
+//     // Wenn ein Canvas da ist, wandeln wir es in ein Bild um
+//     const imageData = canvas.toDataURL('image/png');
+//     content = `
+//     <div style="background-color: black; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+//         <img src="${imageData}" style="width: 100%; height: 100%; object-fit: contain; max-width: none; max-height: none;" />
+//     </div>`;
+//     currentSpecialMode = 'pdf-slide';
+//     blackScreenButton.classList.remove('active');
+//     showBackgroundButton.classList.remove('active');
+//   } else {
+//     // Ansonsten wie bisher: Text-Inhalt
+//     const slideContent = slideElement.querySelector('.slide-content');
+//     content = slideContent ? slideContent.innerHTML : '';
+//     currentSpecialMode = 'slide';
+//     blackScreenButton.classList.remove('active');
+//     showBackgroundButton.classList.remove('active');
+//   }
+
+//   // 3. An Beamer senden
+//   window.electronAPI.openSongOnBeamer(content);
+//   window.electronAPI.showSlide();
+// }
+
 function selectSlide(slideElement) {
   if (!slideElement) return;
 
-  // 1. Markierung von der zuvor markierten Folie entfernen
+  // 1. Markierung verwalten
   const currentlyHighlighted = staticContainer.querySelector(
     `.${highlightClass}`,
   );
   if (currentlyHighlighted && currentlyHighlighted !== slideElement) {
     currentlyHighlighted.classList.remove(highlightClass);
   }
-
-  // 2. Markierung zur neuen Folie hinzufügen
   slideElement.classList.add(highlightClass);
 
-  let content = "";
-  
-  // PRÜFUNG: Ist es eine PDF-Folie?
+  let content = '';
+
+  // PRÜFUNG der verschiedenen Inhaltstypen
   const canvas = slideElement.querySelector('canvas');
+  const img = slideElement.querySelector('img'); // Prüfung auf Bild
+
   if (canvas) {
-    // Wenn ein Canvas da ist, wandeln wir es in ein Bild um
+    // FALL 1: PDF (Canvas zu DataURL)
     const imageData = canvas.toDataURL('image/png');
-    content = `
-    <div style="background-color: black; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden;">
-        <img src="${imageData}" style="width: 100%; height: 100%; object-fit: contain; max-width: none; max-height: none;" />
-    </div>`;
+    content = createFullscreenImageHTML(imageData);
     currentSpecialMode = 'pdf-slide';
-    blackScreenButton.classList.remove('active');
-    showBackgroundButton.classList.remove('active');
+  } else if (img) {
+    // FALL 2: Direktes Bild (z.B. aus loadSelectedImageContent)
+    const imageSrc = img.src;
+    content = createFullscreenImageHTML(imageSrc);
+    currentSpecialMode = 'image-slide';
   } else {
-    // Ansonsten wie bisher: Text-Inhalt
+    // FALL 3: Text-Inhalt (Songs)
     const slideContent = slideElement.querySelector('.slide-content');
-    content = slideContent ? slideContent.innerHTML : "";
+    content = slideContent ? slideContent.innerHTML : '';
     currentSpecialMode = 'slide';
-    blackScreenButton.classList.remove('active');
-    showBackgroundButton.classList.remove('active');
   }
+
+  // Buttons zurücksetzen
+  blackScreenButton.classList.remove('active');
+  showBackgroundButton.classList.remove('active');
 
   // 3. An Beamer senden
   window.electronAPI.openSongOnBeamer(content);
   window.electronAPI.showSlide();
 }
 
+/**
+ * Hilfsfunktion, um doppelten HTML-Code für Bilder zu vermeiden
+ */
+function createFullscreenImageHTML(src) {
+  return `
+    <div style="background-color: black; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+        <img src="${src}" style="width: 100%; height: 100%; object-fit: contain; max-width: none; max-height: none;" />
+    </div>`;
+}
+
 // --- 1. Bestehender Click-Listener (für manuelle Auswahl) ---
 
 if (staticContainer) {
   staticContainer.addEventListener('click', function (event) {
-    const clickedSlide = event.target.closest('.song-slide, .pdf-slide');
+    const clickedSlide = event.target.closest(
+      '.song-slide, .pdf-slide,.image-slide, .audio-slide, .video-slide',
+    );
 
     if (clickedSlide) {
       selectSlide(clickedSlide);
@@ -908,7 +987,7 @@ const themeSelector = document.getElementById('theme-selector');
 
 // 1. Die Logik in eine eigenständige Funktion auslagern
 async function reloadTheme(themeName) {
-  if (!selectedSong) return;
+  if (!currentSelectedItem) return;
 
   console.log(`Lade Theme neu: ${themeName}`);
   const themeData = await fetchThemeStyles(themeName);
@@ -924,9 +1003,9 @@ async function reloadTheme(themeName) {
 // 2. Den Event-Listener anpassen
 themeSelector.addEventListener('change', (event) => {
   const newThemeName = event.target.value;
-  if (selectedSong) {
-    console.log('selectSong:', selectedSong);
-    selectedSong.setAttribute('data-song-theme', newThemeName);
+  if (currentSelectedItem) {
+    console.log('selectSong:', currentSelectedItem);
+    currentSelectedItem.setAttribute('data-song-theme', newThemeName);
     reloadTheme(newThemeName);
   }
 });
@@ -1032,7 +1111,9 @@ if (showDesktopButton) {
   });
 }
 
-// ### PDF, Audio, Video Logik ###
+// ### PDF, Audio, Bild, Video Logik ###
+
+// PDF
 window.electronAPI.onPDFSelected((pdfPaths) => {
   console.log('PDF ausgewählt:', pdfPaths);
   pdfPaths.filePaths.forEach((pdfPath) => {
@@ -1137,26 +1218,114 @@ async function loadSelectedPDFContent(event) {
 
 let selectedPDF = null; // Verfolgungsvariable für die aktuell ausgewählte PDF
 
-// function selectPDF(pdfItem) {
-//   // 1. Deselektiere das zuvor ausgewählte PDF-Element
-//   if (selectedPDF && selectedPDF !== pdfItem) {
-//     selectedPDF.classList.remove('selected');
-//   }
+// Audio
+window.electronAPI.onAudioSelected((audioPaths) => {
+  console.log('Audio ausgewählt:', audioPaths);
+  audioPaths.filePaths.forEach((audioPath) => {
+    // createAndAppendAudioButton(audioPath);
+  });
+});
 
-//   // 2. Wähle das neue Element aus (Toggle-Logik)
-//   pdfItem.classList.toggle('selected');
+// Bild
+window.electronAPI.onImageSelected((imagePaths) => {
+  console.log('Bild ausgewählt:', imagePaths);
+  imagePaths.filePaths.forEach((imagePath) => {
+    createAndAppendImageButton(imagePath);
+  });
+});
 
-//   // 3. Aktualisiere die Verfolgungsvariable
-//   if (pdfItem.classList.contains('selected')) {
-//     selectedPDF = pdfItem;
-//   } else {
-//     selectedPDF = null; // Zurücksetzen, wenn die Auswahl aufgehoben wurde
+async function createAndAppendImageButton(imagePath) {
+  const newImageItem = document.createElement('button');
+  newImageItem.textContent = imagePath.split('/').pop(); // Setze den Namen des PDFs als Text
+  newImageItem.classList.add('image-item');
+  newImageItem.setAttribute('image-id', imagePath); // WICHTIG: Speichere die ID
+  // Drag-and-Drop-Funktionalität hinzufügen (Start)
+  newImageItem.setAttribute('draggable', 'true');
+  newImageItem.addEventListener('dragstart', () => {
+    // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen
+    newImageItem.classList.add('dragging');
+    draggedItem = newImageItem;
 
-//     // Optional: Panel leeren, wenn nichts ausgewählt ist
-//     const rightPanel = document.getElementById('right-panel');
-//     if (rightPanel) rightPanel.innerHTML = '';
-//   }
-// }
+    // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
+    placeholder = document.createElement('div');
+    placeholder.classList.add('drag-placeholder');
+
+    // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
+    setTimeout(() => newImageItem.classList.add('hide'), 0);
+  });
+
+  newImageItem.addEventListener('dragend', () => {
+    // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
+    newImageItem.classList.remove('dragging');
+    newImageItem.classList.remove('hide');
+    draggedItem = null;
+
+    if (placeholder && placeholder.parentNode) {
+      placeholder.parentNode.removeChild(placeholder);
+    }
+    placeholder = null;
+
+    updatePlaylistArray();
+  });
+  // Drag-and-Drop-Funktionalität hinzufügen (End)
+
+  newImageItem.addEventListener('click', () => {
+    selectItem(newImageItem);
+  });
+
+  songListContainer.appendChild(newImageItem);
+  playlist.push(newImageItem); // Zur internen Verfolgung hinzufügen
+}
+
+async function loadSelectedImageContent(event) {
+  const rightPanel = document.getElementById('right-panel');
+
+  // 1. Panel vorbereiten
+  if (rightPanel) {
+    rightPanel.innerHTML = `
+            <h2>Bild-Vorschau</h2>
+            <div id="slides-container"></div>
+        `;
+  } else {
+    console.error('Das Element für die Bild-Anzeige wurde nicht gefunden.');
+    return;
+  }
+
+  // 2. Bildpfad aus dem Attribut holen
+  // (Ich nehme an, das Attribut heißt bei dir 'image-id' laut deinem vorherigen Code)
+  const imgPath = event.target.getAttribute('image-id');
+  const container = document.getElementById('slides-container');
+  container.innerHTML = '';
+
+  if (!imgPath) {
+    console.warn('Kein Bildpfad gefunden.');
+    return;
+  }
+
+  // 3. Bild-Element erstellen (analog zur PDF-Slide-Struktur)
+  const slideDiv = document.createElement('div');
+  slideDiv.className = 'image-slide'; // Eigene Klasse für spezifisches Styling
+  slideDiv.setAttribute('data-type', 'image');
+
+  // Wir nutzen ein normales <img> Tag statt eines Canvas
+  slideDiv.innerHTML = `
+      <div class="slide-inner-content-image">
+          <img src="${imgPath}" alt="Vorschau" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
+      </div>
+  `;
+
+  container.appendChild(slideDiv);
+
+  console.log(`Bild geladen: ${imgPath}`);
+}
+
+// Video
+window.electronAPI.onVideoSelected((videoPaths) => {
+  console.log('Video ausgewählt:', videoPaths);
+  videoPaths.filePaths.forEach((videoPath) => {
+    // createAndAppendVideoButton(videoPath);
+  });
+});
 
 // ### Hotkey-Logik für die Main Page ###
 
