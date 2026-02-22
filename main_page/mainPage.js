@@ -1484,11 +1484,6 @@ async function loadSelectedVideoContent(event) {
     const videoElement = document.getElementById('main-preview-video');
     isVideoLoadedOnBeamer = false; // Reset bei neuem Video
 
-    window.electronAPI.onBeamerReady(() => {
-      console.log('Beamer ist bereit, starte Preview synchron.');
-      videoElement.play(); // Jetzt erst startet die Preview lokal
-    });
-
     videoElement.onplay = () => {
       if (!isVideoLoadedOnBeamer) {
         // Preview sofort wieder pausieren, um auf den Beamer zu warten
@@ -1515,6 +1510,16 @@ async function loadSelectedVideoContent(event) {
     };
   }
 }
+
+window.electronAPI.onBeamerReady(() => {
+  const videoElement = document.getElementById('main-preview-video');
+  if (videoElement) {
+    console.log('Beamer ist bereit, starte Preview synchron.');
+    videoElement.play(); 
+    // Hier schicken wir den Play-Befehl an den Beamer
+    window.electronAPI.controlVideoOnBeamer({ command: 'play' });
+  }
+});
 
 // ### Hotkey-Logik für die Main Page ###
 
