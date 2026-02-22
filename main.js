@@ -398,8 +398,8 @@ function createSongSelectWindow() {
   }
 
   songSelectWindow = new BrowserWindow({
-    width: 500,
-    height: 350,
+    width: 700,
+    height: 800,
     title: 'Song auswählen',
     modal: true,
     parent: mainWindow, // Definiert das Hauptfenster als Elternteil
@@ -429,10 +429,6 @@ ipcMain.on('send-selected-song', (event, songData) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     // Sende die Daten an den Renderer des Hauptfensters
     mainWindow.webContents.send('song-selected', songData);
-  }
-  // Schließe das Auswahlfenster
-  if (songSelectWindow) {
-    songSelectWindow.close();
   }
 });
 
