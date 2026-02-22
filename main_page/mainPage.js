@@ -477,9 +477,9 @@ async function loadSelectedSongSlides(event) {
 // ** GEÄNDERT: Click-Handler wurde auf async geändert und ruft Lyrics ab **
 songListContainer.addEventListener('click', async (event) => {
   if (event.target && event.target.classList.contains('song-item')) {
-    loadSelectedSongSlides(event);
+    selectItem(event.target);
   } else if (event.target && event.target.classList.contains('pdf-item')) {
-    loadSelectedPDFContent(event);
+    selectItem(event.target);
   } else if (event.target && event.target.classList.contains('audio-item')) {
     console.log(
       'Audio-Item angeklickt:',
@@ -515,6 +515,11 @@ songListContainer.addEventListener('click', async (event) => {
 let currentSelectedItem = null;
 
 function selectItem(newItem) {
+  if (currentSelectedItem === newItem) {
+    console.log('Item bereits ausgewählt, lade nicht erneut.');
+    return; // Funktion hier abbrechen
+  }
+  console.log('Test')
   // 1. Wenn bereits etwas ausgewählt ist (egal ob Song oder PDF), entferne die Markierung
   if (currentSelectedItem) {
     currentSelectedItem.classList.remove('selected');
@@ -554,6 +559,7 @@ function selectItem(newItem) {
       break;
     default:
       console.log('Song erkannt');
+      loadSelectedSongSlides({ target: newItem });
   }
 }
 
