@@ -1,0 +1,22 @@
+{
+  "name": "Chainsmokers",
+  "background-option": "video",
+  ".slide-content": {
+    "color": "#f00000",
+    "background-color": "transparent",
+    "font-family": "Inter, sans-serif",
+    "font-size": "12px",
+    "text-align": "left",
+    "top": "auto",
+    "bottom": "auto",
+    "left": "auto",
+    "right": "auto"
+  },
+  ".translation-line": {
+    "color": "#ffffff",
+    "font-family": "",
+    "font-size": "px",
+    "text-align": "left"
+  },
+  "background-video": "/Users/d.eisele/Temporär/The Chainsmokers - Don't Let Me Down (Official Video) ft. Daya [Io0fBr1XBUA].mp4"
+}

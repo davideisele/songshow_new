@@ -446,42 +446,33 @@ async function loadSelectedTheme() {
  * Speichert das aktuelle Theme (neu erstellen oder aktualisieren).
  */
 async function saveTheme(event) {
-  event.preventDefault();
-  const themeData = serializeFormToTheme();
-  // Prüfen, ob der Save-Button den "New"-Status hat
-  const isNewTheme =
-    document.getElementById('save-button').textContent === 'Safe (New)';
-  const name = themeData.name;
-
-  if (!name) {
-    alert('Bitte geben Sie einen Theme-Namen ein.');
+  if (event) event.preventDefault();
+  
+  // Hol den Namen direkt aus dem Input-Feld
+  const themeNameInput = document.getElementById('name').value.trim();
+  
+  if (!themeNameInput) {
+    alert('Bitte geben Sie einen Namen für das Theme im Feld "Name" ein.');
+    document.getElementById('name').focus();
     return;
   }
 
+  const themeData = serializeFormToTheme(themeNameInput);
+  const isNewTheme = document.getElementById('save-button').textContent === 'Safe (New)';
+
   try {
-    await electronAPI.saveTheme(themeData);
-
-    alert(`Theme "${name}" erfolgreich gespeichert.`);
-    const savedThemeName = document.getElementById('name').value;
-    window.electronAPI.notifyThemeChanged(savedThemeName);
+    await window.electronAPI.saveTheme(themeData);
+    alert(`Theme "${themeNameInput}" erfolgreich gespeichert.`);
+    
     await loadThemeList();
-
-    // Neues Theme im Dropdown auswählen, falls erfolgreich erstellt
-    if (isNewTheme) {
-      document.getElementById('theme-select').value = name;
-    }
-
-    // Lade das Theme neu, um den Status (ID, etc.) zu aktualisieren
+    
+    // Nach dem Speichern das neue Theme im Dropdown auswählen
+    document.getElementById('theme-select').value = themeNameInput;
     await loadSelectedTheme();
-
-    enableControls(false);
+    
   } catch (error) {
-    console.error('Fehler beim Speichern des Themes:', error);
-    alert(
-      `Konnte Theme "${name}" nicht speichern. Fehler: ${
-        error.message || error
-      }`,
-    );
+    console.error('Fehler beim Speichern:', error);
+    alert(`Fehler: ${error.message || error}`);
   }
 }
 
@@ -525,30 +516,27 @@ async function deleteTheme() {
  * Bereitet das Formular für die Erstellung eines neuen Themes vor.
  */
 function addNewTheme() {
-  const newThemeName = prompt(
-    'Bitte geben Sie einen Namen für das neue Theme ein:',
-  );
-  if (!newThemeName) return;
-
-  // Prüfe, ob der Name bereits existiert (optional, aber gut)
-  const existingTheme = Array.from(
-    document.getElementById('theme-select').options,
-  ).find((opt) => opt.value === newThemeName);
-  if (existingTheme) {
-    alert(`Das Theme "${newThemeName}" existiert bereits.`);
-    document.getElementById('theme-select').value = newThemeName;
-    loadSelectedTheme();
-    return;
-  }
-
-  const newTheme = createEmptyTheme(newThemeName);
-
+  // 1. Formular komplett zurücksetzen
+  document.getElementById('theme-details-form').reset();
   document.getElementById('theme-select').value = '';
-  deserializeThemeToForm(newTheme);
+  document.getElementById('id').value = '';
+  
+  // 2. Initiales leeres Theme für die Vorschau
+  const emptyTheme = createEmptyTheme('');
+  deserializeThemeToForm(emptyTheme);
 
+  // 3. UI-Status anpassen
   document.getElementById('save-button').textContent = 'Safe (New)';
   document.getElementById('delete-button').style.display = 'none';
-  document.getElementById('name').focus();
+  
+  // 4. Fokus auf das Namensfeld setzen, damit der User sofort tippen kann
+  const nameInput = document.getElementById('name');
+  nameInput.focus();
+  
+  // Optisches Feedback: Das Feld kurz hervorheben (optional)
+  nameInput.style.border = '2px solid #007bff';
+  setTimeout(() => { nameInput.style.border = ''; }, 2000);
+
   enableControls(true);
 }
 
