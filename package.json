@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "better-sqlite3": "^12.4.1",
+    "genius-lyrics": "^4.4.7",
     "pdfjs-dist": "^5.4.624"
   }
 }

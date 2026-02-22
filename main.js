@@ -8,6 +8,8 @@ const {
 } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const Genius = require("genius-lyrics");
+const Client = new Genius.Client("SDXHdoX1kMgQ-DlAn5g7OHpZ8VdsCqSFDiJiJpwrSxWVL8ePxM1rLdJ5673ylrfi");
 
 // ### Datenbank-Setup mit better-sqlite3 ###
 
@@ -749,3 +751,47 @@ ipcMain.handle('open-pdf-select-dialog', async (event) => {
   // Gibt den Pfad der ersten ausgewählten Datei zurück
   return result.filePaths[0];
 });
+
+
+// ### Imports von Songs ###
+async function addNewSong(searchQuery) {
+    try {
+        console.log(`Suche nach: ${searchQuery}...`);
+        
+        // 1. Suche bei Genius
+        const searches = await Client.songs.search(searchQuery);
+        if (searches.length === 0) {
+            console.log("Nichts gefunden.");
+            return;
+        }
+
+        const song = searches[0];
+        let lyrics = await song.lyrics();
+
+        // 2. Lyrics bereinigen (Entfernt [Verse], [Chorus] etc.)
+        lyrics = lyrics.replace(/\[.*?\]/g, "").trim();
+
+        // 3. In die Datenbank INSERTEN
+        // Wir lassen die 'id' Spalte weg, da sie automatisch generiert wird
+        const stmt = db.prepare(`
+            INSERT INTO songs (title, author, lyrics, original_order, theme)
+            VALUES (@title, @author, @lyrics, @originalOrder, @theme)
+        `);
+
+        const info = stmt.run({
+            title: song.title,
+            author: song.artist.name,
+            lyrics: lyrics,
+            originalOrder: 1, 
+            theme: "Default"
+        });
+
+        console.log(`✅ Neu hinzugefügt! ID: ${info.lastInsertRowid} - ${song.title}`);
+
+    } catch (e) {
+        console.error("❌ Fehler beim Hinzufügen:", e);
+    }
+}
+
+// Testlauf
+// addNewSong("Imagine Dragons Believer");
