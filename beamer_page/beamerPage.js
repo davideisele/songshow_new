@@ -280,3 +280,31 @@ if (window.electronAPI && window.electronAPI.onUpdateContent) {
         resetDisplayModes(); 
     });
 }
+
+// ### Video on Beamer ###
+window.electronAPI.onVideoLoad((videoSrc) => {
+    const container = document.getElementById('slide-text-container');
+    if (container) {
+        container.innerHTML = `
+            <video id="beamer-video-player" style="width: 100vw; height: 100vh; object-fit: contain; background: black;">
+                <source src="${videoSrc}" type="video/mp4">
+            </video>
+        `;
+
+        const video = document.getElementById('beamer-video-player');
+        video.volume = 0;
+        // Sobald der Beamer genug gepuffert hat, um zu starten:
+        video.oncanplay = () => {
+            window.electronAPI.sendVideoReady(); 
+        };
+    }
+});
+
+window.electronAPI.onVideoControl((data) => {
+    const video = document.getElementById('beamer-video-player');
+    if (!video) return;
+
+    if (data.command === 'play') video.play();
+    if (data.command === 'pause') video.pause();
+    if (data.command === 'seek') video.currentTime = data.time;
+});

@@ -263,6 +263,19 @@ button:active {
     display: block !important;
 }
 
+.slide-inner-content:has(video), 
+.slide-content:has(video) {
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    background: black; /* Verhindert weiße Ränder */
+}
+
 .slide-content {
     height: 100%;
     text-align: var(--slide-content-text-align, center);

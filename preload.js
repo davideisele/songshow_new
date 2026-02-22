@@ -38,6 +38,28 @@ contextBridge.exposeInMainWorld(
     openSongOnBeamer: (content) =>
       ipcRenderer.send('open-song-on-beamer', content),
 
+    // Lädt das Video initial auf dem Beamer
+    playVideoOnBeamer: (videoPath) =>
+      ipcRenderer.send('play-video-on-beamer', videoPath),
+
+    sendVideoReady: () => ipcRenderer.send('video-is-ready'),
+    onBeamerReady: (callback) =>
+      ipcRenderer.on('start-preview', () => callback()),
+
+    // Steuert den Player (play, pause, seek)
+    controlVideoOnBeamer: (command, time) =>
+      ipcRenderer.send('control-video-on-beamer', command, time),
+
+    // --- EMPFANGEN (Im Beamer-Fenster) ---
+
+    // Hört auf den Befehl, ein Video zu laden
+    onVideoLoad: (callback) =>
+      ipcRenderer.on('beamer-video-load', (event, src) => callback(src)),
+
+    // Hört auf Steuerungsbefehle (Play/Pause/Zeit)
+    onVideoControl: (callback) =>
+      ipcRenderer.on('beamer-video-control', (event, data) => callback(data)),
+
     showBlackscreen: () => ipcRenderer.invoke('show-blackscreen'),
     showBackgroundOnly: () => ipcRenderer.invoke('show-background-only'),
     showDesktop: () => ipcRenderer.invoke('show-desktop'),
@@ -100,12 +122,18 @@ contextBridge.exposeInMainWorld(
     onPDFSelected: (callback) =>
       ipcRenderer.on('selected-pdf', (event, filePaths) => callback(filePaths)),
     onAudioSelected: (callback) =>
-      ipcRenderer.on('selected-audio', (event, filePaths) => callback(filePaths)),
+      ipcRenderer.on('selected-audio', (event, filePaths) =>
+        callback(filePaths),
+      ),
     onImageSelected: (callback) =>
-      ipcRenderer.on('selected-image', (event, filePaths) => callback(filePaths)),
+      ipcRenderer.on('selected-image', (event, filePaths) =>
+        callback(filePaths),
+      ),
     onVideoSelected: (callback) =>
-      ipcRenderer.on('selected-video', (event, filePaths) => callback(filePaths)),
-      
+      ipcRenderer.on('selected-video', (event, filePaths) =>
+        callback(filePaths),
+      ),
+
     // Hotkey Funktionen
     loadHotkeys: () => {
       // Ruft den Main Process auf, um die Datei zu lesen und die Daten zurückzugeben

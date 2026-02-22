@@ -543,6 +543,31 @@ ipcMain.handle('get-theme-list', async () => {
   }
 });
 
+//  ### Video on Beamer ###
+ipcMain.on('play-video-on-beamer', (event, videoSrc) => {
+    // WICHTIG: Wir müssen prüfen, ob songPresentationWindow existiert, 
+    // da dies deine Variable für das Beamer-Fenster ist.
+    if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
+        songPresentationWindow.webContents.send('beamer-video-load', videoSrc);
+    } else {
+        console.error("Beamer-Fenster ist nicht offen. Video kann nicht geladen werden.");
+        // Optional: Hier songPresentation() aufrufen, falls das Fenster automatisch öffnen soll
+    }
+});
+
+ipcMain.on('video-is-ready', () => {
+    if (mainWindow) {
+        mainWindow.webContents.send('start-preview');
+    }
+});
+
+ipcMain.on('control-video-on-beamer', (event, data) => {
+    // data enthält hier { command, time } wie in deiner preload definiert
+    if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
+        songPresentationWindow.webContents.send('beamer-video-control', data);
+    }
+});
+
 // ### Theme Manager Window ###
 
 let themeManagerWindow;

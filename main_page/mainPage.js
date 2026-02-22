@@ -799,6 +799,14 @@ function selectSlide(slideElement) {
   }
   slideElement.classList.add(highlightClass);
 
+  if (
+    slideElement.getAttribute('data-type') === 'video' ||
+    slideElement.hasAttribute('video-id')
+  ) {
+    currentSpecialMode = 'video';
+    return;
+  }
+
   let content = '';
 
   // PRÜFUNG der verschiedenen Inhaltstypen
@@ -815,6 +823,8 @@ function selectSlide(slideElement) {
     const imageSrc = img.src;
     content = createFullscreenImageHTML(imageSrc);
     currentSpecialMode = 'image-slide';
+  } else if (slideElement.hasAttribute('audio-id')) {
+    window.electronAPI.showBlackscreen();
   } else {
     // FALL 3: Text-Inhalt (Songs)
     const slideContent = slideElement.querySelector('.slide-content');
@@ -846,7 +856,7 @@ function createFullscreenImageHTML(src) {
 if (staticContainer) {
   staticContainer.addEventListener('click', function (event) {
     const clickedSlide = event.target.closest(
-      '.song-slide, .pdf-slide,.image-slide, .audio-slide, .video-slide',
+      '.song-slide, .pdf-slide,.image-slide, .audio-slide, .preview-player',
     );
 
     if (clickedSlide) {
@@ -1218,14 +1228,6 @@ async function loadSelectedPDFContent(event) {
 
 let selectedPDF = null; // Verfolgungsvariable für die aktuell ausgewählte PDF
 
-// Audio
-window.electronAPI.onAudioSelected((audioPaths) => {
-  console.log('Audio ausgewählt:', audioPaths);
-  audioPaths.filePaths.forEach((audioPath) => {
-    // createAndAppendAudioButton(audioPath);
-  });
-});
-
 // Bild
 window.electronAPI.onImageSelected((imagePaths) => {
   console.log('Bild ausgewählt:', imagePaths);
@@ -1319,13 +1321,194 @@ async function loadSelectedImageContent(event) {
   console.log(`Bild geladen: ${imgPath}`);
 }
 
+// Audio
+window.electronAPI.onAudioSelected((audioPaths) => {
+  console.log('Audio ausgewählt:', audioPaths);
+  audioPaths.filePaths.forEach((audioPath) => {
+    createAndAppendAudioButton(audioPath);
+  });
+});
+
+async function createAndAppendAudioButton(audioPath) {
+  const newAudioItem = document.createElement('button');
+  newAudioItem.textContent = '🎵 ' + audioPath.split('/').pop(); // Icon zur Unterscheidung
+  newAudioItem.classList.add('audio-item');
+  newAudioItem.setAttribute('audio-id', audioPath); // WICHTIG: Speichere den Pfad
+
+  newAudioItem.setAttribute('draggable', 'true');
+
+  // Drag-and-Drop (Identisch mit deinem Image-Code)
+  newAudioItem.addEventListener('dragstart', () => {
+    newAudioItem.classList.add('dragging');
+    draggedItem = newAudioItem;
+    placeholder = document.createElement('div');
+    placeholder.classList.add('drag-placeholder');
+    setTimeout(() => newAudioItem.classList.add('hide'), 0);
+  });
+
+  newAudioItem.addEventListener('dragend', () => {
+    newAudioItem.classList.remove('dragging', 'hide');
+    draggedItem = null;
+    if (placeholder && placeholder.parentNode)
+      placeholder.parentNode.removeChild(placeholder);
+    placeholder = null;
+    updatePlaylistArray();
+  });
+
+  newAudioItem.addEventListener('click', () => {
+    selectItem(newAudioItem);
+  });
+
+  songListContainer.appendChild(newAudioItem);
+  playlist.push(newAudioItem);
+}
+
+async function loadSelectedAudioContent(event) {
+  const rightPanel = document.getElementById('right-panel');
+
+  if (rightPanel) {
+    rightPanel.innerHTML = `
+            <h2>Audio Player</h2>
+            <div id="slides-container" style="display: flex; justify-content: center; align-items: center; height: 100%;"></div>
+        `;
+  } else {
+    console.error('Das Element für die Audio-Anzeige wurde nicht gefunden.');
+    return;
+  }
+
+  const audioPath = event.target.getAttribute('audio-id');
+  const container = document.getElementById('slides-container');
+  container.innerHTML = '';
+
+  if (!audioPath) {
+    console.warn('Kein Audiopfad gefunden.');
+    return;
+  }
+
+  // Audio-Player Element erstellen
+  const audioDiv = document.createElement('div');
+  audioDiv.className = 'audio-slide';
+  audioDiv.style.textAlign = 'center';
+  audioDiv.style.width = '80%';
+
+  audioDiv.innerHTML = `
+      <div class="audio-player-container" style="padding: 20px; background: #f1f1f1; border-radius: 10px;">
+          <p><strong>Datei:</strong> ${audioPath.split('/').pop()}</p>
+          <audio controls style="width: 100%;">
+              <source src="${audioPath}" type="audio/mpeg">
+              Dein Browser unterstützt das Audio-Element nicht.
+          </audio>
+      </div>
+  `;
+
+  container.appendChild(audioDiv);
+  console.log(`Audio geladen: ${audioPath}`);
+}
+
 // Video
 window.electronAPI.onVideoSelected((videoPaths) => {
   console.log('Video ausgewählt:', videoPaths);
   videoPaths.filePaths.forEach((videoPath) => {
-    // createAndAppendVideoButton(videoPath);
+    createAndAppendVideoButton(videoPath);
   });
 });
+
+async function createAndAppendVideoButton(videoPath) {
+  const newVideoItem = document.createElement('button');
+  newVideoItem.textContent = '🎬 ' + videoPath.split('/').pop();
+  newVideoItem.classList.add('image-item', 'video-item'); // video-item für spezielles CSS
+  newVideoItem.setAttribute('video-id', videoPath);
+  newVideoItem.setAttribute('data-type', 'video'); // Wichtig zur Unterscheidung
+
+  // Drag-and-Drop-Funktionalität hinzufügen (Start)
+  newVideoItem.setAttribute('draggable', 'true');
+  newVideoItem.addEventListener('dragstart', () => {
+    // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen
+    newVideoItem.classList.add('dragging');
+    draggedItem = newVideoItem;
+
+    // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
+    placeholder = document.createElement('div');
+    placeholder.classList.add('drag-placeholder');
+
+    // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
+    setTimeout(() => newVideoItem.classList.add('hide'), 0);
+  });
+
+  newVideoItem.addEventListener('dragend', () => {
+    // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
+    newVideoItem.classList.remove('dragging');
+    newVideoItem.classList.remove('hide');
+    draggedItem = null;
+
+    if (placeholder && placeholder.parentNode) {
+      placeholder.parentNode.removeChild(placeholder);
+    }
+    placeholder = null;
+
+    updatePlaylistArray();
+  });
+  // Drag-and-Drop-Funktionalität hinzufügen (End)
+
+  newVideoItem.addEventListener('click', () => {
+    selectItem(newVideoItem);
+  });
+
+  songListContainer.appendChild(newVideoItem);
+  playlist.push(newVideoItem);
+}
+
+let isVideoLoadedOnBeamer = false;
+
+async function loadSelectedVideoContent(event) {
+  window.electronAPI.openSongOnBeamer('');
+  window.electronAPI.showSlide();
+  const videoPath = event.target.getAttribute('video-id');
+  const rightPanel = document.getElementById('right-panel');
+
+  if (rightPanel) {
+    rightPanel.innerHTML = `
+      <div class="preview-player" video-id="${videoPath}">
+          <video id="main-preview-video" controls style="width: 100%;">
+              <source src="${videoPath}" type="video/mp4">
+          </video>
+      </div>
+    `;
+
+    const videoElement = document.getElementById('main-preview-video');
+    isVideoLoadedOnBeamer = false; // Reset bei neuem Video
+
+    window.electronAPI.onBeamerReady(() => {
+      console.log('Beamer ist bereit, starte Preview synchron.');
+      videoElement.play(); // Jetzt erst startet die Preview lokal
+    });
+
+    videoElement.onplay = () => {
+      if (!isVideoLoadedOnBeamer) {
+        // Preview sofort wieder pausieren, um auf den Beamer zu warten
+        videoElement.pause();
+
+        window.electronAPI.playVideoOnBeamer(videoPath);
+        isVideoLoadedOnBeamer = true;
+        // Der Beamer wird jetzt laden und über IPC "start-preview" zurücksenden
+      } else {
+        window.electronAPI.controlVideoOnBeamer({ command: 'play' });
+      }
+    };
+
+    videoElement.onpause = () => {
+      window.electronAPI.controlVideoOnBeamer({ command: 'pause' });
+    };
+
+    videoElement.onseeked = () => {
+      // WICHTIG: Hier nur die Zeit senden, nicht das ganze Video neu laden!
+      window.electronAPI.controlVideoOnBeamer({
+        command: 'seek',
+        time: videoElement.currentTime,
+      });
+    };
+  }
+}
 
 // ### Hotkey-Logik für die Main Page ###
 
