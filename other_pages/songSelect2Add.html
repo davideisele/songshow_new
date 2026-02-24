@@ -3,17 +3,43 @@
 <head>
     <title>Song auswählen</title>
     <style>
+        :root {
+    /* Standard Light Mode */
+    --bg-body: #f4f4f9;
+    --bg-container: #ffffff;
+    --text-main: #333333;
+    --text-heading: #007bff;
+    --input-bg: #ffffff;
+    --input-border: #ccc;
+    --option-border: #eee;
+    --loading-text: #666;
+    --action-border: #ddd;
+}
+
+body.dark-theme {
+    /* Dark Mode Farben */
+    --bg-body: #121212;
+    --bg-container: #1e1e1e;
+    --text-main: #e0e0e0;
+    --text-heading: #4da3ff; /* Ein etwas helleres Blau für bessere Lesbarkeit */
+    --input-bg: #2d2d2d;
+    --input-border: #444;
+    --option-border: #333;
+    --loading-text: #aaa;
+    --action-border: #333;
+}
         body { 
         font-family: sans-serif; 
         padding: 30px; /* Etwas weniger Padding für mehr Platz */
-        background-color: #f4f4f9; 
+        background-color: var(--bg-body); 
+        color: var(--text-main);
         display: flex; 
         flex-direction: column; 
         height: 100vh; 
         margin: 0; 
         box-sizing: border-box; /* Padding wird in die 100vh eingerechnet */
     }
-    h2 { color: #007bff; margin-top: 0; flex-shrink: 0; }
+    h2 { color: var(--text-heading); margin-top: 0; flex-shrink: 0; }
     
     .content { 
         flex-grow: 1; 
@@ -37,7 +63,9 @@
         padding: 10px; 
         margin-bottom: 10px; 
         border-radius: 4px; 
-        border: 1px solid #ccc; 
+        border: 1px solid var(--input-border); 
+        background-color: var(--input-bg);
+        color: var(--text-main);
         box-sizing: border-box;
         flex-shrink: 0;
     }
@@ -46,16 +74,18 @@
         padding: 10px;
         width: 100%;
         border-radius: 4px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--input-border);
+        background-color: var(--input-bg);
+        color: var(--text-main);
         flex-grow: 1;
         overflow-y: auto;
         outline: none;
     }
 
-    #song-select option { padding: 8px; border-bottom: 1px solid #eee; }
+    #song-select option { padding: 8px; border-bottom: 1px solid var(--option-border); }
     #song-select option:checked { background-color: #007bff; color: white; }
 
-    #loading-message { margin-top: 10px; color: #666; font-style: italic; flex-shrink: 0; }
+    #loading-message { margin-top: 10px; color: var(--loading-text); font-style: italic; flex-shrink: 0; }
     
     .action-buttons {
         display: flex; 
@@ -63,7 +93,7 @@
         gap: 10px; 
         padding-top: 10px;
         flex-shrink: 0; /* Buttons dürfen niemals kleiner werden */
-        border-top: 1px solid #ddd; /* Optionale Trennlinie */
+        border-top: 1px solid var(--action-border); /* Optionale Trennlinie */
     }
     
     .action-buttons button {

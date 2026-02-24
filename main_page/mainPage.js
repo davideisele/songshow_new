@@ -1837,13 +1837,46 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-document.getElementById('dark-mode-button').addEventListener('click', toggleDarkMode);
-
-function toggleDarkMode() {
-    document.body.classList.toggle('dark-theme');
-    const isDark = document.body.classList.contains('dark-theme');
-    localStorage.setItem('darkMode', isDark);
+// Darkmode
+function applyTheme() {
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
 }
+
+const darkModeButton = document.getElementById('dark-mode-button');
+
+darkModeButton.addEventListener('click', () => {
+    const isCurrentlyDark = document.body.classList.contains('dark-theme');
+    const newValue = !isCurrentlyDark;
+    
+    // Speicher aktualisieren (triggert 'storage' event in anderen Fenstern)
+    localStorage.setItem('darkMode', newValue);
+    
+    // Auf der eigenen Seite sofort anwenden
+    applyTheme();
+    
+    // Icon-Update
+    const icon = darkModeButton.querySelector('i');
+    if (newValue) {
+        icon.classList.replace('fa-moon', 'fa-sun');
+    } else {
+        icon.classList.replace('fa-sun', 'fa-moon');
+    }
+});
+
+// 1. Beim Laden der Seite prüfen
+document.addEventListener('DOMContentLoaded', applyTheme);
+
+// 2. Auf Änderungen von anderen Fenstern reagieren
+window.addEventListener('storage', (e) => {
+    if (e.key === 'darkMode') {
+        applyTheme();
+    }
+});
 
 // Beim Start prüfen
 document.addEventListener('DOMContentLoaded', () => {

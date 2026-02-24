@@ -1,10 +1,30 @@
 /* themeManager.css */
+:root {
+    --bg-app: #f7f9fc;
+    --bg-card: #ffffff;
+    --text-title: #2a2a2a;
+    --text-body: #333333;
+    --border-ui: #d3dae4;
+}
 
+body.dark-theme {
+    --bg-app: #121212;
+    --bg-card: #1e1e1e;
+    --text-title: #ffffff;
+    --text-body: #cccccc;
+    --border-ui: #333333;
+}
+
+body { background-color: var(--bg-app); color: var(--text-body); }
+.selector-group, #theme-details-container { 
+    background-color: var(--bg-card); 
+    border: 1px solid var(--border-ui); 
+}
+h2, h3 { color: var(--text-title); }
+input, select { background-color: #252526; color: white; border-color: var(--border-ui); } /* Beispiel für Dark-Inputs */
 /* ======= Allgemeine Grundstruktur ======= */
 body {
   font-family: "Inter", system-ui, sans-serif;
-  background-color: #f7f9fc;
-  color: #333;
   margin: 0;
   padding: 2rem;
   display: flex;
@@ -13,9 +33,6 @@ body {
   line-height: 1.5;
 }
 
-h2, h3 {
-  color: #2a2a2a;
-}
 
 label {
   font-weight: 500;
@@ -25,7 +42,7 @@ label {
 
 /* ======= Layout ======= */
 .selector-group {
-  background: #ffffff;
+  background: var(--bg-card);
   border-radius: 12px;
   padding: 1.5rem 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -39,7 +56,7 @@ label {
 }
 
 #theme-details-container {
-  background: #ffffff;
+  background: var(--bg-card);
   border-radius: 12px;
   padding: 2rem;
   width: 80%;
@@ -61,8 +78,8 @@ select {
   max-width: 300px;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  border: 1px solid #d3dae4;
-  background-color: #fdfdfd;
+  border: 1px solid var(--border-ui);
+  background-color: var(--bg-card);
   font-size: 0.95rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -85,8 +102,8 @@ input[type="color"] {
 
 /* ======= Buttons ======= */
 button {
-  background: #4a8cff;
-  color: white;
+  background: var(--bg-button);
+  color: var(--text-body);
   border: none;
   border-radius: 8px;
   padding: 0.6rem 1.2rem;
@@ -111,15 +128,15 @@ button:active {
 }
 
 #delete-button {
-  background: #ff5c5c;
+  background: var(--bg-delete-button);
 }
 
 #delete-button:hover {
-  background: #e14c4c;
+  background: var(--bg-delete-button-hover);
 }
 
 #delete-selected-theme{
-    background: #ff5c5c;
+    background: var(--bg-delete-button);
 }
 /* ======= Font-Style Buttons ======= */
 #font-bold,
@@ -128,17 +145,17 @@ button:active {
   width: 36px;
   height: 36px;
   font-weight: bold;
-  border: 1px solid #d3dae4;
+  border: 1px solid var(--border-ui);
   border-radius: 6px;
-  background: #f1f4fa;
-  color: #333;
+  background: var(--bg-button);
+  color: var(--text-body);
   margin-right: 0.5rem;
 }
 
 #font-bold:hover,
 #font-italic:hover,
 #font-underline:hover {
-  background: #e7ecf7;
+  background: var(--bg-button-hover);
 }
 
 #font-bold[aria-pressed="true"],

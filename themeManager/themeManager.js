@@ -661,3 +661,24 @@ function init() {
 
 // Start der Anwendung nach dem Laden des DOM
 document.addEventListener('DOMContentLoaded', init);
+
+
+// Darkmode
+function applyTheme() {
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+}
+
+// 1. Beim Laden der Seite prüfen
+document.addEventListener('DOMContentLoaded', applyTheme);
+
+// 2. Auf Änderungen von anderen Fenstern reagieren
+window.addEventListener('storage', (e) => {
+    if (e.key === 'darkMode') {
+        applyTheme();
+    }
+});
