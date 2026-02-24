@@ -154,11 +154,11 @@ button:active {
   width: 90%;
   border: none;
   outline: none;
-  background-color: rgb(221, 198, 120);
+  background-color: rgb(243, 155, 176);
 }
 
 .pdf-item:hover {
-    background-color: rgba(221, 198, 120, 0.498);
+    background-color: rgb(243, 155, 176, 0.498);
     cursor: grab;
 }
 
@@ -201,7 +201,98 @@ button:active {
     position: relative;
 }
 
+/* Audio */
+.audio-item {
+  display: block;
+  margin:10px;
+  width: 90%;
+  border: none;
+  outline: none;
+  background-color: rgb(193, 155, 243);
+}
 
+.audio-item:hover {
+    background-color: rgb(193, 155, 243, 0.498);
+    cursor: grab;
+}
+
+.audio-item:active {
+    background-color: #d0e0e1;
+    box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
+}
+
+.audio-item.selected {
+    background-color: #007bff; /* Zum Beispiel Blau */
+    color: white;
+    border: 2px solid #0056b3;
+}
+
+.audio-item.dragging {
+  opacity: 0.5;
+  border: 2px dashed #000;
+}
+
+/* Image */
+.image-item {
+  display: block;
+  margin:10px;
+  width: 90%;
+  border: none;
+  outline: none;
+  background-color: rgb(155, 240, 243);
+}
+
+.image-item:hover {
+    background-color: rgb(155, 240, 243, 0.498);
+    cursor: grab;
+}
+
+.image-item:active {
+    background-color: #d0e0e1;
+    box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
+}
+
+.image-item.selected {
+    background-color: #007bff; /* Zum Beispiel Blau */
+    color: white;
+    border: 2px solid #0056b3;
+}
+
+.image-item.dragging {
+  opacity: 0.5;
+  border: 2px dashed #000;
+}
+
+/* Video */
+.video-item {
+  display: block;
+  margin:10px;
+  width: 90%;
+  border: none;
+  outline: none;
+  background-color: rgb(243, 155, 243);
+}
+
+.video-item:hover {
+    background-color: rgb(243, 155, 243, 0.498);
+    cursor: grab;
+}
+
+.video-item:active {
+    background-color: #d0e0e1;
+    box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
+}
+
+.video-item.selected {
+    background-color: #007bff; /* Zum Beispiel Blau */
+    color: white;
+    border: 2px solid #0056b3;
+}
+
+.video-item.dragging {
+  opacity: 0.5;
+  border: 2px dashed #000;
+}
 
 /* ### Style for Slides ### */
 

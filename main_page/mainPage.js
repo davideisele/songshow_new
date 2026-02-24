@@ -1200,7 +1200,7 @@ window.electronAPI.onPDFSelected((pdfPaths) => {
 // PDF-Button-Logik
 async function createAndAppendPDFButton(pdfPath) {
   const newPDFItem = document.createElement('button');
-  newPDFItem.textContent = pdfPath.split('/').pop(); // Setze den Namen des PDFs als Text
+  newPDFItem.textContent = '📄 ' + pdfPath.split('/').pop(); // Setze den Namen des PDFs als Text
   newPDFItem.classList.add('pdf-item');
   newPDFItem.setAttribute('pdf-id', pdfPath); // WICHTIG: Speichere die ID
   // Drag-and-Drop-Funktionalität hinzufügen (Start)
@@ -1304,7 +1304,7 @@ window.electronAPI.onImageSelected((imagePaths) => {
 
 async function createAndAppendImageButton(imagePath) {
   const newImageItem = document.createElement('button');
-  newImageItem.textContent = imagePath.split('/').pop(); // Setze den Namen des PDFs als Text
+  newImageItem.textContent = '📷 ' + imagePath.split('/').pop(); // Setze den Namen des PDFs als Text
   newImageItem.classList.add('image-item');
   newImageItem.setAttribute('image-id', imagePath); // WICHTIG: Speichere die ID
   // Drag-and-Drop-Funktionalität hinzufügen (Start)
