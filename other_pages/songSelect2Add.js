@@ -12,7 +12,9 @@ async function loadSongs() {
 
   try {
     const result = await window.electronAPI.getAllSongs();
-    allSongs = result.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+    allSongs = result.sort((a, b) =>
+      (a.title || '').localeCompare(b.title || ''),
+    );
 
     if (allSongs.length === 0) {
       loadingMessage.textContent =
@@ -22,7 +24,6 @@ async function loadSongs() {
 
     loadingMessage.style.display = 'none';
     renderSongs(allSongs);
-
   } catch (error) {
     loadingMessage.textContent = 'Fehler beim Laden der Songs.';
     console.error('Fehler beim Laden der Songs:', error);
@@ -30,26 +31,30 @@ async function loadSongs() {
 }
 
 function renderSongs(songsToDisplay) {
-    songSelect.innerHTML = ''; // Liste leeren
-    
-    songsToDisplay.forEach(song => {
-        const option = document.createElement('option');
-        option.value = song.id;
-        option.textContent = `${song.title} (${song.author || 'Unbekannt'})`;
-        songSelect.appendChild(option);
-    });
+  songSelect.innerHTML = ''; // Liste leeren
+
+  songsToDisplay.forEach((song) => {
+    const option = document.createElement('option');
+    option.value = song.id;
+    option.textContent = `${song.title} (${song.author || 'Unbekannt'})`;
+    songSelect.appendChild(option);
+  });
+  if (songsToDisplay.length > 0) {
+    songSelect.selectedIndex = 0;
+    handleSongSelectChange();
+  }
 }
 
 songSearch.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    
-    const filteredSongs = allSongs.filter(song => {
-        const title = (song.title || "").toLowerCase();
-        const author = (song.author || "").toLowerCase();
-        return title.includes(searchTerm) || author.includes(searchTerm);
-    });
-    
-    renderSongs(filteredSongs);
+  const searchTerm = e.target.value.toLowerCase();
+
+  const filteredSongs = allSongs.filter((song) => {
+    const title = (song.title || '').toLowerCase();
+    const author = (song.author || '').toLowerCase();
+    return title.includes(searchTerm) || author.includes(searchTerm);
+  });
+
+  renderSongs(filteredSongs);
 });
 
 // 2. Event-Handler für die Auswahl
@@ -79,9 +84,11 @@ function handleAddClick() {
       };
 
       // Sende jeden Song einzeln an das Hauptfenster
-      console.log("Sende Song an Main:", songData.title);
+      console.log('Sende Song an Main:', songData.title);
       window.electronAPI.sendSelectedSong(songData);
     }
+    songSearch.focus();
+    songSearch.select();
   });
 }
 
@@ -93,6 +100,43 @@ window.addEventListener('DOMContentLoaded', () => {
   addButton.addEventListener('click', handleAddClick);
 
   // Abbrechen schließt einfach das Fenster
+  cancelButton.addEventListener('click', () => {
+    window.close();
+  });
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  loadSongs();
+
+  // Fokus direkt auf das Suchfeld legen
+  songSearch.focus();
+
+  songSelect.addEventListener('change', handleSongSelectChange);
+  addButton.addEventListener('click', handleAddClick);
+
+  // --- NEU: Tastaturnavigation ---
+
+  // Im Suchfeld: Bei Pfeil-nach-unten zur Liste springen
+  songSearch.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      songSelect.focus();
+      // Erste Option auswählen, falls noch nichts markiert ist
+      if (songSelect.options.length > 0 && songSelect.selectedIndex === -1) {
+        songSelect.selectedIndex = 0;
+        handleSongSelectChange();
+      }
+    }
+  });
+
+  // In der Liste: Bei Enter hinzufügen
+  songSelect.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddClick();
+    }
+  });
+
   cancelButton.addEventListener('click', () => {
     window.close();
   });
