@@ -1,8 +1,38 @@
+:root {
+    /* Light Mode (Standard) */
+    --bg-main: #ffffff;
+    --bg-panel: #f0f0f0;
+    --bg-schedule: #ffffff;
+    --text-color: #333333;
+    --border-color: #cccccc;
+    --button-hover: #e0eeef;
+    --splitter-color: #000000;
+    --item-hover: rgba(236, 234, 234, 0.5);
+}
+
+/* Dark Mode Definitionen */
+body.dark-theme {
+    --bg-main: #1e1e1e;       /* Dunkles Anthrazit */
+    --bg-panel: #2d2d2d;      /* Etwas helleres Grau für Panels */
+    --bg-schedule: #252526;   /* Hintergrund für den Ablaufplan */
+    --text-color: #e0e0e0;    /* Heller Text */
+    --border-color: #444444;  /* Dunklere Rahmen */
+    --button-hover: #3e3e3e;
+    --splitter-color: #555555;
+    --item-hover: rgba(255, 255, 255, 0.1);
+}
+
 body, html {
     margin: 0;
     height: 100%;
-    overflow: hidden; /* Verhindert Scrollbalken durch Überlauf */
+    overflow: hidden;
     font-family: sans-serif;
+    background-color: var(--bg-main); /* Nutzt die Variable */
+    color: var(--text-color);         /* Nutzt die Variable */
+}
+
+.spacer-horizontal {
+    width: 2%; /* Hier kannst du den Abstand genau einstellen */
 }
 
 /* Split-View zwischen dem Ablaufplan und den Slides */
@@ -19,7 +49,7 @@ body, html {
 #left-panel {
     display: flex;
     flex-direction: column;
-    background-color: #f0f0f0;
+    background-color: var(--bg-panel);
     /* min-width: 10%; /* Minimale Breite für die linke Spalte */
     /* max-width: 20%; Maximale Breite für die linke Spalte */
     width: 18%;
@@ -33,14 +63,14 @@ body, html {
 }
 
 #right-panel {
-    background-color: #ffffff;
+    background-color: var(--bg-main);
     flex-grow: 1; /* Rechte Spalte nimmt den verbleibenden Platz ein */
     overflow-y: auto; /* Scrollbalken, wenn der Inhalt zu groß ist */
     overflow-x: hidden;
 }
 
 #splitter {
-    background-color: #000;
+    background-color: var(--splitter-color);
     width: 5px; /* Breite des Splitters */
     /* cursor: ew-resize; Cursor ändert sich beim Überfahren */
 }
@@ -55,8 +85,8 @@ body, html {
     border: none;
     outline: none;
 
-    background-color: #f0f0f0; 
-    color: #333;
+    background-color: var(--bg-panel); 
+    color: var(--text-color);
     padding: 8px 12px;
     border-radius: 6px;
     cursor: pointer;
@@ -64,11 +94,11 @@ body, html {
 }
 
 button:hover {
-    background-color: #e0eeef;
+    background-color: var(--button-hover);
 }
 
 button:active {
-    background-color: #d0e0e1;
+    background-color: var(--bg-panel);
     box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
 }
 
@@ -76,7 +106,7 @@ button:active {
     display: flex;
     padding: 10px;
     padding-left: 20px;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid var(--border-color);
 }
 
 #song-buttons {
@@ -98,9 +128,9 @@ button:active {
     flex-grow: 1;
 
     overflow: auto; 
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     padding: 10px;
-    background-color: #fff;
+    background-color: var(--bg-schedule);
 }
 
 .song-item {
@@ -109,16 +139,17 @@ button:active {
   width: 90%;
   border: none;
   outline: none;
+  color: var(--text-color);
   background-color: transparent;
 }
 
 .song-item:hover {
-    background-color: rgba(236, 234, 234, 0.498);
+    background-color: var(--item-hover);
     cursor: grab;
 }
 
 .song-item:active {
-    background-color: #d0e0e1;
+    background-color: var(--bg-panel);
     box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
 }
 
@@ -135,8 +166,8 @@ button:active {
 
 .drag-placeholder {
      /* Wichtig: Gib ihm die gleiche Höhe wie einem 'song-item' */
-    background-color: #e0f7fa; /* Hellblauer Hintergrund als Platzhalter */
-    border: 1px dashed lightblue; /* Gestrichelte blaue Linie */
+    background-color: var(--bg-placeholder); /* Hellblauer Hintergrund als Platzhalter */
+    border: 1px dashed var(--border-color); /* Gestrichelte blaue Linie */
     margin: 5px 0; /* Abstand, um ihn von den Buttons abzuheben */
     /* Füge für einen weicheren Übergang eine Transition hinzu */
     transition: all 0.1s ease-out; 
@@ -295,6 +326,10 @@ button:active {
   opacity: 0.5;
   border: 2px dashed #000;
 }
+
+body.dark-theme .pdf-item { background-color: rgb(150, 60, 80); color: white; }
+body.dark-theme .audio-item { background-color: rgb(100, 60, 150); color: white; }
+body.dark-theme .image-item { background-color: rgb(60, 130, 135); color: white; }
 
 /* ### Style for Slides ### */
 

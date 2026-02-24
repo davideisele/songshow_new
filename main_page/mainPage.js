@@ -1836,3 +1836,18 @@ document.addEventListener('keydown', (event) => {
     }
   }
 });
+
+document.getElementById('dark-mode-button').addEventListener('click', toggleDarkMode);
+
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-theme');
+    const isDark = document.body.classList.contains('dark-theme');
+    localStorage.setItem('darkMode', isDark);
+}
+
+// Beim Start prüfen
+document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-theme');
+    }
+});
