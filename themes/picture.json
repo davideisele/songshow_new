@@ -1,0 +1,22 @@
+{
+  "name": "picture",
+  "background-option": "image",
+  ".slide-content": {
+    "color": "#ffffff",
+    "background-color": "#000000",
+    "font-family": "",
+    "font-size": "12px",
+    "text-align": "left",
+    "top": "auto",
+    "bottom": "auto",
+    "left": "auto",
+    "right": "auto"
+  },
+  ".translation-line": {
+    "color": "#ffffff",
+    "font-family": "",
+    "font-size": "px",
+    "text-align": "left"
+  },
+  "background-image": "/Users/d.eisele/Temporär/Präsentation_CC.jpg"
+}

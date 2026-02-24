@@ -139,13 +139,19 @@ function applyThemeStyles(themeData, targetElement) {
   // 1. Zuerst die Video-Prüfung durchführen
   if (themeData.hasOwnProperty('background-video')) {
     const videoPath = themeData['background-video'];
+    removeImageBackground(); // Bild weg, wenn Video da ist
     handleVideoBackground(videoPath);
     // Das background-video-Objekt aus themeData entfernen, damit es nicht als CSS-Variable gesetzt wird
     // delete themeData['background-video'];
+  } else if (themeData['background-image']) {
+    removeVideoBackground(); // Video weg, wenn Bild da ist
+    handleImageBackground(themeData['background-image']);
   } else {
-    // Sicherstellen, dass ein vorhandenes Video entfernt wird, wenn das Theme es nicht benötigt
+    // Beides entfernen, wenn nichts definiert ist
     removeVideoBackground();
+    removeImageBackground();
   }
+
   // Gehen Sie alle Selektoren (Schlüssel) in der themeData durch
   for (const selector in themeData) {
     if (themeData.hasOwnProperty(selector)) {
@@ -171,6 +177,57 @@ function applyThemeStyles(themeData, targetElement) {
       }
     }
   }
+}
+
+function handleImageBackground(imagePath) {
+  const slideContentContainers = document.querySelectorAll('.slide-inner-content');
+
+  if (slideContentContainers.length === 0) {
+    removeImageBackground();
+    return;
+  }
+
+  slideContentContainers.forEach((container, index) => {
+    const imageId = `theme-background-image-${index}`;
+    let imgElement = container.querySelector(`#${imageId}`);
+
+    // Container-Vorbereitung (wie beim Video)
+    container.style.position = 'relative';
+    container.style.zIndex = '1';
+    container.style.overflow = 'hidden';
+
+    if (!imgElement) {
+      imgElement = document.createElement('div'); // Wir nutzen ein Div für bessere Background-Size Kontrolle
+      imgElement.id = imageId;
+      imgElement.className = 'background-image-layer';
+      
+      // Styling für das Hintergrund-Div
+      Object.assign(imgElement.style, {
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        zIndex: '-1', // Hinter dem Text
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      });
+
+      container.prepend(imgElement);
+    }
+
+    // Pfad aktualisieren
+    const actualPath = `url('${imagePath.replace(/\\/g, '/')}')`;
+    if (imgElement.style.backgroundImage !== actualPath) {
+      imgElement.style.backgroundImage = actualPath;
+    }
+  });
+}
+
+// Hilfsfunktion zum Entfernen
+function removeImageBackground() {
+  document.querySelectorAll('.background-image-layer').forEach(el => el.remove());
 }
 
 function handleVideoBackground(videoPath, themeData) {
