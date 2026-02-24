@@ -8,8 +8,10 @@ const {
 } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const Genius = require("genius-lyrics");
-const Client = new Genius.Client("SDXHdoX1kMgQ-DlAn5g7OHpZ8VdsCqSFDiJiJpwrSxWVL8ePxM1rLdJ5673ylrfi");
+const Genius = require('genius-lyrics');
+const Client = new Genius.Client(
+  'SDXHdoX1kMgQ-DlAn5g7OHpZ8VdsCqSFDiJiJpwrSxWVL8ePxM1rLdJ5673ylrfi',
+);
 
 // ### Datenbank-Setup mit better-sqlite3 ###
 
@@ -225,7 +227,10 @@ const menuBar = [
             properties: ['openFile', 'multiSelections'],
             buttonLabel: 'Bild hinzufügen',
             filters: [
-              { name: 'Bild-Dateien', extensions: ['jpg', 'jpeg', 'png', 'gif'] },
+              {
+                name: 'Bild-Dateien',
+                extensions: ['jpg', 'jpeg', 'png', 'gif'],
+              },
             ],
           });
           if (!imagePath.canceled && imagePath.filePaths.length > 0) {
@@ -247,6 +252,13 @@ const menuBar = [
           if (!videoPath.canceled && videoPath.filePaths.length > 0) {
             mainWindow.webContents.send('selected-video', videoPath);
           }
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'remove everything',
+        click: () => {
+          mainWindow.webContents.send('clear-entire-playlist');
         },
       },
     ],
@@ -543,27 +555,29 @@ ipcMain.handle('get-theme-list', async () => {
 
 //  ### Video on Beamer ###
 ipcMain.on('play-video-on-beamer', (event, videoSrc) => {
-    // WICHTIG: Wir müssen prüfen, ob songPresentationWindow existiert, 
-    // da dies deine Variable für das Beamer-Fenster ist.
-    if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
-        songPresentationWindow.webContents.send('beamer-video-load', videoSrc);
-    } else {
-        console.error("Beamer-Fenster ist nicht offen. Video kann nicht geladen werden.");
-        // Optional: Hier songPresentation() aufrufen, falls das Fenster automatisch öffnen soll
-    }
+  // WICHTIG: Wir müssen prüfen, ob songPresentationWindow existiert,
+  // da dies deine Variable für das Beamer-Fenster ist.
+  if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
+    songPresentationWindow.webContents.send('beamer-video-load', videoSrc);
+  } else {
+    console.error(
+      'Beamer-Fenster ist nicht offen. Video kann nicht geladen werden.',
+    );
+    // Optional: Hier songPresentation() aufrufen, falls das Fenster automatisch öffnen soll
+  }
 });
 
 ipcMain.on('video-is-ready', () => {
-    if (mainWindow) {
-        mainWindow.webContents.send('start-preview');
-    }
+  if (mainWindow) {
+    mainWindow.webContents.send('start-preview');
+  }
 });
 
 ipcMain.on('control-video-on-beamer', (event, data) => {
-    // data enthält hier { command, time } wie in deiner preload definiert
-    if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
-        songPresentationWindow.webContents.send('beamer-video-control', data);
-    }
+  // data enthält hier { command, time } wie in deiner preload definiert
+  if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
+    songPresentationWindow.webContents.send('beamer-video-control', data);
+  }
 });
 
 // ### Theme Manager Window ###
@@ -752,45 +766,45 @@ ipcMain.handle('open-pdf-select-dialog', async (event) => {
   return result.filePaths[0];
 });
 
-
 // ### Imports von Songs ###
 async function addNewSong(searchQuery) {
-    try {
-        console.log(`Suche nach: ${searchQuery}...`);
-        
-        // 1. Suche bei Genius
-        const searches = await Client.songs.search(searchQuery);
-        if (searches.length === 0) {
-            console.log("Nichts gefunden.");
-            return;
-        }
+  try {
+    console.log(`Suche nach: ${searchQuery}...`);
 
-        const song = searches[0];
-        let lyrics = await song.lyrics();
+    // 1. Suche bei Genius
+    const searches = await Client.songs.search(searchQuery);
+    if (searches.length === 0) {
+      console.log('Nichts gefunden.');
+      return;
+    }
 
-        // 2. Lyrics bereinigen (Entfernt [Verse], [Chorus] etc.)
-        lyrics = lyrics.replace(/\[.*?\]/g, "").trim();
+    const song = searches[0];
+    let lyrics = await song.lyrics();
 
-        // 3. In die Datenbank INSERTEN
-        // Wir lassen die 'id' Spalte weg, da sie automatisch generiert wird
-        const stmt = db.prepare(`
+    // 2. Lyrics bereinigen (Entfernt [Verse], [Chorus] etc.)
+    lyrics = lyrics.replace(/\[.*?\]/g, '').trim();
+
+    // 3. In die Datenbank INSERTEN
+    // Wir lassen die 'id' Spalte weg, da sie automatisch generiert wird
+    const stmt = db.prepare(`
             INSERT INTO songs (title, author, lyrics, original_order, theme)
             VALUES (@title, @author, @lyrics, @originalOrder, @theme)
         `);
 
-        const info = stmt.run({
-            title: song.title,
-            author: song.artist.name,
-            lyrics: lyrics,
-            originalOrder: 1, 
-            theme: "Default"
-        });
+    const info = stmt.run({
+      title: song.title,
+      author: song.artist.name,
+      lyrics: lyrics,
+      originalOrder: 1,
+      theme: 'Default',
+    });
 
-        console.log(`✅ Neu hinzugefügt! ID: ${info.lastInsertRowid} - ${song.title}`);
-
-    } catch (e) {
-        console.error("❌ Fehler beim Hinzufügen:", e);
-    }
+    console.log(
+      `✅ Neu hinzugefügt! ID: ${info.lastInsertRowid} - ${song.title}`,
+    );
+  } catch (e) {
+    console.error('❌ Fehler beim Hinzufügen:', e);
+  }
 }
 
 // Testlauf

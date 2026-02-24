@@ -136,6 +136,8 @@ contextBridge.exposeInMainWorld(
         callback(filePaths),
       ),
 
+    onClearPlaylist: (callback) => ipcRenderer.on('clear-entire-playlist', callback),
+
     // Hotkey Funktionen
     loadHotkeys: () => {
       // Ruft den Main Process auf, um die Datei zu lesen und die Daten zurückzugeben

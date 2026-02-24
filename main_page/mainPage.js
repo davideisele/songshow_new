@@ -11,30 +11,30 @@ const splitView = document.getElementById('split-view');
 let isDragging = false;
 
 // 1. Start des Ziehvorgangs (Maus geklickt)
-splitter.addEventListener('mousedown', (e) => {
-  isDragging = true;
-  splitView.classList.add('dragging');
-  e.preventDefault();
-});
+// splitter.addEventListener('mousedown', (e) => {
+//   isDragging = true;
+//   splitView.classList.add('dragging');
+//   e.preventDefault();
+// });
 
-// 2. Ziehen (Maus bewegt)
-document.addEventListener('mousemove', (e) => {
-  if (!isDragging) return;
+// // 2. Ziehen (Maus bewegt)
+// document.addEventListener('mousemove', (e) => {
+//   if (!isDragging) return;
 
-  const newLeftWidth = e.clientX;
-  const containerWidth = splitView.offsetWidth;
-  const newWidthPercentage = (newLeftWidth / containerWidth) * 100;
+//   const newLeftWidth = e.clientX;
+//   const containerWidth = splitView.offsetWidth;
+//   const newWidthPercentage = (newLeftWidth / containerWidth) * 100;
 
-  leftPanel.style.width = `${newWidthPercentage}vw`;
-});
+//   leftPanel.style.width = `${newWidthPercentage}vw`;
+// });
 
-// 3. Ende des Ziehvorgangs (Maus losgelassen)
-document.addEventListener('mouseup', (e) => {
-  if (isDragging) {
-    isDragging = false;
-    splitView.classList.remove('dragging');
-  }
-});
+// // 3. Ende des Ziehvorgangs (Maus losgelassen)
+// document.addEventListener('mouseup', (e) => {
+//   if (isDragging) {
+//     isDragging = false;
+//     splitView.classList.remove('dragging');
+//   }
+// });
 
 // Ende der Split-View-Funktionalität
 
@@ -1681,6 +1681,37 @@ window.addEventListener('DOMContentLoaded', async () => {
     updatePlaylistArray();
   });
 });
+
+window.electronAPI.onClearPlaylist(() => {
+  // 1. Sicherheitsabfrage (optional)
+  if (!confirm('Möchtest du wirklich den gesamten Ablaufplan löschen?')) {
+    return;
+  }
+
+  // 2. Den Container im HTML leeren
+  const songListContainer = document.getElementById('song-schedule');
+  if (songListContainer) {
+    songListContainer.innerHTML = '';
+  }else {
+    console.error('Der Container für den Ablaufplan wurde nicht gefunden.');
+  }
+
+  // 3. Das interne Playlist-Array leeren
+  // (Angenommen, dein Array heißt 'playlist')
+  if (typeof playlist !== 'undefined') {
+    playlist.length = 0; 
+  }
+
+  // 4. Den LocalStorage leeren, damit es beim Neustart nicht wiederkommt
+  // localStorage.removeItem('currentPlaylist');
+  updatePlaylistArray();
+
+  // 5. Dem Beamer sagen, dass er auch alles zurücksetzen soll (optional)
+  // window.electronAPI.sendThemeToMain(null); // Falls nötig
+  
+  console.log('Ablaufplan wurde komplett geleert.');
+});
+
 
 // ### Hotkey-Logik für die Main Page ###
 

@@ -20,9 +20,11 @@ body, html {
     display: flex;
     flex-direction: column;
     background-color: #f0f0f0;
-    min-width: 10%; /* Minimale Breite für die linke Spalte */
-    max-width: 20%; /* Maximale Breite für die linke Spalte */
-    resize: horizontal;
+    /* min-width: 10%; /* Minimale Breite für die linke Spalte */
+    /* max-width: 20%; Maximale Breite für die linke Spalte */
+    width: 18%;
+    min-width: 18%;
+    max-width: 18%;
     overflow: auto; /* Scrollbalken, wenn der Inhalt zu groß ist */
 }
 
@@ -40,7 +42,7 @@ body, html {
 #splitter {
     background-color: #000;
     width: 5px; /* Breite des Splitters */
-    cursor: ew-resize; /* Cursor ändert sich beim Überfahren */
+    /* cursor: ew-resize; Cursor ändert sich beim Überfahren */
 }
 
 .dragging, .dragging * { 
