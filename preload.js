@@ -1,6 +1,6 @@
 // preload.js
 
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 // 1. Definition der API, die dem Renderer-Prozess zur Verfügung gestellt wird
 contextBridge.exposeInMainWorld(
@@ -137,6 +137,7 @@ contextBridge.exposeInMainWorld(
       ),
 
     onClearPlaylist: (callback) => ipcRenderer.on('clear-entire-playlist', callback),
+    getFilePath: (file) => webUtils.getPathForFile(file),
 
     // Hotkey Funktionen
     loadHotkeys: () => {

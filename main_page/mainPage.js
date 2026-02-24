@@ -1712,6 +1712,57 @@ window.electronAPI.onClearPlaylist(() => {
   console.log('Ablaufplan wurde komplett geleert.');
 });
 
+// import via drag and drop
+const scheduleContainer = document.getElementById('song-schedule');
+
+// 1. Verhindern, dass der Browser die Datei einfach öffnet (Standardverhalten)
+['dragover', 'drop'].forEach(eventName => {
+  scheduleContainer.addEventListener(eventName, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+});
+
+// 2. Optisches Feedback (Container hervorheben, wenn Datei drüber schwebt)
+scheduleContainer.addEventListener('dragover', () => {
+  scheduleContainer.classList.add('drag-over');
+});
+
+scheduleContainer.addEventListener('dragleave', () => {
+  scheduleContainer.classList.remove('drag-over');
+});
+
+// 3. Die eigentliche Drop-Logik
+scheduleContainer.addEventListener('drop', (e) => {
+  scheduleContainer.classList.remove('drag-over');
+  
+  const files = Array.from(e.dataTransfer.files);
+  console.log('Dateien gedroppt:', files);
+  
+  files.forEach(file => {
+    const filePath = window.electronAPI.getFilePath(file); // Electron liefert den echten Pfad zur Datei!
+    const fileName = file.name;
+    const extension = fileName.split('.').pop().toLowerCase();
+
+    // Entscheiden, welcher Button erstellt werden soll
+    if (['mp4', 'mov', 'webm'].includes(extension)) {
+      createAndAppendVideoButton(filePath);
+    } 
+    else if (['mp3', 'wav', 'ogg'].includes(extension)) {
+      createAndAppendAudioButton(filePath);
+    } 
+    else if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+      createAndAppendImageButton(filePath );
+    } 
+    else if (extension === 'pdf') {
+      createAndAppendPDFButton(filePath);
+    }
+  });
+  
+  // Playlist speichern, nachdem alle neuen Items hinzugefügt wurden
+  updatePlaylistArray();
+});
+
 
 // ### Hotkey-Logik für die Main Page ###
 

@@ -526,3 +526,10 @@ button:active {
 #slide-text-container {
     display: block; 
 }
+
+/* Import via drag and drop */
+#song-schedule.drag-over {
+    background-color: #e1f5fe; /* Leichtes Blau */
+    border: 2px dashed #03a9f4;
+    transition: all 0.2s ease;
+}
