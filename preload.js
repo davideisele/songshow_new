@@ -32,8 +32,10 @@ contextBridge.exposeInMainWorld(
     sendSelectedSong: (songData) =>
       ipcRenderer.send('send-selected-song', songData), // Modal sendet Auswahl zurück
 
-    onSongSelected: (callback) =>
-      ipcRenderer.on('song-selected', (event, songData) => callback(songData)),
+    onSongSelected: (callback) => {
+      ipcRenderer.removeAllListeners('song-selected'); // Vorherige aufräumen
+      ipcRenderer.on('song-selected', (event, data) => callback(data));
+    },
 
     openSongOnBeamer: (content) =>
       ipcRenderer.send('open-song-on-beamer', content),

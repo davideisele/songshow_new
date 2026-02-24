@@ -51,6 +51,7 @@ var selectedSong = null;
 let placeholder = null;
 
 async function createAndAppendSongButton(songData) {
+  console.log('Erstelle Button für:', songData.title);
   const newSongItem = document.createElement('button');
   newSongItem.textContent = songData.title;
   newSongItem.classList.add('song-item');
@@ -519,7 +520,7 @@ function selectItem(newItem) {
     console.log('Item bereits ausgewählt, lade nicht erneut.');
     return; // Funktion hier abbrechen
   }
-  console.log('Test')
+  console.log('Test');
   // 1. Wenn bereits etwas ausgewählt ist (egal ob Song oder PDF), entferne die Markierung
   if (currentSelectedItem) {
     currentSelectedItem.classList.remove('selected');
@@ -574,6 +575,7 @@ removeSongButton.addEventListener('click', () => {
       playlist.splice(index, 1);
     }
   }
+  savePlaylistToStorage();
 });
 
 // Verschieben eines ausgewählten Songs
@@ -701,6 +703,7 @@ function updatePlaylistArray() {
       '.song-item, .pdf-item, .audio-item, .image-item, .video-item',
     ),
   ];
+  savePlaylistToStorage();
 }
 // Ende der Drag-and-Drop-Logik
 
@@ -1515,10 +1518,111 @@ window.electronAPI.onBeamerReady(() => {
   const videoElement = document.getElementById('main-preview-video');
   if (videoElement) {
     console.log('Beamer ist bereit, starte Preview synchron.');
-    videoElement.play(); 
+    videoElement.play();
     // Hier schicken wir den Play-Befehl an den Beamer
     window.electronAPI.controlVideoOnBeamer({ command: 'play' });
   }
+});
+
+// ### Safe Ablaufplan
+
+function savePlaylistToStorage() {
+  const playlistItems = [
+    ...songListContainer.querySelectorAll(
+      '.song-item, .pdf-item, .audio-item, .image-item, .video-item',
+    ),
+  ];
+
+  const playlistData = playlistItems.map((item) => {
+    // Wir sammeln alle möglichen IDs/Pfade
+    return {
+      type: item.classList.contains('song-item')
+        ? 'song'
+        : item.classList.contains('pdf-item')
+          ? 'pdf'
+          : item.classList.contains('video-item')
+            ? 'video'
+            : item.classList.contains('audio-item')
+              ? 'audio'
+              : 'image',
+      id:
+        item.getAttribute('data-song-id') ||
+        item.getAttribute('pdf-id') ||
+        item.getAttribute('video-id') ||
+        item.getAttribute('audio-id') ||
+        item.getAttribute('image-id'),
+      title: item.textContent || '',
+      theme: item.getAttribute('data-song-theme') || '', // Wichtig für Songs
+    };
+  });
+
+  localStorage.setItem('currentPlaylist', JSON.stringify(playlistData));
+}
+
+let isAppInitialized = false;
+
+window.addEventListener('DOMContentLoaded', async () => {
+  // Sicherheit, dass es nur einmal ausgeführt wird
+  if (isAppInitialized) return;
+  isAppInitialized = true;
+
+  console.log('Initialisiere App und lade gespeicherte Playlist...');
+
+  // 1. Alle verfügbaren Songs aus DB laden
+  const allSongsFromDB = await window.electronAPI.getAllSongs();
+
+  // 2. Playlist aus dem Speicher holen
+  const savedData = localStorage.getItem('currentPlaylist');
+
+  if (savedData) {
+    const savedItems = JSON.parse(savedData);
+
+    for (const item of savedItems) {
+      switch (item.type) {
+        case 'song':
+          // Wir suchen die aktuellen Songdaten aus der DB-Liste (wegen Lyrics/Themes)
+          const songData = allSongsFromDB.find(
+            (s) => String(s.id) === String(item.id),
+          );
+          if (songData) {
+            await createAndAppendSongButton(songData);
+          }
+          break;
+
+        case 'pdf':
+          // Hier rufst du deine spezifische Funktion für PDFs auf
+          // Ich nehme an, sie heißt so ähnlich:
+          if (typeof createAndAppendPDFButton === 'function') {
+            createAndAppendPDFButton(item.id);
+          }
+          break;
+
+        case 'video':
+          if (typeof createAndAppendVideoButton === 'function') {
+            createAndAppendVideoButton(item.id);
+          }
+          break;
+
+        case 'image':
+          if (typeof createAndAppendImageButton === 'function') {
+            createAndAppendImageButton(item.id);
+          }
+          break;
+
+        case 'audio':
+          if (typeof createAndAppendAudioButton === 'function') {
+            createAndAppendAudioButton(item.id);
+          }
+          break;
+      }
+    }
+  }
+
+  // Danach wie gewohnt der IPC Listener für neue Songs
+  window.electronAPI.onSongSelected((songData) => {
+    createAndAppendSongButton(songData);
+    updatePlaylistArray();
+  });
 });
 
 // ### Hotkey-Logik für die Main Page ###
@@ -1566,10 +1670,6 @@ document.addEventListener('keydown', (event) => {
           targetButton = prevButton;
           break;
         case 'toggleBlackScreen':
-          // Stellen Sie sicher, dass Sie hier die richtige ID/Variable für blackScreenButton haben
-          // Da Ihr ursprünglicher Code 'blackScreenButton.click()' verwendet,
-          // müssen Sie diese Variable in Ihrem Code definieren (z.B. durch getElementById)
-          // Hier ein Beispiel für die Verwendung einer ID:
           targetButton = blackScreenButton;
           break;
         case 'toggleBackground':
@@ -1577,6 +1677,9 @@ document.addEventListener('keydown', (event) => {
           break;
         case 'toggleDesktop':
           targetButton = showDesktopButton;
+          break;
+        case 'removeSong':
+          targetButton = removeSongButton;
           break;
         default:
           console.warn(`Unbekannte Hotkey-Aktion in JSON: ${action}`);

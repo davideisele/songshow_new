@@ -79,6 +79,7 @@ function handleAddClick() {
       };
 
       // Sende jeden Song einzeln an das Hauptfenster
+      console.log("Sende Song an Main:", songData.title);
       window.electronAPI.sendSelectedSong(songData);
     }
   });

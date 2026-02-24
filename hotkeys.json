@@ -3,5 +3,6 @@
   "prevSlide": ["ArrowLeft", "ArrowUp"],
   "toggleBlackScreen": [" "],
   "toggleBackground": ["b"],
-  "toggleDesktop": ["d"]
+  "toggleDesktop": ["d"],
+  "removeSong": ["Backspace"]
 }
