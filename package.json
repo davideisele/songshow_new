@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
-    "start": "electronmon ."
+    "start": "electronmon .",
+    "start2": "electron ."
   },
   "keywords": [],
   "author": "",

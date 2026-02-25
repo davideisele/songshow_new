@@ -301,6 +301,8 @@ function getFontWeight(group) {
       ?.getAttribute('aria-pressed') === 'true'
   ) {
     return 'bold';
+  } else {
+    return '';
   }
 }
 
@@ -312,6 +314,8 @@ function getFontStyle(group) {
       ?.getAttribute('aria-pressed') === 'true'
   ) {
     return 'italic';
+  } else {
+    return '';
   }
 }
 
@@ -323,6 +327,8 @@ function getFontDecoration(group) {
       ?.getAttribute('aria-pressed') === 'true'
   ) {
     return 'underline';
+  } else {
+    return '';
   }
 }
 
@@ -349,7 +355,7 @@ function loadFontStyleButtons(group, styleObject) {
     if (btn) {
       // Prüfen, ob der Wert im Objekt dem erwarteten Wert entspricht
       const isPressed = styles[cssKey] === expectedValue;
-      
+
       // Das Attribut setzen (für dein CSS wichtig!)
       btn.setAttribute('aria-pressed', isPressed.toString());
     }
@@ -450,10 +456,10 @@ async function loadSelectedTheme() {
  */
 async function saveTheme(event) {
   if (event) event.preventDefault();
-  
+
   // Hol den Namen direkt aus dem Input-Feld
   const themeNameInput = document.getElementById('name').value.trim();
-  
+
   if (!themeNameInput) {
     alert('Bitte geben Sie einen Namen für das Theme im Feld "Name" ein.');
     document.getElementById('name').focus();
@@ -461,18 +467,18 @@ async function saveTheme(event) {
   }
 
   const themeData = serializeFormToTheme(themeNameInput);
-  const isNewTheme = document.getElementById('save-button').textContent === 'Safe (New)';
+  const isNewTheme =
+    document.getElementById('save-button').textContent === 'Safe (New)';
 
   try {
     await window.electronAPI.saveTheme(themeData);
     alert(`Theme "${themeNameInput}" erfolgreich gespeichert.`);
-    
+
     await loadThemeList();
-    
+
     // Nach dem Speichern das neue Theme im Dropdown auswählen
     document.getElementById('theme-select').value = themeNameInput;
     await loadSelectedTheme();
-    
   } catch (error) {
     console.error('Fehler beim Speichern:', error);
     alert(`Fehler: ${error.message || error}`);
@@ -523,7 +529,7 @@ function addNewTheme() {
   document.getElementById('theme-details-form').reset();
   document.getElementById('theme-select').value = '';
   document.getElementById('id').value = '';
-  
+
   // 2. Initiales leeres Theme für die Vorschau
   const emptyTheme = createEmptyTheme('');
   deserializeThemeToForm(emptyTheme);
@@ -531,14 +537,16 @@ function addNewTheme() {
   // 3. UI-Status anpassen
   document.getElementById('save-button').textContent = 'Safe (New)';
   document.getElementById('delete-button').style.display = 'none';
-  
+
   // 4. Fokus auf das Namensfeld setzen, damit der User sofort tippen kann
   const nameInput = document.getElementById('name');
   nameInput.focus();
-  
+
   // Optisches Feedback: Das Feld kurz hervorheben (optional)
   nameInput.style.border = '2px solid #007bff';
-  setTimeout(() => { nameInput.style.border = ''; }, 2000);
+  setTimeout(() => {
+    nameInput.style.border = '';
+  }, 2000);
 
   enableControls(true);
 }
@@ -665,15 +673,14 @@ function init() {
 // Start der Anwendung nach dem Laden des DOM
 document.addEventListener('DOMContentLoaded', init);
 
-
 // Darkmode
 function applyTheme() {
-    const isDark = localStorage.getItem('darkMode') === 'true';
-    if (isDark) {
-        document.body.classList.add('dark-theme');
-    } else {
-        document.body.classList.remove('dark-theme');
-    }
+  const isDark = localStorage.getItem('darkMode') === 'true';
+  if (isDark) {
+    document.body.classList.add('dark-theme');
+  } else {
+    document.body.classList.remove('dark-theme');
+  }
 }
 
 // 1. Beim Laden der Seite prüfen
@@ -681,7 +688,7 @@ document.addEventListener('DOMContentLoaded', applyTheme);
 
 // 2. Auf Änderungen von anderen Fenstern reagieren
 window.addEventListener('storage', (e) => {
-    if (e.key === 'darkMode') {
-        applyTheme();
-    }
+  if (e.key === 'darkMode') {
+    applyTheme();
+  }
 });

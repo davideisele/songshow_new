@@ -6,6 +6,9 @@
     "background-color": "#ffffff",
     "font-family": "Inter, sans-serif",
     "font-size": "8px",
+    "font-style": "",
+    "font-weight": "",
+    "text-decoration": "",
     "text-align": "center",
     "top": "auto",
     "bottom": "auto",
@@ -16,6 +19,9 @@
     "color": "#b13e3e",
     "font-family": "",
     "font-size": "px",
+    "font-style": "",
+    "font-weight": "",
+    "text-decoration": "",
     "text-align": "left"
   }
 }
