@@ -534,8 +534,8 @@ async function loadSelectedSongSlides(event) {
 
 // ** GEÄNDERT: Click-Handler wurde auf async geändert und ruft Lyrics ab **
 songListContainer.addEventListener('click', async (event) => {
-  window.electronAPI.showBlackscreen();
   if (event.target && event.target.classList.contains('song-item')) {
+    window.electronAPI.showBlackscreen();
     selectItem(event.target);
   } else if (event.target && event.target.classList.contains('pdf-item')) {
     selectItem(event.target);
