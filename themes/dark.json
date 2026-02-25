@@ -6,9 +6,6 @@
     "background-color": "#000000",
     "font-family": "Inter, sans-serif",
     "font-size": "12px",
-    "font-style": "italic",
-    "font-weight": "bold",
-    "text-decoration": "underline",
     "text-align": "center",
     "top": "auto",
     "bottom": "auto",
@@ -18,7 +15,7 @@
   ".translation-line": {
     "color": "#b9b8ff",
     "font-family": "Inter, sans-serif",
-    "font-size": "px",
+    "font-size": "10px",
     "text-align": "center"
   }
 }

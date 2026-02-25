@@ -435,6 +435,7 @@ body.dark-theme .image-item { background-color: rgb(60, 130, 135); color: white;
     font-weight: var(--slide-content-font-weight);
     font-style: var(--slide-content-font-style);
     text-decoration: var(--slide-content-text-decoration);
+    
 }
 
 .translation-line {
@@ -451,6 +452,10 @@ body.dark-theme .image-item { background-color: rgb(60, 130, 135); color: white;
        was bei Verwendung von <br> nicht nötig ist, aber bei flex/grid Layouts hilfreich sein kann */
     display: inline-block;
     width: 100%;
+}
+.slide-content.x5-large .translation-line {
+    /* Skaliert auch die Übersetzung um den Faktor 5 */
+    font-size: calc(var(--translation-line-font-size, 12px) * 5);
 }
 
 .background-video {

@@ -160,8 +160,9 @@ function deserializeThemeToForm(theme) {
     secondLang['color'] || '#ffffff';
   document.getElementById('second-font-family').value =
     secondLang['font-family'] || 'sans-serif';
-  document.getElementById('second-font-size').value =
-    secondLang['font-size'] || '12';
+  document.getElementById('second-font-size').value = (
+    secondLang['font-size'] || '12px'
+  ).replace('px', '');
   document.getElementById('second-font-align').value =
     secondLang['text-align'] || 'left';
   loadFontStyleButtons('second', secondLang);
