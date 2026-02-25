@@ -116,3 +116,22 @@ input[type="text"], textarea {
     transition: background-color 0.15s, box-shadow 0.15s;
     
 }
+
+.label-info-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Abstand zwischen Text und Icon */
+    margin-top: 10px;
+}
+
+.info-icon {
+    color: var(--text-heading, #007bff); /* Nutzt dein Blau oder Standard */
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: transform 0.2s ease;
+}
+
+.info-icon:hover {
+    transform: scale(1.2);
+    color: #0056b3;
+}

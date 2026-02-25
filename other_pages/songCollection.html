@@ -3,6 +3,7 @@
 <head>
     <title>Song Collection</title>
     <link rel="stylesheet" href="songCollection.css">
+    <link rel="stylesheet" href="../utilities/css/all.min.css">
     </head>
 <body>
     <h1>Song Collection & Editor</h1>
@@ -28,18 +29,21 @@
             <label for="author">Author/Artist:</label>
             <input type="text" id="author" name="author">
 
-            <label for="lyrics">Lyrics:</label>
+            <div class="label-info-wrapper">
+                <label for="lyrics">Lyrics:</label>
+                <i class="fa-solid fa-circle-info info-icon" id="lyrics-info"></i>
+            </div>
             <textarea id="lyrics" name="lyrics" required></textarea>
 
-            <label for="originalOrder">Verse Order (e.g. V1,C1,V2,C1):</label>
+            <div class="label-info-wrapper">
+                <label for="originalOrder">Verse Order (e.g. V1, C1, V2, C1):</label>
+                <i class="fa-solid fa-circle-info info-icon" id="order-info"></i>
+             </div>
             <input type="text" id="originalOrder" name="originalOrder">
 
             <label for="theme">Theme:</label>
             <select id="theme" name="theme">
-                <option value="default">Default</option>
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-                <!-- Weitere Themes können hier dynamisch hinzugefügt werden -->
+                
             </select>
             
             <div class="action-buttons">

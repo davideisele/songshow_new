@@ -1,5 +1,5 @@
 {
-  "name": "dark",
+  "name": "Teencamp",
   "background-option": "color",
   ".slide-content": {
     "color": "#ffffff",
@@ -17,11 +17,11 @@
   },
   ".translation-line": {
     "color": "#b9b8ff",
-    "font-family": "Inter, sans-serif",
-    "font-size": "10px",
+    "font-family": "",
+    "font-size": "9px",
     "font-style": "",
     "font-weight": "",
     "text-decoration": "",
-    "text-align": "center"
+    "text-align": "left"
   }
 }

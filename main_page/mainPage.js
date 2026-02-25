@@ -380,7 +380,11 @@ async function loadSelectedSongSlides(event) {
     const translateShort = (short) => {
       if (short.startsWith('V')) return `Verse ${short.slice(1)}`; // V10 -> Verse 10
       if (short.startsWith('C')) return `Chorus ${short.slice(1)}`;
+      if (short.startsWith('B')) return `Bridge ${short.slice(1)}`;
+      if (short.startsWith('Pre')) return `Pre-Chorus ${short.slice(3)}`;
+      if (short.startsWith('Pos')) return `Pos-Chorus ${short.slice(3)}`;
       if (short === 'T') return 'Tag';
+      if (short === 'I') return 'Intro';
       if (short === 'E') return 'Ending';
       return short; // Falls nichts passt, gib das Original zurück
     };
@@ -1027,6 +1031,10 @@ function getThemeOptions() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  loadThemes();
+});
+
+async function loadThemes() {
   const themeSelector = document.getElementById('theme-selector');
 
   try {
@@ -1057,7 +1065,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
     // Fehlerbehandlung in der UI, falls die Kommunikation fehlschlägt
   }
-});
+}
 
 // Dropdownliste aktualisiert das Theme des ausgewählten Songs
 const themeSelector = document.getElementById('theme-selector');
@@ -1094,6 +1102,7 @@ window.electronAPI.onThemeUpdated((themeName) => {
   if (themeSelector.value === themeName) {
     reloadTheme(themeName);
   }
+  loadThemes();
 });
 
 // # Mit einer neuen ReloadThem Logik testen und eventuell ersetzen

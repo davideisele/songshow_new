@@ -502,6 +502,11 @@ body.dark-theme .image-item { background-color: rgb(60, 130, 135); color: white;
     color: #28a745; 
 }
 
+.pre-chorus .post-chorus {
+    background-color: #ffc107; /* Gelb/Orange */
+    color: #ffc107;
+}
+
 .label-bridge {
     background-color: #dc3545; /* Rot */
     color: #dc3545;
