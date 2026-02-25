@@ -428,10 +428,13 @@ body.dark-theme .image-item { background-color: rgb(60, 130, 135); color: white;
 }
 .slide-content.x5-large {
     font-size: calc(var(--slide-content-font-size) * 5); 
-    top: calc(var(--text-top) * 5);
-    left: calc(var(--text-left)*5);
-    right: calc(var(--text-right)*5);
-    bottom: calc(var(--text-bottom)*5);
+    top: calc(var(--slide-content-top) * 5);
+    left: calc(var(--slide-content-left)*5);
+    right: calc(var(--slide-content-right)*5);
+    bottom: calc(var(--slide-content-bottom)*5);
+    font-weight: var(--slide-content-font-weight);
+    font-style: var(--slide-content-font-style);
+    text-decoration: var(--slide-content-text-decoration);
 }
 
 .translation-line {
@@ -446,7 +449,8 @@ body.dark-theme .image-item { background-color: rgb(60, 130, 135); color: white;
     color: var(--translation-line-color, grey);
     /* Stellt sicher, dass das <span> als Block angezeigt wird, um den Zeilenumbruch zu erzwingen, 
        was bei Verwendung von <br> nicht nötig ist, aber bei flex/grid Layouts hilfreich sein kann */
-    /* display: block; */
+    display: inline-block;
+    width: 100%;
 }
 
 .background-video {

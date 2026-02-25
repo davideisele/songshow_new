@@ -80,6 +80,7 @@ select {
   border-radius: 6px;
   border: 1px solid var(--border-ui);
   background-color: var(--bg-card);
+  color: var(--text-body);
   font-size: 0.95rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -127,17 +128,14 @@ button:active {
   margin-top: 1rem;
 }
 
-#delete-button {
-  background: var(--bg-delete-button);
+#delete-selected-theme {
+  background: #ff5c5c;
 }
 
-#delete-button:hover {
-  background: var(--bg-delete-button-hover);
+#delete-selected-theme:hover {
+  background: #e14c4c;
 }
 
-#delete-selected-theme{
-    background: var(--bg-delete-button);
-}
 /* ======= Font-Style Buttons ======= */
 #font-bold,
 #font-italic,

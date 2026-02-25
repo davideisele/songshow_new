@@ -326,12 +326,11 @@ function getFontDecoration(group) {
 }
 
 /**
- * Setzt den Status der Font-Style Buttons.
+ * Setzt den Status der Font-Style Buttons korrekt.
  * @param {''|'second'} group Die Gruppe.
- * @param {string} styleString Der kombinierte Style-String.
+ * @param {object} styleObject Das Objekt aus dem Theme (.slide-content oder .translation-line).
  */
 function loadFontStyleButtons(group, styleObject) {
-  // Stellen Sie sicher, dass styleObject ein Objekt ist, falls es null oder undefined übergeben wurde
   const styles = styleObject || {};
   const prefix = group ? 'second-' : '';
 
@@ -339,20 +338,23 @@ function loadFontStyleButtons(group, styleObject) {
   const italicBtn = document.getElementById(`${prefix}font-italic`);
   const underlineBtn = document.getElementById(`${prefix}font-underline`);
 
-  // Hilfsfunktion, um aria-pressed korrekt zu setzen
-  function setAriaPressed(btn, expectedValue) {
+  /**
+   * Hilfsfunktion zum Setzen des Buttons
+   * @param {HTMLElement} btn - Das Button Element
+   * @param {string} cssKey - Der Key im Objekt (z.B. 'font-weight')
+   * @param {string} expectedValue - Der Wert bei dem der Button aktiv sein soll (z.B. 'bold')
+   */
+  function setAriaPressed(btn, cssKey, expectedValue) {
     if (btn) {
-      // styles[key] gibt den Wert ('bold', 'italic', 'underline' oder undefined) zurück.
-      // Wir prüfen, ob dieser Wert mit dem erwarteten Wert übereinstimmt.
-      // Der doppelte Negationsoperator (!!) wandelt true/false in einen booleschen Wert um.
-
-      const isPressed = styles[expectedValue] === expectedValue;
-
-      // aria-pressed erwartet einen String 'true' oder 'false'
+      // Prüfen, ob der Wert im Objekt dem erwarteten Wert entspricht
+      const isPressed = styles[cssKey] === expectedValue;
+      
+      // Das Attribut setzen (für dein CSS wichtig!)
       btn.setAttribute('aria-pressed', isPressed.toString());
     }
   }
 
+  // Jetzt mit den richtigen drei Parametern aufrufen:
   setAriaPressed(boldBtn, 'font-weight', 'bold');
   setAriaPressed(italicBtn, 'font-style', 'italic');
   setAriaPressed(underlineBtn, 'text-decoration', 'underline');
