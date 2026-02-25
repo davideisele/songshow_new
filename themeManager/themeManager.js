@@ -479,6 +479,7 @@ async function saveTheme(event) {
     // Nach dem Speichern das neue Theme im Dropdown auswählen
     document.getElementById('theme-select').value = themeNameInput;
     await loadSelectedTheme();
+    window.electronAPI.notifyThemeChanged(themeNameInput);
   } catch (error) {
     console.error('Fehler beim Speichern:', error);
     alert(`Fehler: ${error.message || error}`);
