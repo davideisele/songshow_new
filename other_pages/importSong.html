@@ -3,6 +3,7 @@
 <head>
     <title>Import Song manually</title>
     <link rel="stylesheet" href="importSong.css">
+    <link rel="stylesheet" href="../utilities/css/all.min.css">
     </head>
 <body>
     <form id="import-song-form">
@@ -12,10 +13,16 @@
         <label for="author">Author/Artist:</label>
         <input type="text" id="author"><br><br>
 
-        <label for="lyrics">Lyrics:</label>
+        <div class="label-info-wrapper"></div>
+            <label for="lyrics">Lyrics:</label>
+            <i class="fa-solid fa-circle-info info-icon" id="lyrics-info"></i>
+        </div>
         <textarea id="lyrics" required></textarea><br><br>
 
+        <div class="label-info-wrapper"></div>
         <label for="originalOrder">Verse Order (e.g. V1,C1,V2,C1):</label>
+        <i class="fa-solid fa-circle-info info-icon" id="order-info"></i>
+        </div>
         <input type="text" id="originalOrder"><br><br>
 
         <!-- TODO: Theme => DropdownList -->

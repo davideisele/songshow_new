@@ -59,3 +59,22 @@ input[type="text"], textarea {
     flex-shrink: 0; /* Stellt sicher, dass der Button nicht schrumpft */
     margin-left: 10px;
 }
+
+.label-info-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Abstand zwischen Text und Icon */
+    margin-top: 10px;
+}
+
+.info-icon {
+    color: var(--text-heading, #007bff); /* Nutzt dein Blau oder Standard */
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: transform 0.2s ease;
+}
+
+.info-icon:hover {
+    transform: scale(1.2);
+    color: #0056b3;
+}

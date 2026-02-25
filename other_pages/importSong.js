@@ -54,3 +54,12 @@ async function initThemeSelector() {
 
 // Beim Start aufrufen
 document.addEventListener('DOMContentLoaded', initThemeSelector);
+
+// Info-Tooltip für Lyrics
+document.getElementById('lyrics-info').addEventListener('click', () => {
+    alert("Tipps: \n Use Brackets to Mark Sections. \n Supportet Sections: [Verse X], [Chorus X], [Pre-Chorus X], [Post-Chorus X], [Bridge X], [Tag], [Intro], [Ending]. \n Use three dashes '---' to cut lyrics into slides. \n Use Brackets {} to add second language");
+});
+// Info-Tooltip für Verse Order
+document.getElementById('order-info').addEventListener('click', () => {
+    alert("VX = Verse X, CX = Chorus X, BX = Bridge X, PreX = Pre-Chorus X, PosX = Post-Chorus X, T = Tag, I = Intro, E = Ending. \n Example: V1, Pre1, C1, V2, C1");
+});
