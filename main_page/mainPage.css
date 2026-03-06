@@ -557,7 +557,11 @@ body.dark-theme .image-item { background-color: rgb(60, 130, 135); color: white;
 }
 
 /* Modus Hintergrund: Text wird versteckt, aber der Body-Hintergrund bleibt sichtbar */
-#beamer-body.background-mode #slide-text-container {
+#beamer-body.background-mode #slide-text-container{
+    font-size: 0 !important; /* Versteckt den Text */
+}
+
+#beamer-body.background-mode .translation-line{
     font-size: 0 !important; /* Versteckt den Text */
 }
 
