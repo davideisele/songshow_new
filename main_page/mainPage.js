@@ -1735,7 +1735,7 @@ const scheduleContainer = document.getElementById('song-schedule');
 
 // 2. Optisches Feedback (Container hervorheben, wenn Datei drüber schwebt)
 scheduleContainer.addEventListener('dragover', () => {
-  scheduleContainer.classList.add('drag-over');
+  scheduleContainer.classList.add('drag-over'); 
 });
 
 scheduleContainer.addEventListener('dragleave', () => {
