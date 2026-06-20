@@ -181,8 +181,7 @@ function applyThemeStyles(themeData, targetElement) {
 
 function handleImageBackground(imagePath) {
   const slideContentContainers = document.querySelectorAll('.slide-inner-content');
-  removeVideoBackground();
-  console.log("video removed")
+
   if (slideContentContainers.length === 0) {
     removeImageBackground();
     return;

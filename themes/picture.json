@@ -6,6 +6,9 @@
     "background-color": "#000000",
     "font-family": "",
     "font-size": "12px",
+    "font-style": "",
+    "font-weight": "",
+    "text-decoration": "",
     "text-align": "left",
     "top": "auto",
     "bottom": "auto",
@@ -16,6 +19,9 @@
     "color": "#ffffff",
     "font-family": "",
     "font-size": "px",
+    "font-style": "",
+    "font-weight": "",
+    "text-decoration": "",
     "text-align": "left"
   },
   "background-image": "/Users/d.eisele/Temporär/Präsentation_CC.jpg"

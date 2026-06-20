@@ -242,10 +242,11 @@ function handleImageBackground(imagePath) {
     imageElement.id = imageId;
     // Wir geben ihm die GLEICHE Klasse wie dem Video,
     // damit die CSS-Regeln für Hintergründe greifen
-    imageElement.className = 'background-video';
+    imageElement.className = 'background-image';
+    body.style.backgroundColor = 'transparent';
 
     Object.assign(imageElement.style, {
-      position: 'fixed',
+      position: 'absolute',
       top: '0',
       left: '0',
       width: '100vw',
