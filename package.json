@@ -4,18 +4,24 @@
   "main": "main.js",
   "scripts": {
     "start": "electronmon .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start2": "electron .",
+    "dist": "electron-builder"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@playwright/test": "^1.58.1",
+    "@types/node": "^25.2.0",
     "electron": "^38.4.0",
     "electron-rebuild": "^3.2.9",
-    "electronmon": "^2.0.3"
+    "electronmon": "^2.0.3",
+    "nodemon": "^3.1.11"
   },
   "dependencies": {
-    "better-sqlite3": "^12.4.1"
+    "better-sqlite3": "^12.4.1",
+    "genius-lyrics": "^4.4.7",
+    "pdfjs-dist": "^5.4.624"
   }
 }

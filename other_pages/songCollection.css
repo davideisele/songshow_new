@@ -1,8 +1,31 @@
 body, html {
 font-family: sans-serif;
 height: 100%;
-
 }
+
+:root {
+    --bg-body: #ffffff;
+    --bg-input: #ffffff;
+    --text-main: #333333;
+    --border-color: #ccc;
+    --btn-bg: #f0f0f0;
+}
+
+body.dark-theme {
+    --bg-body: #1e1e1e;
+    --bg-input: #2d2d2d;
+    --text-main: #e0e0e0;
+    --border-color: #444;
+    --btn-bg: #3d3d3d;
+}
+
+body { background-color: var(--bg-body); color: var(--text-main); }
+input[type="text"], textarea, #song-select, #theme { 
+    background-color: var(--bg-input); 
+    color: var(--text-main); 
+    border-color: var(--border-color); 
+}
+.action-buttons button { background-color: var(--btn-bg); color: var(--text-main); }
 
 .selector-group {
     display: flex;
@@ -12,7 +35,7 @@ height: 100%;
 
 #song-select{
     margin-top: 20px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding-left: 10px;
     height: 40px;
@@ -36,7 +59,7 @@ label {
 
 input[type="text"], textarea {
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     margin-top: 5px;
     font-size: 14px;
@@ -46,7 +69,7 @@ input[type="text"], textarea {
 #theme {
     flex-grow: 1; /* Lässt das <select>-Element den gesamten verfügbaren Platz einnehmen */
     min-width: 0; /* Stellt sicher, dass flex-grow korrekt funktioniert, auch wenn der Inhalt lang ist */
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding-left: 20px;
     margin-top: 5px;
@@ -57,7 +80,7 @@ input[type="text"], textarea {
 #theme select {
     flex-grow: 1; /* Lässt das <select>-Element den gesamten verfügbaren Platz einnehmen */
     min-width: 0; /* Stellt sicher, dass flex-grow korrekt funktioniert, auch wenn der Inhalt lang ist */
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding-left: 20px;
     
@@ -86,10 +109,29 @@ input[type="text"], textarea {
     border: none;
     outline: none;
 
-    background-color: #f0f0f0; 
-    color: #333;
+    background-color: var(--btn-bg); 
+    color: var(--text-main);
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.15s, box-shadow 0.15s;
     
+}
+
+.label-info-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Abstand zwischen Text und Icon */
+    margin-top: 10px;
+}
+
+.info-icon {
+    color: var(--text-heading, #007bff); /* Nutzt dein Blau oder Standard */
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: transform 0.2s ease;
+}
+
+.info-icon:hover {
+    transform: scale(1.2);
+    color: #0056b3;
 }

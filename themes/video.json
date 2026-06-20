@@ -1,0 +1,22 @@
+{
+  "name": "video",
+  "background-option": "video",
+  ".slide-content": {
+    "color": "#ffffff",
+    "background-color": "transparent",
+    "font-family": "",
+    "font-size": "8px",
+    "text-align": "center",
+    "top": "auto",
+    "bottom": "auto",
+    "left": "auto",
+    "right": "auto"
+  },
+  ".translation-line": {
+    "color": "#ffffff",
+    "font-family": "Courier New, monospace",
+    "font-size": "px",
+    "text-align": "left"
+  },
+  "background-video": "/Users/d.eisele/Privat/Projekte/Beamer-Projekt/songshow_new/Backgrounds/14605624_1920_1080_30fps.mp4"
+}

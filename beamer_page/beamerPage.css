@@ -1,0 +1,30 @@
+/* Modus Blackscreen */
+#beamer-body.black-mode {
+    background-color: #000000 !important; /* Macht den gesamten Hintergrund schwarz */
+    min-height: 100vh; /* Stellt sicher, dass der Body die volle Höhe des Viewports einnimmt */
+}
+#beamer-body.black-mode .slide-inner-content {
+    background-color: transparent !important;
+}
+#beamer-body.black-mode #slide-text-container {
+    display: none !important; /* Versteckt den Text */
+}
+
+/* Modus Hintergrund: Text wird versteckt, aber der Body-Hintergrund bleibt sichtbar */
+#beamer-body.background-mode #slide-text-container {
+    visibility: hidden !important; /* Versteckt den Text */
+}
+
+/* Modus Desktop: Alles unsichtbar machen, wenn Sie Transparenz im BrowserWindow aktiviert haben */
+#beamer-body.desktop-mode {
+    /* Angenommen, Sie haben im main.js 'transparent: true, frame: false' gesetzt */
+    background-color: transparent !important;
+}
+#beamer-body.desktop-mode #slide-text-container {
+    display: none !important;
+}
+
+/* Standard: Stellt sicher, dass der Text im normalen Modus sichtbar ist */
+#slide-text-container {
+    display: block; 
+}

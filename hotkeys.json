@@ -1,0 +1,8 @@
+{
+  "nextSlide": ["ArrowRight", "ArrowDown"],
+  "prevSlide": ["ArrowLeft", "ArrowUp"],
+  "toggleBlackScreen": [" "],
+  "toggleBackground": ["b"],
+  "toggleDesktop": ["d"],
+  "removeSong": ["Backspace"]
+}

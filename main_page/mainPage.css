@@ -1,8 +1,38 @@
+:root {
+    /* Light Mode (Standard) */
+    --bg-main: #ffffff;
+    --bg-panel: #f0f0f0;
+    --bg-schedule: #ffffff;
+    --text-color: #333333;
+    --border-color: #cccccc;
+    --button-hover: #e0eeef;
+    --splitter-color: #000000;
+    --item-hover: rgba(236, 234, 234, 0.5);
+}
+
+/* Dark Mode Definitionen */
+body.dark-theme {
+    --bg-main: #1e1e1e;       /* Dunkles Anthrazit */
+    --bg-panel: #2d2d2d;      /* Etwas helleres Grau für Panels */
+    --bg-schedule: #252526;   /* Hintergrund für den Ablaufplan */
+    --text-color: #e0e0e0;    /* Heller Text */
+    --border-color: #444444;  /* Dunklere Rahmen */
+    --button-hover: #3e3e3e;
+    --splitter-color: #555555;
+    --item-hover: rgba(255, 255, 255, 0.1);
+}
+
 body, html {
     margin: 0;
     height: 100%;
-    overflow: hidden; /* Verhindert Scrollbalken durch Überlauf */
+    overflow: hidden;
     font-family: sans-serif;
+    background-color: var(--bg-main); /* Nutzt die Variable */
+    color: var(--text-color);         /* Nutzt die Variable */
+}
+
+.spacer-horizontal {
+    width: 2%; /* Hier kannst du den Abstand genau einstellen */
 }
 
 /* Split-View zwischen dem Ablaufplan und den Slides */
@@ -19,10 +49,12 @@ body, html {
 #left-panel {
     display: flex;
     flex-direction: column;
-    background-color: #f0f0f0;
-    min-width: 10%; /* Minimale Breite für die linke Spalte */
-    max-width: 20%; /* Maximale Breite für die linke Spalte */
-    resize: horizontal;
+    background-color: var(--bg-panel);
+    /* min-width: 10%; /* Minimale Breite für die linke Spalte */
+    /* max-width: 20%; Maximale Breite für die linke Spalte */
+    width: 18%;
+    min-width: 18%;
+    max-width: 18%;
     overflow: auto; /* Scrollbalken, wenn der Inhalt zu groß ist */
 }
 
@@ -31,16 +63,16 @@ body, html {
 }
 
 #right-panel {
-    background-color: #ffffff;
+    background-color: var(--bg-main);
     flex-grow: 1; /* Rechte Spalte nimmt den verbleibenden Platz ein */
     overflow-y: auto; /* Scrollbalken, wenn der Inhalt zu groß ist */
     overflow-x: hidden;
 }
 
 #splitter {
-    background-color: #000;
+    background-color: var(--splitter-color);
     width: 5px; /* Breite des Splitters */
-    cursor: ew-resize; /* Cursor ändert sich beim Überfahren */
+    /* cursor: ew-resize; Cursor ändert sich beim Überfahren */
 }
 
 .dragging, .dragging * { 
@@ -53,8 +85,8 @@ body, html {
     border: none;
     outline: none;
 
-    background-color: #f0f0f0; 
-    color: #333;
+    background-color: var(--bg-panel); 
+    color: var(--text-color);
     padding: 8px 12px;
     border-radius: 6px;
     cursor: pointer;
@@ -62,11 +94,11 @@ body, html {
 }
 
 button:hover {
-    background-color: #e0eeef;
+    background-color: var(--button-hover);
 }
 
 button:active {
-    background-color: #d0e0e1;
+    background-color: var(--bg-panel);
     box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
 }
 
@@ -74,7 +106,7 @@ button:active {
     display: flex;
     padding: 10px;
     padding-left: 20px;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid var(--border-color);
 }
 
 #song-buttons {
@@ -96,9 +128,9 @@ button:active {
     flex-grow: 1;
 
     overflow: auto; 
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     padding: 10px;
-    background-color: #fff;
+    background-color: var(--bg-schedule);
 }
 
 .song-item {
@@ -107,16 +139,17 @@ button:active {
   width: 90%;
   border: none;
   outline: none;
+  color: var(--text-color);
   background-color: transparent;
 }
 
 .song-item:hover {
-    background-color: rgba(236, 234, 234, 0.498);
+    background-color: var(--item-hover);
     cursor: grab;
 }
 
 .song-item:active {
-    background-color: #d0e0e1;
+    background-color: var(--bg-panel);
     box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
 }
 
@@ -133,8 +166,8 @@ button:active {
 
 .drag-placeholder {
      /* Wichtig: Gib ihm die gleiche Höhe wie einem 'song-item' */
-    background-color: #e0f7fa; /* Hellblauer Hintergrund als Platzhalter */
-    border: 1px dashed lightblue; /* Gestrichelte blaue Linie */
+    background-color: var(--bg-placeholder); /* Hellblauer Hintergrund als Platzhalter */
+    border: 1px dashed var(--border-color); /* Gestrichelte blaue Linie */
     margin: 5px 0; /* Abstand, um ihn von den Buttons abzuheben */
     /* Füge für einen weicheren Übergang eine Transition hinzu */
     transition: all 0.1s ease-out; 
@@ -146,20 +179,171 @@ button:active {
   display: none; 
 }
 
+/* PDF-Design */
+
+.pdf-item {
+  display: block;
+  margin:10px;
+  width: 90%;
+  border: none;
+  outline: none;
+  background-color: rgb(243, 155, 176);
+}
+
+.pdf-item:hover {
+    background-color: rgb(243, 155, 176, 0.498);
+    cursor: grab;
+}
+
+.pdf-item:active {
+    background-color: #d0e0e1;
+    box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
+}
+
+.pdf-item.selected {
+    background-color: #007bff; /* Zum Beispiel Blau */
+    color: white;
+    border: 2px solid #0056b3;
+}
+
+.pdf-item.dragging {
+  opacity: 0.5;
+  border: 2px dashed #000;
+}
+
+/* .pdf-slide{
+    padding: 30px;
+    width: 100%;
+} */
+
+.pdf-slide canvas {
+    width: 100%;    /* Füllt die Breite des Slides aus */
+    height: auto;   /* Behält Seitenverhältnis bei */
+    display: block;
+    text-align: center;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.slide-inner-content-pdf {
+    background-color: transparent;
+    --padding-left: 0px;
+    border: #000 solid 3px;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+/* Audio */
+.audio-item {
+  display: block;
+  margin:10px;
+  width: 90%;
+  border: none;
+  outline: none;
+  background-color: rgb(193, 155, 243);
+}
+
+.audio-item:hover {
+    background-color: rgb(193, 155, 243, 0.498);
+    cursor: grab;
+}
+
+.audio-item:active {
+    background-color: #d0e0e1;
+    box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
+}
+
+.audio-item.selected {
+    background-color: #007bff; /* Zum Beispiel Blau */
+    color: white;
+    border: 2px solid #0056b3;
+}
+
+.audio-item.dragging {
+  opacity: 0.5;
+  border: 2px dashed #000;
+}
+
+/* Image */
+.image-item {
+  display: block;
+  margin:10px;
+  width: 90%;
+  border: none;
+  outline: none;
+  background-color: rgb(155, 240, 243);
+}
+
+.image-item:hover {
+    background-color: rgb(155, 240, 243, 0.498);
+    cursor: grab;
+}
+
+.image-item:active {
+    background-color: #d0e0e1;
+    box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
+}
+
+.image-item.selected {
+    background-color: #007bff; /* Zum Beispiel Blau */
+    color: white;
+    border: 2px solid #0056b3;
+}
+
+.image-item.dragging {
+  opacity: 0.5;
+  border: 2px dashed #000;
+}
+
+/* Video */
+.video-item {
+  display: block;
+  margin:10px;
+  width: 90%;
+  border: none;
+  outline: none;
+  background-color: rgb(243, 155, 243);
+}
+
+.video-item:hover {
+    background-color: rgb(243, 155, 243, 0.498);
+    cursor: grab;
+}
+
+.video-item:active {
+    background-color: #d0e0e1;
+    box-shadow: 0 0 0 3px rgba(180, 220, 255, 0.7); 
+}
+
+.video-item.selected {
+    background-color: #007bff; /* Zum Beispiel Blau */
+    color: white;
+    border: 2px solid #0056b3;
+}
+
+.video-item.dragging {
+  opacity: 0.5;
+  border: 2px dashed #000;
+}
+
+body.dark-theme .pdf-item { background-color: rgb(150, 60, 80); color: white; }
+body.dark-theme .audio-item { background-color: rgb(100, 60, 150); color: white; }
+body.dark-theme .image-item { background-color: rgb(60, 130, 135); color: white; }
 
 /* ### Style for Slides ### */
 
 #slides-container{
     display: grid;
-    grid-template-columns: 350px 350px 350px;
+    grid-template-columns: 33% 33% 33%;
     gap:5px;
     justify-content: start;
-
 }
 
 .song-slide {
+    aspect-ratio: 16 / 9;
     margin-bottom: 20px;
-    /* border-radius: 5px; */
+    border-radius: 5px;
     /* Der äußere Div bekommt die Label-Farbe als Hintergrund */
     /* Die spezifische Farbe wird durch .label-verse, .label-chorus etc. gesetzt */
     size: 5;
@@ -183,20 +367,128 @@ button:active {
 
 /* STYLES FÜR DEN INNEREN INHALTS-DIV (WEISS) */
 .slide-inner-content {
-    background-color: white; /* Der innere Kasten ist Weiß */
-    /* padding: 15px; Abstand zwischen dem inneren Text und dem farbigen Rand */
+    background-color: var(--slide-content-background-color, transparent);
+    --padding-left: 0px;
+    padding-left: var(--padding-left);
     border-top: none; /* Kein Rahmen oben, da der Header direkt anschließt */
     height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+.slide-inner-content.x5-large {
+    padding-left: calc(var(--padding-left)*5);
+}
+
+.slide-inner-content:has(img), 
+.slide-content:has(img) {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+}
+
+.slide-inner-content:has(video), 
+.slide-content:has(video) {
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    background: black; /* Verhindert weiße Ränder */
 }
 
 .slide-content {
-    /* Stellt sicher, dass der Text im inneren Bereich gut sichtbar ist */
-    color: #333; 
+    height: 100%;
+    text-align: var(--slide-content-text-align, center);
+    color: var(--slide-content-color, white);
+    
+    position: relative;
+    top: var(--slide-content-top, auto);
+    left: var(--slide-content-left, auto);
+    right: var(--slide-content-right, auto);
+    bottom: var(--slide-content-bottom, auto);
+    
+    font-size: var(--slide-content-font-size, 12px);
+    font-family: var(--slide-content-font-family, sans-serif);
+    font-weight: var(--slide-content-font-weight, normal);
+    font-style: var(--slide-content-font-style, normal);
+    text-decoration: var(--slide-content-text-decoration, none);
     line-height: 1.6;
     padding: 5%;
     white-space: nowrap; 
     overflow: hidden;
     text-overflow: ellipsis; /* Optional, fügt "..." hinzu, wenn der Text abgeschnitten wird */
+}
+.slide-content.x5-large {
+    font-size: calc(var(--slide-content-font-size) * 5); 
+    top: calc(var(--slide-content-top) * 5);
+    left: calc(var(--slide-content-left)*5);
+    right: calc(var(--slide-content-right)*5);
+    bottom: calc(var(--slide-content-bottom)*5);
+    font-weight: var(--slide-content-font-weight);
+    font-style: var(--slide-content-font-style);
+    text-decoration: var(--slide-content-text-decoration);
+    
+}
+
+.translation-line {
+    /* Macht die Übersetzung kursiv */
+    font-family: var(--translation-line-font-family, sans-serif);
+    font-weight: var(--translation-line-font-weight, normal);
+    font-style: var(--translation-line-font-style, normal);
+    text-decoration: var(--translation-line-text-decoration, none);
+    /* Lässt die Schrift kleiner erscheinen */
+    font-size: var(--translation-line-font-size, 0.9em); 
+    /* Kann eine andere Farbe verwenden, um sie zu unterscheiden */
+    color: var(--translation-line-color, grey);
+    /* Stellt sicher, dass das <span> als Block angezeigt wird, um den Zeilenumbruch zu erzwingen, 
+       was bei Verwendung von <br> nicht nötig ist, aber bei flex/grid Layouts hilfreich sein kann */
+    display: inline-block;
+    width: 100%;
+}
+.slide-content.x5-large .translation-line {
+    /* Skaliert auch die Übersetzung um den Faktor 5 */
+    font-size: calc(var(--translation-line-font-size, 12px) * 5);
+}
+
+.background-video {
+    /* Positionierung */
+    /* Absolute Positionierung innerhalb des .slide-content Containers */
+    position: absolute; 
+    top: 0;
+    left: 0;
+    z-index: -1; /* Legt das Video HINTER alle Inhalte von .slide-content */
+    
+    /* Größe und Skalierung (für volle Abdeckung des Elternelements) */
+    width: 100%; 
+    height: 100%; 
+    
+    /* Stellt sicher, dass das Video den gesamten Bereich ausfüllt, 
+       ohne das Seitenverhältnis zu verzerren (es wird beschnitten) */
+    object-fit: cover; 
+    
+    /* Standard-Hintergrund, falls das Video nicht lädt */
+    background-color: #333; 
+    /* Optional: Übernimmt abgerundete Ecken vom Elternelement, das in theme.json 8px hat */
+    border-radius: 8px; 
+}
+
+/* MARKIERUNG DER AUSGEWÄHLTEN FOLIE */
+.selected-slide-highlight {
+    /* Beispiel: Ein roter, dicker Rahmen */
+    border: 3px solid #FF5733 !important; 
+    /* Optional: Ein leichter Schatten */
+    box-shadow: 0 0 10px rgba(255, 87, 51, 0.7); 
+    /* Optional: Für ein besseres Aussehen */
+    transform: scale(1.02);
+    transition: transform 0.2s ease-in-out;
 }
 
 /* FARBDEFINITIONEN (Wie zuvor, jetzt als Hintergrund für .song-slide) */
@@ -208,6 +500,11 @@ button:active {
 .label-chorus {
     background-color: #28a745; /* Grün */
     color: #28a745; 
+}
+
+.pre-chorus .post-chorus {
+    background-color: #ffc107; /* Gelb/Orange */
+    color: #ffc107;
 }
 
 .label-bridge {
@@ -223,4 +520,69 @@ button:active {
 .default-label {
     background-color: #6c757d; /* Graublau */
     color: #6c757d;
+}
+
+/* Styles für die Modis Blackscreen, Hintergrund und Desktop */
+
+/* #beamer-body {
+    background-color: var(--beamer-background-color, white);
+} */
+
+#black-screen.active {
+  background-color: #d9534f; /* Ein warnendes Rot */
+  box-shadow: 0 0 10px rgba(217, 83, 79, 0.8); /* Ein leichtes Leuchten */
+  font-weight: bold;
+}
+
+#show-background.active {
+  background-color: #d9534f; /* Ein warnendes Rot */
+  box-shadow: 0 0 10px rgba(217, 83, 79, 0.8); /* Ein leichtes Leuchten */
+  font-weight: bold;
+}
+
+
+/* Modus Blackscreen */
+#beamer-body.black-mode {
+    background-color: black !important; /* Macht den gesamten Hintergrund schwarz */
+}
+#beamer-body.black-mode #slide-text-container {
+    display: none !important; /* Versteckt den Text */
+}
+#beamer-body.black-mode .slide-inner-content {
+    background-color: transparent !important;
+}
+/* Das Video verstecken */
+#beamer-body.black-mode .background-video {
+    display: none !important;
+}
+
+/* Modus Hintergrund: Text wird versteckt, aber der Body-Hintergrund bleibt sichtbar */
+#beamer-body.background-mode #slide-text-container{
+    font-size: 0 !important; /* Versteckt den Text */
+}
+
+#beamer-body.background-mode .translation-line{
+    font-size: 0 !important; /* Versteckt den Text */
+}
+
+
+/* Modus Desktop: Alles unsichtbar machen, wenn Sie Transparenz im BrowserWindow aktiviert haben */
+#beamer-body.desktop-mode {
+    /* Angenommen, Sie haben im main.js 'transparent: true, frame: false' gesetzt */
+    background-color: transparent !important;
+}
+#beamer-body.desktop-mode #slide-text-container {
+    display: none !important;
+}
+
+/* Standard: Stellt sicher, dass der Text im normalen Modus sichtbar ist */
+#slide-text-container {
+    display: block; 
+}
+
+/* Import via drag and drop */
+#song-schedule.drag-over {
+    background-color: #e1f5fe; /* Leichtes Blau */
+    border: 2px dashed #03a9f4;
+    transition: all 0.2s ease;
 }

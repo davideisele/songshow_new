@@ -1,3 +1,7 @@
+import * as pdfjsLib from '../node_modules/pdfjs-dist/build/pdf.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  '../node_modules/pdfjs-dist/build/pdf.worker.mjs';
+
 // ### JavaScript für die Split-View-Funktionalität ###
 
 const splitter = document.getElementById('splitter');
@@ -7,30 +11,30 @@ const splitView = document.getElementById('split-view');
 let isDragging = false;
 
 // 1. Start des Ziehvorgangs (Maus geklickt)
-splitter.addEventListener('mousedown', (e) => {
-  isDragging = true;
-  splitView.classList.add('dragging');
-  e.preventDefault();
-});
+// splitter.addEventListener('mousedown', (e) => {
+//   isDragging = true;
+//   splitView.classList.add('dragging');
+//   e.preventDefault();
+// });
 
-// 2. Ziehen (Maus bewegt)
-document.addEventListener('mousemove', (e) => {
-  if (!isDragging) return;
+// // 2. Ziehen (Maus bewegt)
+// document.addEventListener('mousemove', (e) => {
+//   if (!isDragging) return;
 
-  const newLeftWidth = e.clientX;
-  const containerWidth = splitView.offsetWidth;
-  const newWidthPercentage = (newLeftWidth / containerWidth) * 100;
+//   const newLeftWidth = e.clientX;
+//   const containerWidth = splitView.offsetWidth;
+//   const newWidthPercentage = (newLeftWidth / containerWidth) * 100;
 
-  leftPanel.style.width = `${newWidthPercentage}vw`;
-});
+//   leftPanel.style.width = `${newWidthPercentage}vw`;
+// });
 
-// 3. Ende des Ziehvorgangs (Maus losgelassen)
-document.addEventListener('mouseup', (e) => {
-  if (isDragging) {
-    isDragging = false;
-    splitView.classList.remove('dragging');
-  }
-});
+// // 3. Ende des Ziehvorgangs (Maus losgelassen)
+// document.addEventListener('mouseup', (e) => {
+//   if (isDragging) {
+//     isDragging = false;
+//     splitView.classList.remove('dragging');
+//   }
+// });
 
 // Ende der Split-View-Funktionalität
 
@@ -44,60 +48,15 @@ const songListContainer = document.getElementById('song-schedule');
 
 var playlist = [];
 var selectedSong = null;
+let placeholder = null;
 
-// addSongButton.addEventListener('click', () => {
-//   console.log('Add song button clicked');
-//   const newSongItem = document.createElement('button');
-//   newSongItem.classList.add('song-item');
-//   newSongItem.innerHTML = 'song ' + (playlist.length + 1);
-
-//   // Drag-and-Drop-Funktionalität hinzufügen (Start)
-//   newSongItem.setAttribute('draggable', 'true');
-//   newSongItem.addEventListener('dragstart', () => {
-//     // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen (z. B. mit geringerer Opazität)
-//     newSongItem.classList.add('dragging');
-//     draggedItem = newSongItem;
-
-//     // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
-//     placeholder = document.createElement('div');
-//     placeholder.classList.add('drag-placeholder');
-
-//     // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
-//     setTimeout(() => newSongItem.classList.add('hide'), 0);
-//   });
-
-//   newSongItem.addEventListener('dragend', () => {
-//     // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
-//     newSongItem.classList.remove('dragging');
-//     newSongItem.classList.remove('hide');
-//     draggedItem = null;
-
-//     if (placeholder && placeholder.parentNode) {
-//       placeholder.parentNode.removeChild(placeholder);
-//     }
-//     placeholder = null;
-
-//     updatePlaylistArray();
-//   });
-//   // Drag-and-Drop-Funktionalität hinzufügen (End)
-
-//   songListContainer.appendChild(newSongItem);
-//   playlist.push(newSongItem);
-// });
-
-// songListContainer.addEventListener('click', (event) => {
-//   if (event.target && event.target.classList.contains('song-item')) {
-//     // Ruft die neue Funktion auf, um die Auswahl zu verwalten
-//     selectSong(event.target);
-//     console.log('Song item clicked:', event.target.innerHTML);
-//   }
-// });
-
-function createAndAppendSongButton(songData) {
+async function createAndAppendSongButton(songData) {
+  console.log('Erstelle Button für:', songData.title);
   const newSongItem = document.createElement('button');
   newSongItem.textContent = songData.title;
   newSongItem.classList.add('song-item');
   newSongItem.setAttribute('data-song-id', songData.id); // WICHTIG: Speichere die ID
+  newSongItem.setAttribute('data-song-theme', songData.theme); // WICHTIG: Speichere das Theme
 
   // Drag-and-Drop-Funktionalität hinzufügen (Start)
   newSongItem.setAttribute('draggable', 'true');
@@ -131,119 +90,539 @@ function createAndAppendSongButton(songData) {
 
   songListContainer.appendChild(newSongItem);
   playlist.push(newSongItem); // Zur internen Verfolgung hinzufügen
+
+  // Wende das Theme-Style an
+
+  // const themeData = await fetchThemeStyles(songData.theme);
+
+  // if (themeData) {
+  //   applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
+  //   sendThemeToMain(themeData); // Senden Sie die Styles an das Beamer-Fenster
+  // }
+}
+
+// Funktion für das Übernehmen des Theme-Styles
+async function fetchThemeStyles(themeName) {
+  // Erstellen des Pfades zur JSON-Datei, z.B. '/theme/default.json'
+  const themePath = `../themes/${themeName}.json`;
+
+  try {
+    const response = await fetch(themePath);
+
+    if (!response.ok) {
+      throw new Error(`Fehler beim Laden des Themes: ${response.status}`);
+    }
+
+    const themeData = await response.json();
+    return themeData;
+  } catch (error) {
+    console.error('Konnte Theme-Daten nicht laden:', error);
+    return null;
+  }
+}
+
+// Funktion zum Anwenden der Theme-Styles
+// function applyThemeStyles(themeData, targetElement) {
+//   // Gehen Sie die Styles für den Selektor durch, den Sie in der JSON-Datei definiert haben
+//   const slideContentStyles = themeData['.slide-content'];
+
+//   if (slideContentStyles) {
+//     // Setzen Sie jede Eigenschaft als CSS Custom Property auf dem Ziel-Element
+//     for (const [property, value] of Object.entries(slideContentStyles)) {
+//       // Beispiel: 'text-align' wird zu '--slide-text-align'
+//       const cssVariable = `--slide-${property}`;
+//       targetElement.style.setProperty(cssVariable, value);
+//     }
+//   }
+// }
+function applyThemeStyles(themeData, targetElement) {
+  // 1. Zuerst die Video-Prüfung durchführen
+  if (themeData.hasOwnProperty('background-video')) {
+    const videoPath = themeData['background-video'];
+    removeImageBackground(); // Bild weg, wenn Video da ist
+    handleVideoBackground(videoPath);
+    // Das background-video-Objekt aus themeData entfernen, damit es nicht als CSS-Variable gesetzt wird
+    // delete themeData['background-video'];
+  } else if (themeData['background-image']) {
+    removeVideoBackground(); // Video weg, wenn Bild da ist
+    handleImageBackground(themeData['background-image']);
+  } else {
+    // Beides entfernen, wenn nichts definiert ist
+    removeVideoBackground();
+    removeImageBackground();
+  }
+
+  // Gehen Sie alle Selektoren (Schlüssel) in der themeData durch
+  for (const selector in themeData) {
+    if (themeData.hasOwnProperty(selector)) {
+      const styles = themeData[selector];
+
+      // Entfernen Sie das führende '.' (falls vorhanden) und bereinigen Sie den Selektor
+      // um ihn als Basis für die CSS-Variable zu verwenden.
+      // Beispiel: '.slide-content' wird zu 'slide-content'
+      //          '.translation-line' wird zu 'translation-line'
+      const baseName = selector.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+
+      // Gehen Sie die einzelnen CSS-Eigenschaften für diesen Selektor durch
+      if (styles) {
+        for (const [property, value] of Object.entries(styles)) {
+          // Erstellen Sie eine eindeutige CSS-Variable.
+          // Beispiel: --slide-content-text-align
+          // Beispiel: --translation-line-color
+          const cssVariable = `--${baseName}-${property}`;
+          console.log('Styles', cssVariable + value);
+
+          targetElement.style.setProperty(cssVariable, value);
+        }
+      }
+    }
+  }
+}
+
+function handleImageBackground(imagePath) {
+  const slideContentContainers = document.querySelectorAll('.slide-inner-content');
+
+  if (slideContentContainers.length === 0) {
+    removeImageBackground();
+    return;
+  }
+
+  slideContentContainers.forEach((container, index) => {
+    const imageId = `theme-background-image-${index}`;
+    let imgElement = container.querySelector(`#${imageId}`);
+
+    // Container-Vorbereitung (wie beim Video)
+    container.style.position = 'relative';
+    container.style.zIndex = '1';
+    container.style.overflow = 'hidden';
+
+    if (!imgElement) {
+      imgElement = document.createElement('div'); // Wir nutzen ein Div für bessere Background-Size Kontrolle
+      imgElement.id = imageId;
+      imgElement.className = 'background-image-layer';
+      
+      // Styling für das Hintergrund-Div
+      Object.assign(imgElement.style, {
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        zIndex: '-1', // Hinter dem Text
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      });
+
+      container.prepend(imgElement);
+    }
+
+    // Pfad aktualisieren
+    const actualPath = `url('${imagePath.replace(/\\/g, '/')}')`;
+    if (imgElement.style.backgroundImage !== actualPath) {
+      imgElement.style.backgroundImage = actualPath;
+    }
+  });
+}
+
+// Hilfsfunktion zum Entfernen
+function removeImageBackground() {
+  document.querySelectorAll('.background-image-layer').forEach(el => el.remove());
+}
+
+function handleVideoBackground(videoPath, themeData) {
+  // Wähle ALLE .slide-content Elemente
+  const slideContentContainers = document.querySelectorAll(
+    '.slide-inner-content',
+  );
+
+  if (slideContentContainers.length === 0) {
+    console.warn(
+      'Kein Element mit der Klasse .slide-content gefunden. Video-Hintergrund kann nicht angewendet werden.',
+    );
+    removeVideoBackground();
+    return;
+  }
+
+  // 1. Container-Vorbereitungen und Video-Erstellung/Aktualisierung für JEDEN Container
+  slideContentContainers.forEach((slideContentContainer, index) => {
+    // Jedes Video erhält eine eindeutige ID
+    const videoId = `theme-background-video-${index}`;
+    // Suche das Video innerhalb DIESES Containers
+    let videoElement = slideContentContainer.querySelector(`#${videoId}`);
+
+    // 1a. Container-Vorbereitungen (wichtig für absolute Positionierung des Videos)
+    slideContentContainer.style.position = 'relative';
+    slideContentContainer.style.zIndex = '1'; // Inhaltsebene
+    slideContentContainer.style.overflow = 'hidden';
+
+    // 1b. Video-Erstellung und -Injection
+    if (!videoElement) {
+      videoElement = document.createElement('video');
+      videoElement.id = videoId;
+      videoElement.className = 'background-video'; // Klasse für das Styling (in styles.css)
+      videoElement.autoplay = true;
+      videoElement.loop = true;
+      videoElement.muted = true;
+      videoElement.playsinline = true;
+
+      // Füge das Video als erstes Kind in den Container ein (unter den Text-Inhalt)
+      slideContentContainer.prepend(videoElement);
+    }
+
+    // 1c. Pfad-Setzung (Source-Element-Management)
+    const source =
+      videoElement.querySelector('source') || document.createElement('source');
+    if (!source.parentElement) {
+      videoElement.appendChild(source);
+    }
+
+    const actualVideoPath = videoPath;
+
+    if (source.getAttribute('src') !== actualVideoPath) {
+      source.setAttribute('src', actualVideoPath);
+      source.setAttribute('type', 'video/mp4');
+      // Das Video muss neu geladen werden, wenn sich der Pfad ändert
+      videoElement.load();
+    }
+
+    if (themeData && themeData['background-poster']) {
+      videoElement.setAttribute('poster', themeData['background-poster']);
+    }
+  });
+
+  // Cleanup: Alte Videos aus vorherigen Läufen entfernen, die keine eindeutige ID haben (falls vorhanden)
+  document
+    .querySelectorAll(
+      'video.background-video:not([id^="theme-background-video-"])',
+    )
+    .forEach((oldVideo) => oldVideo.remove());
+}
+
+/**
+ * Entfernt das <video>-Element aus dem DOM.
+ */
+function removeVideoBackground() {
+  // Finde alle Video-Elemente, die wir erstellt haben
+  const videoElements = document.querySelectorAll(
+    '[id^="theme-background-video-"]',
+  );
+
+  videoElements.forEach((videoElement) => {
+    const parent = videoElement.parentElement;
+    videoElement.remove();
+
+    // Setze die durch JS hinzugefügten Container-Styles ZURÜCK
+    if (parent && parent.classList.contains('slide-content')) {
+      parent.style.position = '';
+      parent.style.zIndex = '';
+      parent.style.overflow = '';
+    }
+  });
+}
+
+// Funktion zum Anwenden der Theme-Styles auf Beamer-Fenster
+function sendThemeToMain(themeData) {
+  // Prüfen Sie, ob die API vorhanden ist (Electron-Check)
+  if (window.electronAPI && window.electronAPI.sendThemeToMain) {
+    window.electronAPI.sendThemeToMain(themeData);
+  }
 }
 
 // ** GEÄNDERT: Öffnet jetzt das Song-Auswahl-Modal **
 addSongButton.addEventListener('click', () => {
-  console.log('Add song button clicked: Opening selection modal');
   // Ruft die Funktion in preload.js auf, um das Auswahlfenster zu öffnen
   window.electronAPI.openSongSelectWindow();
 });
 
+async function loadSelectedSongSlides(event) {
+  // Ruft die Funktion auf, um die Auswahl zu verwalten
+  selectItem(event.target);
+
+  const songId = event.target.getAttribute('data-song-id');
+  const songTheme = event.target.getAttribute('data-song-theme');
+
+  if (songId) {
+    // Rufe die Lyrics aus der Datenbank ab
+    const fullLyrics = await window.electronAPI.getSongLyrics(songId);
+    const rightPanel = document.getElementById('right-panel');
+
+    // 1. Extrahiere Originaltext und Übersetzung
+    // Der Originaltext ist alles VOR der geschweiften Klammer
+    const originalLyricsMatch = fullLyrics.match(/^(.*)\s*\{/s);
+    const originalText = originalLyricsMatch
+      ? originalLyricsMatch[1].trim()
+      : fullLyrics.trim();
+
+    // Die Übersetzung ist der Inhalt INNERHALB der geschweiften Klammern
+    const translationMatch = fullLyrics.match(/\{([\s\S]*)\}/);
+    const translationText = translationMatch ? translationMatch[1].trim() : '';
+
+    // Teile den Originaltext in Slides (basierend auf '---')
+    const originalSlides = originalText
+      .split('---')
+      .map((slide) => slide.trim());
+
+    // Teile den Übersetzungstext in einzelne Zeilen
+    // Wichtig: Wir müssen hier die Struktur des Originaltextes ignorieren (Labels wie [Chorus]),
+    // da die Übersetzung nur die reinen Zeilen enthält.
+    const translationLines = translationText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0); // Leere Zeilen entfernen
+
+    let slidesHTML = '';
+    let lastLabel = '';
+    let lastLabelClass = '';
+    let translationLineIndex = 0; // Zähler für die Zeilen der Übersetzung
+
+    const originalOrder = await window.electronAPI.getSongOrder(songId);
+    const translateShort = (short) => {
+      if (short.startsWith('V')) return `Verse ${short.slice(1)}`; // V10 -> Verse 10
+      if (short.startsWith('C')) return `Chorus ${short.slice(1)}`;
+      if (short.startsWith('B')) return `Bridge ${short.slice(1)}`;
+      if (short.startsWith('Pre')) return `Pre-Chorus ${short.slice(3)}`;
+      if (short.startsWith('Pos')) return `Pos-Chorus ${short.slice(3)}`;
+      if (short === 'T') return 'Tag';
+      if (short === 'I') return 'Intro';
+      if (short === 'E') return 'Ending';
+      return short; // Falls nichts passt, gib das Original zurück
+    };
+    const order = originalOrder
+      .split(/\s*,\s*/)
+      .map((short) => translateShort(short));
+
+    console.log('Original Order from DB:', order);
+
+    let slideList = [];
+
+    // 2. Verarbeite die Original-Slides und synchronisiere die Übersetzung
+    originalSlides.forEach((slideText, index) => {
+      if (slideText) {
+        let label = ``; // Standard-Label
+        let content = slideText;
+        let labelClass = 'default-label'; // Standard-Klasse für CSS
+        let labelFound = false;
+
+        const labelMatch = slideText.match(/^\[(.*?)\]\s*[\r\n]/);
+
+        // Extrahiere das Label und den reinen Inhalt
+        if (labelMatch) {
+          labelFound = true;
+          label = labelMatch[1].trim();
+          content = slideText.substring(labelMatch[0].length).trim();
+          const baseLabel = label.split(' ')[0].toLowerCase();
+
+          // Setze die Label-Klasse
+          if (baseLabel.includes('verse')) {
+            labelClass = 'label-verse';
+          } else if (
+            baseLabel.includes('chorus') ||
+            baseLabel.includes('refrain')
+          ) {
+            labelClass = 'label-chorus';
+          } else if (baseLabel.includes('bridge')) {
+            labelClass = 'label-bridge';
+          } else if (
+            baseLabel.includes('intro') ||
+            baseLabel.includes('outro') ||
+            baseLabel.includes('tag') ||
+            baseLabel.includes('pre-chorus') ||
+            baseLabel.includes('other')
+          ) {
+            labelClass = 'label-transition';
+          }
+
+          lastLabel = label;
+          lastLabelClass = labelClass;
+        } else if (lastLabel !== '') {
+          label = `${lastLabel} (...)`;
+          labelClass = lastLabelClass;
+        } else {
+          // Kein Label im aktuellen Slide und auch kein vorheriges Label gefunden
+        }
+
+        // Teile den **bereinigten Inhalt** in Originalzeilen
+        const originalLines = content
+          .split('\n')
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
+        let mergedContent = [];
+
+        // Führe Original- und Übersetzungszeilen zusammen
+        originalLines.forEach((originalLine) => {
+          // Füge die Originalzeile hinzu
+          mergedContent.push(originalLine);
+
+          // Füge die entsprechende Übersetzungszeile hinzu, falls verfügbar
+          if (translationLineIndex < translationLines.length) {
+            // Füge die Übersetzungszeile hinzu und setze sie in ein Span mit einer Klasse,
+            // um sie bei Bedarf anders stylen zu können (z.B. kursiv, kleiner)
+            mergedContent.push(
+              `<span class="translation-line">${translationLines[translationLineIndex]}</span>`,
+            );
+            translationLineIndex++;
+          }
+        });
+
+        // 3. Erzeuge das endgültige HTML
+        // Ersetze \n durch <br> im zusammengeführten Inhalt
+        // Da wir das Array `mergedContent` verwenden, fügen wir <br> zwischen den Zeilen ein.
+        const formattedText = mergedContent.join('<br>');
+
+        slideList.push({
+          labelClass: labelClass,
+          index: index,
+          label: label,
+          formattedText: formattedText,
+        });
+
+        if (!originalOrder) {
+          slidesHTML += `
+                        <div class="song-slide ${labelClass}" data-slide-index="${index}">
+                            <div class="slide-header">
+                                <p class="slide-label">${label}</p>
+                            </div>
+                            <div class="slide-inner-content">
+                                <div class="slide-content">${formattedText}</div>
+                            </div>
+                        </div>
+                    `;
+        }
+      }
+    });
+    if (originalOrder) {
+      const sortedList = order.flatMap((baseLabel) => {
+        return slideList.filter((item) => item.label.startsWith(baseLabel));
+      });
+      const finalList = sortedList.map((item, i) => ({ ...item, index: i }));
+      console.log(finalList);
+
+      finalList.forEach((item, i) => {
+        // Destructuring, um die Variablen direkt aus dem Objekt zu ziehen
+        const { labelClass, label, formattedText } = item;
+
+        // Wir nutzen i als neuen Index, damit die Slides von 0 bis Ende durchnummeriert sind
+        slidesHTML += `
+        <div class="song-slide ${labelClass}" data-slide-index="${i}">
+            <div class="slide-header">
+                <p class="slide-label">${label}</p>
+            </div>
+            <div class="slide-inner-content">
+                <div class="slide-content">${formattedText}</div>
+            </div>
+        </div>
+    `;
+      });
+    }
+
+    if (rightPanel) {
+      rightPanel.innerHTML = `
+                    <h2>Songtext: ${event.target.textContent}</h2>
+                    <div id="slides-container">
+                        ${slidesHTML}
+                    </div>
+                `;
+    }
+
+    if (songTheme) {
+      const themeData = await fetchThemeStyles(songTheme);
+
+      if (themeData) {
+        applyThemeStyles(themeData, document.documentElement); // Wenden Sie Styles auf den Root an
+        sendThemeToMain(themeData); // Senden Sie die Styles an das Beamer-Fenster
+      }
+    }
+  }
+}
+
 // ** GEÄNDERT: Click-Handler wurde auf async geändert und ruft Lyrics ab **
 songListContainer.addEventListener('click', async (event) => {
   if (event.target && event.target.classList.contains('song-item')) {
-    // Ruft die Funktion auf, um die Auswahl zu verwalten
-    selectSong(event.target);
-
-    const songId = event.target.getAttribute('data-song-id');
-
-    if (songId) {
-      // Rufe die Lyrics aus der Datenbank ab
-      const lyrics = await window.electronAPI.getSongLyrics(songId);
-      const rightPanel = document.getElementById('right-panel');
-      const slides = lyrics.split('---').map((slide) => slide.trim());
-      let slidesHTML = '';
-      let lastLabel = '';
-      let lastLabelClass = '';
-
-      slides.forEach((slideText, index) => {
-        if (slideText) {
-          let label = ``; // Standard-Label
-          let content = slideText;
-          let labelClass = 'default-label'; // Standard-Klasse für CSS
-          let labelFound = false;
-
-          const labelMatch = slideText.match(/^\[(.*?)\]\s*[\r\n]/);
-
-          if (labelMatch) {
-            labelFound = true;
-            label = labelMatch[1].trim();
-            content = slideText.substring(labelMatch[0].length).trim();
-            const baseLabel = label.split(' ')[0].toLowerCase();
-
-            if (baseLabel.includes('verse')) {
-              labelClass = 'label-verse';
-            } else if (
-              baseLabel.includes('chorus') ||
-              baseLabel.includes('refrain')
-            ) {
-              labelClass = 'label-chorus';
-            } else if (baseLabel.includes('bridge')) {
-              labelClass = 'label-bridge';
-            } else if (
-              baseLabel.includes('intro') ||
-              baseLabel.includes('outro') ||
-              baseLabel.includes('tag')
-            ) {
-              labelClass = 'label-transition';
-            }
-
-            lastLabel = label;
-            lastLabelClass = labelClass;
-          } else if (lastLabel !== '') {
-            label = `${lastLabel} (...)`;
-            labelClass = lastLabelClass;
-          } else {
-          }
-
-          const formattedText = content.replace(/\n/g, '<br>');
-
-          slidesHTML += `
-          <div class="song-slide ${labelClass}" data-slide-index="${index}">
-              <div class="slide-header">
-                <p class="slide-label">${label}</p>
-              </div>
-              <div class="slide-inner-content">
-                <div class="slide-content">${formattedText}</div>
-              </div>
-            </div>
-          `;
-        }
-      });
-
-      if (rightPanel) {
-        rightPanel.innerHTML = `
-          <h2>Songtext: ${event.target.textContent}</h2>
-          <div id="slides-container">
-            ${slidesHTML}
-          </div>
-        `;
-      } else {
-        console.error('Element mit ID "right-panel" nicht gefunden.');
-      }
-    } else {
-      console.log('Song item clicked (no ID found):', event.target.innerHTML);
-    }
+    window.electronAPI.showBlackscreen();
+    selectItem(event.target);
+  } else if (event.target && event.target.classList.contains('pdf-item')) {
+    selectItem(event.target);
+  } else if (event.target && event.target.classList.contains('audio-item')) {
+    console.log(
+      'Audio-Item angeklickt:',
+      event.target.getAttribute('audio-id'),
+    );
+  } else if (event.target && event.target.classList.contains('video-item')) {
+    console.log(
+      'Video-Item angeklickt:',
+      event.target.getAttribute('video-id'),
+    );
   }
 });
 
-// Funktion zum Auswählen eines Songs
-function selectSong(songItem) {
-  // 1. Deselektiere das zuvor ausgewählte Element
-  if (selectedSong && selectedSong !== songItem) {
-    selectedSong.classList.remove('selected');
+// // Funktion zum Auswählen eines Songs
+// function selectSong(songItem) {
+//   console.log('Song ausgewählt:', songItem.textContent);
+//   // 1. Deselektiere das zuvor ausgewählte Element
+//   if (selectedSong && selectedSong !== songItem) {
+//     selectedSong.classList.remove('selected');
+//   }
+
+//   // 2. Wähle das neue Element aus (toggle für den Fall, dass man das gleiche Element erneut klickt)
+//   songItem.classList.add('selected');
+
+//   // 3. Aktualisiere die Verfolgungsvariable
+//   if (songItem.classList.contains('selected')) {
+//     selectedSong = songItem;
+//   } else {
+//     selectedSong = null; // Deselektiert, falls es das gleiche Element war
+//   }
+// }
+
+let currentSelectedItem = null;
+
+function selectItem(newItem) {
+  if (currentSelectedItem === newItem) {
+    console.log('Item bereits ausgewählt, lade nicht erneut.');
+    return; // Funktion hier abbrechen
+  }
+  console.log('Test');
+  // 1. Wenn bereits etwas ausgewählt ist (egal ob Song oder PDF), entferne die Markierung
+  if (currentSelectedItem) {
+    currentSelectedItem.classList.remove('selected');
   }
 
-  // 2. Wähle das neue Element aus (toggle für den Fall, dass man das gleiche Element erneut klickt)
-  songItem.classList.toggle('selected');
+  // 2. Markiere das neue Element
+  // Da du kein toggle mehr wolltest: einfach .add()
+  newItem.classList.add('selected');
 
-  // 3. Aktualisiere die Verfolgungsvariable
-  if (songItem.classList.contains('selected')) {
-    selectedSong = songItem;
-    console.log('Selected:', songItem.innerHTML);
-  } else {
-    selectedSong = null; // Deselektiert, falls es das gleiche Element war
+  // 3. Speichere das neue Element als das aktuell ausgewählte
+  currentSelectedItem = newItem;
+
+  // 4. Automatische Weiche: Was soll geladen werden?
+  // Wir prüfen, ob das Element eine 'pdf-id' oder eine 'song-id' (oder ähnliches) hat
+  const type = newItem.hasAttribute('pdf-id')
+    ? 'pdf'
+    : newItem.hasAttribute('audio-id')
+      ? 'audio'
+      : newItem.hasAttribute('image-id')
+        ? 'image'
+        : newItem.hasAttribute('video-id')
+          ? 'video'
+          : 'song';
+
+  switch (type) {
+    case 'pdf':
+      loadSelectedPDFContent({ target: newItem });
+      break;
+    case 'audio':
+      loadSelectedAudioContent({ target: newItem });
+      break;
+    case 'image':
+      loadSelectedImageContent({ target: newItem });
+      break;
+    case 'video':
+      loadSelectedVideoContent({ target: newItem });
+      break;
+    default:
+      console.log('Song erkannt');
+      loadSelectedSongSlides({ target: newItem });
   }
 }
 
@@ -251,52 +630,61 @@ function selectSong(songItem) {
 const removeSongButton = document.getElementById('song-remove');
 
 removeSongButton.addEventListener('click', () => {
-  console.log('Remove song button clicked');
-  if (selectedSong) {
-    songListContainer.removeChild(selectedSong);
-    console.log('Removed:', selectedSong.innerHTML);
-    const index = playlist.indexOf(selectedSong);
+  if (currentSelectedItem) {
+    songListContainer.removeChild(currentSelectedItem);
+    const index = playlist.indexOf(currentSelectedItem);
     if (index > -1) {
       playlist.splice(index, 1);
     }
   }
+  savePlaylistToStorage();
 });
 
 // Verschieben eines ausgewählten Songs
-const moveUpSongButton = document.getElementById('song-up');
-const moveDownSongButton = document.getElementById('song-down');
+const moveUpButton = document.getElementById('song-up');
+const moveDownButton = document.getElementById('song-down');
 
-moveUpSongButton.addEventListener('click', () => {
-  console.log('Move up song button clicked');
-  const currentIndex = playlist.indexOf(selectedSong);
-  const targetSong = playlist[currentIndex - 1];
+moveUpButton.addEventListener('click', () => {
+  // 1. Prüfen, ob überhaupt etwas ausgewählt ist
+  if (!currentSelectedItem) return;
+
+  const currentIndex = playlist.indexOf(currentSelectedItem);
 
   if (currentIndex > 0) {
-    songListContainer.insertBefore(selectedSong, targetSong);
-    updatePlaylistArray();
-    console.log(`Song nach oben verschoben: ${selectedSong.innerHTML}`);
-  } else {
-    console.log('Der Song ist bereits an erster Position.');
+    const targetItem = playlist[currentIndex - 1];
+
+    // Visuell im DOM verschieben
+    songListContainer.insertBefore(currentSelectedItem, targetItem);
+
+    // Array aktualisieren (einfacher Tausch)
+    [playlist[currentIndex], playlist[currentIndex - 1]] = [
+      playlist[currentIndex - 1],
+      playlist[currentIndex],
+    ];
+
+    updatePlaylistArray(); // Falls du diese Funktion zum Speichern nutzt
   }
 });
 
-moveDownSongButton.addEventListener('click', () => {
-  console.log('Move down song button clicked');
-  const currentIndex = playlist.indexOf(selectedSong);
-  if (currentIndex < playlist.length - 1) {
+moveDownButton.addEventListener('click', () => {
+  if (!currentSelectedItem) return;
+
+  const currentIndex = playlist.indexOf(currentSelectedItem);
+
+  if (currentIndex !== -1 && currentIndex < playlist.length - 1) {
     const targetIndex = currentIndex + 1;
-    const targetSong = playlist[targetIndex];
+    const targetItem = playlist[targetIndex];
 
-    songListContainer.insertBefore(selectedSong, targetSong.nextSibling);
+    // Visuell im DOM verschieben: vor das übernächste Element setzen
+    songListContainer.insertBefore(currentSelectedItem, targetItem.nextSibling);
 
+    // Array im Hintergrund tauschen
     [playlist[currentIndex], playlist[targetIndex]] = [
       playlist[targetIndex],
       playlist[currentIndex],
     ];
 
-    console.log(`Song nach unten verschoben: ${selectedSong.innerHTML}`);
-  } else {
-    console.log('Der Song ist bereits an letzter Position.');
+    updatePlaylistArray();
   }
 });
 
@@ -347,7 +735,9 @@ songListContainer.addEventListener('drop', (e) => {
 function getDragAfterElement(container, y) {
   // Alle Elemente außer dem, das gerade gezogen wird
   const draggableElements = [
-    ...container.querySelectorAll('.song-item:not(.dragging)'),
+    ...container.querySelectorAll(
+      '.song-item:not(.dragging), .pdf-item:not(.dragging), .audio-item:not(.dragging), .image-item:not(.dragging), .video-item:not(.dragging)',
+    ),
   ];
   // Reduziert die Liste auf das Element, das dem y-Wert am nächsten ist
   return draggableElements.reduce(
@@ -370,12 +760,12 @@ function getDragAfterElement(container, y) {
 
 // Aktualisiert das Playlist-Array wenn die Reihenfolge geändert wurde
 function updatePlaylistArray() {
-  playlist = [...songListContainer.querySelectorAll('.song-item')];
-
-  console.log(
-    'Playlist updated:',
-    playlist.map((item) => item.innerHTML),
-  );
+  playlist = [
+    ...songListContainer.querySelectorAll(
+      '.song-item, .pdf-item, .audio-item, .image-item, .video-item',
+    ),
+  ];
+  savePlaylistToStorage();
 }
 // Ende der Drag-and-Drop-Logik
 
@@ -385,12 +775,10 @@ function updatePlaylistArray() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   const songs = await window.electronAPI.getAllSongs();
-  console.log('All songs from database:', songs);
 
   if (window.electronAPI && window.electronAPI.onSongSelected) {
     window.electronAPI.onSongSelected((songData) => {
       // songData enthält { id: 1, title: 'Mein Song' }
-      console.log('Selected song received:', songData);
       createAndAppendSongButton(songData);
       updatePlaylistArray();
     });
@@ -399,16 +787,151 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // ### Songs auf Beamer Anzeigen Logik
 const staticContainer = document.getElementById('right-panel');
+const highlightClass = 'selected-slide-highlight';
+
+const nextButton = document.getElementById('next-slide');
+const prevButton = document.getElementById('prev-slide');
+
+// if (staticContainer) {
+//   staticContainer.addEventListener('click', function (event) {
+//     const clickedSlide = event.target.closest('[class^="song-slide"]');
+
+//     if (clickedSlide) {
+//       const currentlyHighlighted = staticContainer.querySelector(`.${highlightClass}`);
+//       if (currentlyHighlighted && currentlyHighlighted !== clickedSlide) {
+//         currentlyHighlighted.classList.remove(highlightClass);
+//       }
+
+//       // 2. Markierung zur angeklickten Folie hinzufügen
+//       clickedSlide.classList.add(highlightClass);
+
+//       const slideContent = clickedSlide.querySelector('.slide-content');
+//       const content = slideContent.innerHTML;
+//       window.electronAPI.openSongOnBeamer(content);
+//     }
+//   });
+// } else {
+//   console.error(
+//     'Das statische Element "#right-panel" wurde für die Event Delegation nicht gefunden.',
+//   );
+// }
+
+// function selectSlide(slideElement) {
+//   if (!slideElement) return;
+
+//   // 1. Markierung von der zuvor markierten Folie entfernen
+//   const currentlyHighlighted = staticContainer.querySelector(
+//     `.${highlightClass}`,
+//   );
+//   if (currentlyHighlighted && currentlyHighlighted !== slideElement) {
+//     currentlyHighlighted.classList.remove(highlightClass);
+//   }
+
+//   // 2. Markierung zur neuen Folie hinzufügen
+//   slideElement.classList.add(highlightClass);
+
+//   let content = '';
+
+//   // PRÜFUNG: Ist es eine PDF-Folie?
+//   const canvas = slideElement.querySelector('canvas');
+//   if (canvas) {
+//     // Wenn ein Canvas da ist, wandeln wir es in ein Bild um
+//     const imageData = canvas.toDataURL('image/png');
+//     content = `
+//     <div style="background-color: black; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+//         <img src="${imageData}" style="width: 100%; height: 100%; object-fit: contain; max-width: none; max-height: none;" />
+//     </div>`;
+//     currentSpecialMode = 'pdf-slide';
+//     blackScreenButton.classList.remove('active');
+//     showBackgroundButton.classList.remove('active');
+//   } else {
+//     // Ansonsten wie bisher: Text-Inhalt
+//     const slideContent = slideElement.querySelector('.slide-content');
+//     content = slideContent ? slideContent.innerHTML : '';
+//     currentSpecialMode = 'slide';
+//     blackScreenButton.classList.remove('active');
+//     showBackgroundButton.classList.remove('active');
+//   }
+
+//   // 3. An Beamer senden
+//   window.electronAPI.openSongOnBeamer(content);
+//   window.electronAPI.showSlide();
+// }
+
+function selectSlide(slideElement) {
+  if (!slideElement) return;
+
+  // 1. Markierung verwalten
+  const currentlyHighlighted = staticContainer.querySelector(
+    `.${highlightClass}`,
+  );
+  if (currentlyHighlighted && currentlyHighlighted !== slideElement) {
+    currentlyHighlighted.classList.remove(highlightClass);
+  }
+  slideElement.classList.add(highlightClass);
+
+  if (
+    slideElement.getAttribute('data-type') === 'video' ||
+    slideElement.hasAttribute('video-id')
+  ) {
+    currentSpecialMode = 'video';
+    return;
+  }
+
+  let content = '';
+
+  // PRÜFUNG der verschiedenen Inhaltstypen
+  const canvas = slideElement.querySelector('canvas');
+  const img = slideElement.querySelector('img'); // Prüfung auf Bild
+
+  if (canvas) {
+    // FALL 1: PDF (Canvas zu DataURL)
+    const imageData = canvas.toDataURL('image/png');
+    content = createFullscreenImageHTML(imageData);
+    currentSpecialMode = 'pdf-slide';
+  } else if (img) {
+    // FALL 2: Direktes Bild (z.B. aus loadSelectedImageContent)
+    const imageSrc = img.src;
+    content = createFullscreenImageHTML(imageSrc);
+    currentSpecialMode = 'image-slide';
+  } else if (slideElement.hasAttribute('audio-id')) {
+    window.electronAPI.showBlackscreen();
+  } else {
+    // FALL 3: Text-Inhalt (Songs)
+    const slideContent = slideElement.querySelector('.slide-content');
+    content = slideContent ? slideContent.innerHTML : '';
+    currentSpecialMode = 'slide';
+  }
+
+  // Buttons zurücksetzen
+  blackScreenButton.classList.remove('active');
+  showBackgroundButton.classList.remove('active');
+
+  // 3. An Beamer senden
+  window.electronAPI.openSongOnBeamer(content);
+  window.electronAPI.showSlide();
+}
+
+/**
+ * Hilfsfunktion, um doppelten HTML-Code für Bilder zu vermeiden
+ */
+function createFullscreenImageHTML(src) {
+  return `
+    <div style="background-color: black; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+        <img src="${src}" style="width: 100%; height: 100%; object-fit: contain; max-width: none; max-height: none;" />
+    </div>`;
+}
+
+// --- 1. Bestehender Click-Listener (für manuelle Auswahl) ---
 
 if (staticContainer) {
   staticContainer.addEventListener('click', function (event) {
-    const clickedSlide = event.target.closest('[class^="song-slide"]');
+    const clickedSlide = event.target.closest(
+      '.song-slide, .pdf-slide,.image-slide, .audio-slide, .preview-player',
+    );
 
     if (clickedSlide) {
-      const slideContent = clickedSlide.querySelector('.slide-content');
-      const content = slideContent.innerHTML;
-      window.electronAPI.openSongOnBeamer(content);
-      console.log('Inhalt der Slide:', content);
+      selectSlide(clickedSlide);
     }
   });
 } else {
@@ -416,3 +939,958 @@ if (staticContainer) {
     'Das statische Element "#right-panel" wurde für die Event Delegation nicht gefunden.',
   );
 }
+
+// --- 2. Neue Event-Listener für die Navigation-Buttons ---
+
+if (nextButton && prevButton && staticContainer) {
+  /** Liefert alle Folien-Elemente im Container zurück */
+  const getAllSlides = () => {
+    // Wichtig: Array.from nutzen, um die NodeList einfacher zu handhaben
+    return Array.from(
+      staticContainer.querySelectorAll('.song-slide, .pdf-slide'),
+    );
+  };
+
+  nextButton.addEventListener('click', () => {
+    const slides = getAllSlides();
+    const currentSlide = staticContainer.querySelector(`.${highlightClass}`);
+
+    let targetIndex = 0; // Standardmäßig die erste Folie, wenn keine ausgewählt ist
+
+    if (currentSlide) {
+      // Aktuellen Index abrufen und +1 für die nächste Folie
+      const currentIndex = parseInt(currentSlide.dataset.slideIndex);
+      targetIndex = currentIndex + 1;
+    }
+
+    // Überprüfen, ob der Ziel-Index innerhalb der Grenzen liegt
+    if (targetIndex < slides.length) {
+      // Die Folie mit dem passenden data-slide-index finden
+      const nextSlide = slides.find(
+        (slide) => parseInt(slide.dataset.slideIndex) === targetIndex,
+      );
+      selectSlide(nextSlide);
+    }
+  });
+
+  prevButton.addEventListener('click', () => {
+    const slides = getAllSlides();
+    const currentSlide = staticContainer.querySelector(`.${highlightClass}`);
+
+    if (!currentSlide) {
+      // Keine Folie ausgewählt, keine Aktion
+      return;
+    }
+
+    // Aktuellen Index abrufen und -1 für die vorherige Folie
+    const currentIndex = parseInt(currentSlide.dataset.slideIndex);
+    const targetIndex = currentIndex - 1;
+
+    // Überprüfen, ob der Ziel-Index größer oder gleich 0 ist (erste Folie)
+    if (targetIndex >= 0) {
+      // Die Folie mit dem passenden data-slide-index finden
+      const prevSlide = slides.find(
+        (slide) => parseInt(slide.dataset.slideIndex) === targetIndex,
+      );
+      selectSlide(prevSlide);
+    }
+  });
+}
+
+// ### Dropdownliste in der Main Page für Theme-Auswahl ###
+
+// Stellen Sie sicher, dass Sie diese Module importieren können.
+// Das ist im Main Process oder in einem Preload-Skript/Renderer Process (mit nodeIntegration) möglich.
+
+function getThemeOptions() {
+  // Definieren Sie den Pfad zu Ihrem themes-Ordner.
+  // __dirname ist der Pfad zum aktuellen Skript.
+  // Passen Sie den Pfad relativ zu Ihrem Projekt an.
+  const themesDir = path.join(__dirname, 'themes');
+
+  let themeNames = [];
+
+  try {
+    // 1. Alle Dateien und Ordner im Verzeichnis auslesen
+    const files = fs.readdirSync(themesDir);
+
+    // 2. Nur die Dateien behalten, die auf '.json' enden
+    const jsonFiles = files.filter((file) => file.endsWith('.json'));
+
+    // 3. Dateinamen ohne die Erweiterung extrahieren
+    themeNames = jsonFiles.map((file) => path.parse(file).name);
+  } catch (err) {
+    console.error('Fehler beim Lesen des themes-Ordners:', err);
+    // Fallback oder Fehlerbehandlung
+  }
+
+  // Fügt eine Standardoption hinzu, falls diese nicht als Datei existiert
+  themeNames.unshift('default');
+
+  return themeNames;
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  loadThemes();
+});
+
+async function loadThemes() {
+  const themeSelector = document.getElementById('theme-selector');
+
+  try {
+    // 1. Die Anfrage an den Main Process über die exponierte API stellen
+    // window.themeAPI.getThemes() ruft den ipcMain.handle('get-theme-list', ...) auf
+    const themeNames = await window.electronAPI.getThemes();
+
+    // 2. Bestehende Optionen entfernen (außer die initialen Default-Optionen)
+    // Setzen Sie den innerHTML auf einen leeren String oder nur auf die <option value="default">
+    themeSelector.innerHTML = '';
+
+    // 3. Dropdown-Liste dynamisch befüllen
+    themeNames.forEach((theme) => {
+      const option = document.createElement('option');
+
+      // Wert der Option: Dateiname (z.B. "dark")
+      option.value = theme;
+
+      // Angezeigter Text: Erster Buchstabe groß (z.B. "Dark")
+      option.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+
+      themeSelector.appendChild(option);
+    });
+  } catch (error) {
+    console.error(
+      'Konnte Theme-Liste nicht abrufen oder Dropdown befüllen:',
+      error,
+    );
+    // Fehlerbehandlung in der UI, falls die Kommunikation fehlschlägt
+  }
+}
+
+// Dropdownliste aktualisiert das Theme des ausgewählten Songs
+const themeSelector = document.getElementById('theme-selector');
+
+// 1. Die Logik in eine eigenständige Funktion auslagern
+async function reloadTheme(themeName) {
+  if (!currentSelectedItem) return;
+
+  console.log(`Lade Theme neu: ${themeName}`);
+  const themeData = await fetchThemeStyles(themeName);
+
+  if (themeData) {
+    applyThemeStyles(themeData, document.documentElement);
+    sendThemeToMain(themeData);
+    // Hier könntest du auch deserializeThemeToForm(themeData) aufrufen,
+    // falls die Formularfelder sich auch aktualisieren sollen!
+  }
+}
+
+// 2. Den Event-Listener anpassen
+themeSelector.addEventListener('change', (event) => {
+  const newThemeName = event.target.value;
+  if (currentSelectedItem) {
+    console.log('selectSong:', currentSelectedItem);
+    currentSelectedItem.setAttribute('data-song-theme', newThemeName);
+    reloadTheme(newThemeName);
+  }
+});
+
+window.electronAPI.onThemeUpdated((themeName) => {
+  console.log(`Signal empfangen: Theme ${themeName} wurde aktualisiert.`);
+
+  // Nur neu laden, wenn das geänderte Theme auch gerade ausgewählt ist
+  if (themeSelector.value === themeName) {
+    reloadTheme(themeName);
+  }
+  loadThemes();
+});
+
+// # Mit einer neuen ReloadThem Logik testen und eventuell ersetzen
+// themeSelector.addEventListener('change', async (event) => {
+//   // 1. Prüfen, ob ein Song ausgewählt ist
+//   if (!selectedSong) {
+//     console.warn(
+//       'Kein Song ausgewählt. Das Theme kann nicht zugewiesen werden.',
+//     );
+//     return; // Vorgang abbrechen, wenn kein Song ausgewählt ist
+//   }
+
+//   // 2. Den neuen Theme-Namen aus der Dropdown-Auswahl ermitteln
+//   const newThemeName = event.target.value;
+
+//   // 3. Den 'data-song-theme' Attributwert des ausgewählten Songs aktualisieren
+//   selectedSong.setAttribute('data-song-theme', newThemeName);
+
+//   // 4. Das neue Theme laden und anwenden (Verwenden der vorhandenen Funktionen)
+
+//   const themeData = await fetchThemeStyles(newThemeName);
+
+//   if (themeData) {
+//     // Wende Styles auf den Root an (ändert die Darstellung der Folien rechts)
+//     applyThemeStyles(themeData, document.documentElement);
+
+//     // Sende die Styles an das Beamer-Fenster
+//     sendThemeToMain(themeData);
+
+//     // Optional: Visuelles Feedback im UI
+//     // Sie könnten hier eine kurze Nachricht anzeigen, dass das Theme angewendet wurde
+//   }
+// });
+
+// ### Button Implementation für Blackscreen, Hintergrund und Desktop anzeigen ###
+let currentSpecialMode = 'slide'; // Kann 'slide', 'black', 'background', oder 'desktop' sein
+
+// Referenzen zu den neuen Buttons abrufen
+const blackScreenButton = document.getElementById('black-screen');
+const showBackgroundButton = document.getElementById('show-background');
+const showDesktopButton = document.getElementById('show-desktop');
+
+// --- Blackscreen Logik ---
+if (blackScreenButton) {
+  blackScreenButton.addEventListener('click', () => {
+    if (currentSpecialMode === 'black') {
+      // Zustand ist bereits Blackscreen -> Zurück zur letzten Folie
+      currentSpecialMode = 'slide';
+      window.electronAPI.showSlide();
+      blackScreenButton.classList.remove('active');
+    } else {
+      // Zustand ist eine Folie/Hintergrund/Desktop -> Auf Blackscreen wechseln
+      currentSpecialMode = 'black';
+      // Senden Sie einen speziellen Befehl für Blackscreen an den Beamer
+      window.electronAPI.showBlackscreen();
+      blackScreenButton.classList.add('active');
+    }
+  });
+}
+
+// --- Hintergrund Logik ---
+if (showBackgroundButton) {
+  showBackgroundButton.addEventListener('click', () => {
+    if (currentSpecialMode === 'background') {
+      // Zustand ist Hintergrund -> Zurück zur letzten Folie
+      currentSpecialMode = 'slide';
+      window.electronAPI.showSlide();
+      showBackgroundButton.classList.remove('active');
+    } else {
+      // Zustand ist eine Folie/Blackscreen/Desktop -> Nur Hintergrund anzeigen
+      currentSpecialMode = 'background';
+      // Senden Sie einen speziellen Befehl, um nur den Hintergrund anzuzeigen
+      window.electronAPI.showBackgroundOnly();
+      showBackgroundButton.classList.add('active');
+    }
+  });
+}
+
+// --- Desktop Logik ---
+if (showDesktopButton) {
+  showDesktopButton.addEventListener('click', () => {
+    if (currentSpecialMode === 'desktop') {
+      // Zustand ist Desktop -> Zurück zur letzten Folie
+      currentSpecialMode = 'slide';
+      window.electronAPI.showSlide();
+    } else {
+      // Zustand ist eine Folie/Blackscreen/Hintergrund -> Desktop anzeigen
+      currentSpecialMode = 'desktop';
+      // Senden Sie einen speziellen Befehl, um den Desktop anzuzeigen
+      window.electronAPI.showDesktop();
+    }
+  });
+}
+
+// ### PDF, Audio, Bild, Video Logik ###
+
+// PDF
+window.electronAPI.onPDFSelected((pdfPaths) => {
+  console.log('PDF ausgewählt:', pdfPaths);
+  pdfPaths.filePaths.forEach((pdfPath) => {
+    createAndAppendPDFButton(pdfPath);
+  });
+});
+
+// PDF-Button-Logik
+async function createAndAppendPDFButton(pdfPath) {
+  const newPDFItem = document.createElement('button');
+  newPDFItem.textContent = '📄 ' + pdfPath.split('/').pop(); // Setze den Namen des PDFs als Text
+  newPDFItem.classList.add('pdf-item');
+  newPDFItem.setAttribute('pdf-id', pdfPath); // WICHTIG: Speichere die ID
+  // Drag-and-Drop-Funktionalität hinzufügen (Start)
+  newPDFItem.setAttribute('draggable', 'true');
+  newPDFItem.addEventListener('dragstart', () => {
+    // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen
+    newPDFItem.classList.add('dragging');
+    draggedItem = newPDFItem;
+
+    // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
+    placeholder = document.createElement('div');
+    placeholder.classList.add('drag-placeholder');
+
+    // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
+    setTimeout(() => newPDFItem.classList.add('hide'), 0);
+  });
+
+  newPDFItem.addEventListener('dragend', () => {
+    // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
+    newPDFItem.classList.remove('dragging');
+    newPDFItem.classList.remove('hide');
+    draggedItem = null;
+
+    if (placeholder && placeholder.parentNode) {
+      placeholder.parentNode.removeChild(placeholder);
+    }
+    placeholder = null;
+
+    updatePlaylistArray();
+  });
+  // Drag-and-Drop-Funktionalität hinzufügen (End)
+
+  newPDFItem.addEventListener('click', () => {
+    selectItem(newPDFItem);
+  });
+
+  songListContainer.appendChild(newPDFItem);
+  playlist.push(newPDFItem); // Zur internen Verfolgung hinzufügen
+}
+
+async function loadSelectedPDFContent(event) {
+  const rightPanel = document.getElementById('right-panel'); // Deine Klasse prüfen
+  if (rightPanel) {
+    rightPanel.innerHTML = `
+            <h2>PDF Dokumente</h2>
+            <div id="slides-container"></div>
+        `;
+  } else {
+    console.error('Das Element für die PDF-Anzeige wurde nicht gefunden.');
+  }
+
+  const pdfPath = event.target.getAttribute('pdf-id');
+  const container = document.getElementById('slides-container');
+  container.innerHTML = '';
+
+  // 1. PDF laden
+  const loadingPDF = pdfjsLib.getDocument(pdfPath);
+  const pdf = await loadingPDF.promise;
+  console.log(`PDF geladen: ${pdfPath} mit ${pdf.numPages} Seiten.`);
+
+  // 2. Alle Seiten durchgehen und rendern
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+
+    // Slide-Struktur erstellen
+    const slideDiv = document.createElement('div');
+    slideDiv.className = 'pdf-slide';
+    slideDiv.setAttribute('data-slide-index', i - 1); // Index für die Navigation
+
+    slideDiv.innerHTML = `
+        <div class="slide-inner-content-pdf">
+            <canvas id="pdf-canvas-${i}"></canvas>
+        </div>
+        `;
+    container.appendChild(slideDiv);
+
+    // 3. Die Seite auf das Canvas zeichnen
+    const canvas = slideDiv.querySelector('canvas');
+    const context = canvas.getContext('2d');
+    const viewport = page.getViewport({ scale: 1.5 }); // Qualität/Größe anpassen
+
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    await page.render({
+      canvasContext: context,
+      viewport: viewport,
+    }).promise;
+  }
+}
+
+let selectedPDF = null; // Verfolgungsvariable für die aktuell ausgewählte PDF
+
+// Bild
+window.electronAPI.onImageSelected((imagePaths) => {
+  console.log('Bild ausgewählt:', imagePaths);
+  imagePaths.filePaths.forEach((imagePath) => {
+    createAndAppendImageButton(imagePath);
+  });
+});
+
+async function createAndAppendImageButton(imagePath) {
+  const newImageItem = document.createElement('button');
+  newImageItem.textContent = '📷 ' + imagePath.split('/').pop(); // Setze den Namen des PDFs als Text
+  newImageItem.classList.add('image-item');
+  newImageItem.setAttribute('image-id', imagePath); // WICHTIG: Speichere die ID
+  // Drag-and-Drop-Funktionalität hinzufügen (Start)
+  newImageItem.setAttribute('draggable', 'true');
+  newImageItem.addEventListener('dragstart', () => {
+    // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen
+    newImageItem.classList.add('dragging');
+    draggedItem = newImageItem;
+
+    // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
+    placeholder = document.createElement('div');
+    placeholder.classList.add('drag-placeholder');
+
+    // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
+    setTimeout(() => newImageItem.classList.add('hide'), 0);
+  });
+
+  newImageItem.addEventListener('dragend', () => {
+    // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
+    newImageItem.classList.remove('dragging');
+    newImageItem.classList.remove('hide');
+    draggedItem = null;
+
+    if (placeholder && placeholder.parentNode) {
+      placeholder.parentNode.removeChild(placeholder);
+    }
+    placeholder = null;
+
+    updatePlaylistArray();
+  });
+  // Drag-and-Drop-Funktionalität hinzufügen (End)
+
+  newImageItem.addEventListener('click', () => {
+    selectItem(newImageItem);
+  });
+
+  songListContainer.appendChild(newImageItem);
+  playlist.push(newImageItem); // Zur internen Verfolgung hinzufügen
+}
+
+async function loadSelectedImageContent(event) {
+  const rightPanel = document.getElementById('right-panel');
+
+  // 1. Panel vorbereiten
+  if (rightPanel) {
+    rightPanel.innerHTML = `
+            <h2>Bild-Vorschau</h2>
+            <div id="slides-container"></div>
+        `;
+  } else {
+    console.error('Das Element für die Bild-Anzeige wurde nicht gefunden.');
+    return;
+  }
+
+  // 2. Bildpfad aus dem Attribut holen
+  // (Ich nehme an, das Attribut heißt bei dir 'image-id' laut deinem vorherigen Code)
+  const imgPath = event.target.getAttribute('image-id');
+  const container = document.getElementById('slides-container');
+  container.innerHTML = '';
+
+  if (!imgPath) {
+    console.warn('Kein Bildpfad gefunden.');
+    return;
+  }
+
+  // 3. Bild-Element erstellen (analog zur PDF-Slide-Struktur)
+  const slideDiv = document.createElement('div');
+  slideDiv.className = 'image-slide'; // Eigene Klasse für spezifisches Styling
+  slideDiv.setAttribute('data-type', 'image');
+
+  // Wir nutzen ein normales <img> Tag statt eines Canvas
+  slideDiv.innerHTML = `
+      <div class="slide-inner-content-image">
+          <img src="${imgPath}" alt="Vorschau" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
+      </div>
+  `;
+
+  container.appendChild(slideDiv);
+
+  console.log(`Bild geladen: ${imgPath}`);
+}
+
+// Audio
+window.electronAPI.onAudioSelected((audioPaths) => {
+  console.log('Audio ausgewählt:', audioPaths);
+  audioPaths.filePaths.forEach((audioPath) => {
+    createAndAppendAudioButton(audioPath);
+  });
+});
+
+async function createAndAppendAudioButton(audioPath) {
+  const newAudioItem = document.createElement('button');
+  newAudioItem.textContent = '🎵 ' + audioPath.split('/').pop(); // Icon zur Unterscheidung
+  newAudioItem.classList.add('audio-item');
+  newAudioItem.setAttribute('audio-id', audioPath); // WICHTIG: Speichere den Pfad
+
+  newAudioItem.setAttribute('draggable', 'true');
+
+  // Drag-and-Drop (Identisch mit deinem Image-Code)
+  newAudioItem.addEventListener('dragstart', () => {
+    newAudioItem.classList.add('dragging');
+    draggedItem = newAudioItem;
+    placeholder = document.createElement('div');
+    placeholder.classList.add('drag-placeholder');
+    setTimeout(() => newAudioItem.classList.add('hide'), 0);
+  });
+
+  newAudioItem.addEventListener('dragend', () => {
+    newAudioItem.classList.remove('dragging', 'hide');
+    draggedItem = null;
+    if (placeholder && placeholder.parentNode)
+      placeholder.parentNode.removeChild(placeholder);
+    placeholder = null;
+    updatePlaylistArray();
+  });
+
+  newAudioItem.addEventListener('click', () => {
+    selectItem(newAudioItem);
+  });
+
+  songListContainer.appendChild(newAudioItem);
+  playlist.push(newAudioItem);
+}
+
+async function loadSelectedAudioContent(event) {
+  const rightPanel = document.getElementById('right-panel');
+
+  if (rightPanel) {
+    rightPanel.innerHTML = `
+            <h2>Audio Player</h2>
+            <div id="slides-container" style="display: flex; justify-content: center; align-items: center; height: 100%;"></div>
+        `;
+  } else {
+    console.error('Das Element für die Audio-Anzeige wurde nicht gefunden.');
+    return;
+  }
+
+  const audioPath = event.target.getAttribute('audio-id');
+  const container = document.getElementById('slides-container');
+  container.innerHTML = '';
+
+  if (!audioPath) {
+    console.warn('Kein Audiopfad gefunden.');
+    return;
+  }
+
+  // Audio-Player Element erstellen
+  const audioDiv = document.createElement('div');
+  audioDiv.className = 'audio-slide';
+  audioDiv.style.textAlign = 'center';
+  audioDiv.style.width = '80%';
+
+  audioDiv.innerHTML = `
+      <div class="audio-player-container" style="padding: 20px; background: #f1f1f1; border-radius: 10px;">
+          <p><strong>Datei:</strong> ${audioPath.split('/').pop()}</p>
+          <audio controls style="width: 100%;">
+              <source src="${audioPath}" type="audio/mpeg">
+              Dein Browser unterstützt das Audio-Element nicht.
+          </audio>
+      </div>
+  `;
+
+  container.appendChild(audioDiv);
+  console.log(`Audio geladen: ${audioPath}`);
+}
+
+// Video
+window.electronAPI.onVideoSelected((videoPaths) => {
+  console.log('Video ausgewählt:', videoPaths);
+  videoPaths.filePaths.forEach((videoPath) => {
+    createAndAppendVideoButton(videoPath);
+  });
+});
+
+async function createAndAppendVideoButton(videoPath) {
+  const newVideoItem = document.createElement('button');
+  newVideoItem.textContent = '🎬 ' + videoPath.split('/').pop();
+  newVideoItem.classList.add('image-item', 'video-item'); // video-item für spezielles CSS
+  newVideoItem.setAttribute('video-id', videoPath);
+  newVideoItem.setAttribute('data-type', 'video'); // Wichtig zur Unterscheidung
+
+  // Drag-and-Drop-Funktionalität hinzufügen (Start)
+  newVideoItem.setAttribute('draggable', 'true');
+  newVideoItem.addEventListener('dragstart', () => {
+    // Eine Klasse hinzufügen, um das gezogene Element visuell zu kennzeichnen
+    newVideoItem.classList.add('dragging');
+    draggedItem = newVideoItem;
+
+    // Erstelle den Platzhalter (erhält die visuelle Höhe vom CSS)
+    placeholder = document.createElement('div');
+    placeholder.classList.add('drag-placeholder');
+
+    // Füge eine kurze Verzögerung hinzu, um sicherzustellen, dass die Klasse gesetzt ist
+    setTimeout(() => newVideoItem.classList.add('hide'), 0);
+  });
+
+  newVideoItem.addEventListener('dragend', () => {
+    // Klasse wieder entfernen, wenn der Ziehvorgang beendet ist
+    newVideoItem.classList.remove('dragging');
+    newVideoItem.classList.remove('hide');
+    draggedItem = null;
+
+    if (placeholder && placeholder.parentNode) {
+      placeholder.parentNode.removeChild(placeholder);
+    }
+    placeholder = null;
+
+    updatePlaylistArray();
+  });
+  // Drag-and-Drop-Funktionalität hinzufügen (End)
+
+  newVideoItem.addEventListener('click', () => {
+    selectItem(newVideoItem);
+  });
+
+  songListContainer.appendChild(newVideoItem);
+  playlist.push(newVideoItem);
+}
+
+let isVideoLoadedOnBeamer = false;
+
+async function loadSelectedVideoContent(event) {
+  window.electronAPI.openSongOnBeamer('');
+  window.electronAPI.showSlide();
+  const videoPath = event.target.getAttribute('video-id');
+  const rightPanel = document.getElementById('right-panel');
+
+  if (rightPanel) {
+    rightPanel.innerHTML = `
+      <div class="preview-player" video-id="${videoPath}">
+          <video id="main-preview-video" controls style="width: 100%;">
+              <source src="${videoPath}" type="video/mp4">
+          </video>
+      </div>
+    `;
+
+    const videoElement = document.getElementById('main-preview-video');
+    isVideoLoadedOnBeamer = false; // Reset bei neuem Video
+
+    videoElement.onplay = () => {
+      if (!isVideoLoadedOnBeamer) {
+        // Preview sofort wieder pausieren, um auf den Beamer zu warten
+        videoElement.pause();
+
+        window.electronAPI.playVideoOnBeamer(videoPath);
+        isVideoLoadedOnBeamer = true;
+        // Der Beamer wird jetzt laden und über IPC "start-preview" zurücksenden
+      } else {
+        window.electronAPI.controlVideoOnBeamer({ command: 'play' });
+      }
+    };
+
+    videoElement.onpause = () => {
+      window.electronAPI.controlVideoOnBeamer({ command: 'pause' });
+    };
+
+    videoElement.onseeked = () => {
+      // WICHTIG: Hier nur die Zeit senden, nicht das ganze Video neu laden!
+      window.electronAPI.controlVideoOnBeamer({
+        command: 'seek',
+        time: videoElement.currentTime,
+      });
+    };
+  }
+}
+
+window.electronAPI.onBeamerReady(() => {
+  const videoElement = document.getElementById('main-preview-video');
+  if (videoElement) {
+    console.log('Beamer ist bereit, starte Preview synchron.');
+    videoElement.play();
+    // Hier schicken wir den Play-Befehl an den Beamer
+    window.electronAPI.controlVideoOnBeamer({ command: 'play' });
+  }
+});
+
+// ### Safe Ablaufplan
+
+function savePlaylistToStorage() {
+  const playlistItems = [
+    ...songListContainer.querySelectorAll(
+      '.song-item, .pdf-item, .audio-item, .image-item, .video-item',
+    ),
+  ];
+
+  const playlistData = playlistItems.map((item) => {
+    // Wir sammeln alle möglichen IDs/Pfade
+    return {
+      type: item.classList.contains('song-item')
+        ? 'song'
+        : item.classList.contains('pdf-item')
+          ? 'pdf'
+          : item.classList.contains('video-item')
+            ? 'video'
+            : item.classList.contains('audio-item')
+              ? 'audio'
+              : 'image',
+      id:
+        item.getAttribute('data-song-id') ||
+        item.getAttribute('pdf-id') ||
+        item.getAttribute('video-id') ||
+        item.getAttribute('audio-id') ||
+        item.getAttribute('image-id'),
+      title: item.textContent || '',
+      theme: item.getAttribute('data-song-theme') || '', // Wichtig für Songs
+    };
+  });
+
+  localStorage.setItem('currentPlaylist', JSON.stringify(playlistData));
+}
+
+let isAppInitialized = false;
+
+window.addEventListener('DOMContentLoaded', async () => {
+  // Sicherheit, dass es nur einmal ausgeführt wird
+  if (isAppInitialized) return;
+  isAppInitialized = true;
+
+  console.log('Initialisiere App und lade gespeicherte Playlist...');
+
+  // 1. Alle verfügbaren Songs aus DB laden
+  const allSongsFromDB = await window.electronAPI.getAllSongs();
+
+  // 2. Playlist aus dem Speicher holen
+  const savedData = localStorage.getItem('currentPlaylist');
+
+  if (savedData) {
+    const savedItems = JSON.parse(savedData);
+
+    for (const item of savedItems) {
+      switch (item.type) {
+        case 'song':
+          // Wir suchen die aktuellen Songdaten aus der DB-Liste (wegen Lyrics/Themes)
+          const songData = allSongsFromDB.find(
+            (s) => String(s.id) === String(item.id),
+          );
+          if (songData) {
+            await createAndAppendSongButton(songData);
+          }
+          break;
+
+        case 'pdf':
+          // Hier rufst du deine spezifische Funktion für PDFs auf
+          // Ich nehme an, sie heißt so ähnlich:
+          if (typeof createAndAppendPDFButton === 'function') {
+            createAndAppendPDFButton(item.id);
+          }
+          break;
+
+        case 'video':
+          if (typeof createAndAppendVideoButton === 'function') {
+            createAndAppendVideoButton(item.id);
+          }
+          break;
+
+        case 'image':
+          if (typeof createAndAppendImageButton === 'function') {
+            createAndAppendImageButton(item.id);
+          }
+          break;
+
+        case 'audio':
+          if (typeof createAndAppendAudioButton === 'function') {
+            createAndAppendAudioButton(item.id);
+          }
+          break;
+      }
+    }
+  }
+
+  // Danach wie gewohnt der IPC Listener für neue Songs
+  window.electronAPI.onSongSelected((songData) => {
+    createAndAppendSongButton(songData);
+    updatePlaylistArray();
+  });
+});
+
+window.electronAPI.onClearPlaylist(() => {
+  // 1. Sicherheitsabfrage (optional)
+  if (!confirm('Möchtest du wirklich den gesamten Ablaufplan löschen?')) {
+    return;
+  }
+
+  // 2. Den Container im HTML leeren
+  const songListContainer = document.getElementById('song-schedule');
+  if (songListContainer) {
+    songListContainer.innerHTML = '';
+  }else {
+    console.error('Der Container für den Ablaufplan wurde nicht gefunden.');
+  }
+
+  // 3. Das interne Playlist-Array leeren
+  // (Angenommen, dein Array heißt 'playlist')
+  if (typeof playlist !== 'undefined') {
+    playlist.length = 0; 
+  }
+
+  // 4. Den LocalStorage leeren, damit es beim Neustart nicht wiederkommt
+  // localStorage.removeItem('currentPlaylist');
+  updatePlaylistArray();
+
+  // 5. Dem Beamer sagen, dass er auch alles zurücksetzen soll (optional)
+  // window.electronAPI.sendThemeToMain(null); // Falls nötig
+  
+  console.log('Ablaufplan wurde komplett geleert.');
+});
+
+// import via drag and drop
+const scheduleContainer = document.getElementById('song-schedule');
+
+// 1. Verhindern, dass der Browser die Datei einfach öffnet (Standardverhalten)
+['dragover', 'drop'].forEach(eventName => {
+  scheduleContainer.addEventListener(eventName, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+});
+
+// 2. Optisches Feedback (Container hervorheben, wenn Datei drüber schwebt)
+scheduleContainer.addEventListener('dragover', () => {
+  scheduleContainer.classList.add('drag-over');
+});
+
+scheduleContainer.addEventListener('dragleave', () => {
+  scheduleContainer.classList.remove('drag-over');
+});
+
+// 3. Die eigentliche Drop-Logik
+scheduleContainer.addEventListener('drop', (e) => {
+  scheduleContainer.classList.remove('drag-over');
+  
+  const files = Array.from(e.dataTransfer.files);
+  console.log('Dateien gedroppt:', files);
+  
+  files.forEach(file => {
+    const filePath = window.electronAPI.getFilePath(file); // Electron liefert den echten Pfad zur Datei!
+    const fileName = file.name;
+    const extension = fileName.split('.').pop().toLowerCase();
+
+    // Entscheiden, welcher Button erstellt werden soll
+    if (['mp4', 'mov', 'webm'].includes(extension)) {
+      createAndAppendVideoButton(filePath);
+    } 
+    else if (['mp3', 'wav', 'ogg'].includes(extension)) {
+      createAndAppendAudioButton(filePath);
+    } 
+    else if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+      createAndAppendImageButton(filePath );
+    } 
+    else if (extension === 'pdf') {
+      createAndAppendPDFButton(filePath);
+    }
+  });
+  
+  // Playlist speichern, nachdem alle neuen Items hinzugefügt wurden
+  updatePlaylistArray();
+});
+
+
+// ### Hotkey-Logik für die Main Page ###
+
+let hotkeyConfig = {};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Laden der Hotkeys über die im Preload-Skript definierte API
+  // Die 'hotkeyApi' ist durch die Context Bridge im 'window'-Objekt verfügbar
+  if (
+    window.electronAPI &&
+    typeof window.electronAPI.loadHotkeys === 'function'
+  ) {
+    hotkeyConfig = await window.electronAPI.loadHotkeys();
+    // console.log('Geladene Hotkeys:', hotkeyConfig);
+  } else {
+    console.error(
+      'hotkeyApi ist nicht verfügbar. Ist das Preload-Skript korrekt eingerichtet?',
+    );
+    // Fallback-Logik, falls das Laden fehlschlägt
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  // ... Überprüfung, ob der Benutzer in ein Textfeld tippt (bleibt gleich)
+  if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+    return;
+  }
+
+  // Verhindert das Standard-Scrollen/Verhalten des Browsers, wenn ein Hotkey erkannt wird
+  event.preventDefault();
+
+  // Iterieren über die geladene Konfiguration
+  for (const action in hotkeyConfig) {
+    if (hotkeyConfig[action].includes(event.key)) {
+      let targetButton = null;
+
+      // Mapping von Konfigurations-Aktion zu Button-ID
+      switch (action) {
+        case 'nextSlide':
+          targetButton = nextButton;
+          // console.log('Next Slide Hotkey gedrückt' + action);
+          break;
+        case 'prevSlide':
+          targetButton = prevButton;
+          break;
+        case 'toggleBlackScreen':
+          targetButton = blackScreenButton;
+          break;
+        case 'toggleBackground':
+          targetButton = showBackgroundButton;
+          break;
+        case 'toggleDesktop':
+          targetButton = showDesktopButton;
+          break;
+        case 'removeSong':
+          targetButton = removeSongButton;
+          break;
+        default:
+          console.warn(`Unbekannte Hotkey-Aktion in JSON: ${action}`);
+          return; // Beendet die Verarbeitung für diesen Hotkey
+      }
+
+      if (targetButton) {
+        targetButton.click(); // Führt die Aktion aus
+        return; // Beendet die Funktion nach dem Auslösen des Hotkeys
+      } else {
+        console.error(
+          `Der Ziel-Button für die Aktion '${action}' wurde nicht gefunden.`,
+        );
+      }
+    }
+  }
+});
+
+// Darkmode
+function applyTheme() {
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+}
+
+const darkModeButton = document.getElementById('dark-mode-button');
+
+darkModeButton.addEventListener('click', () => {
+    const isCurrentlyDark = document.body.classList.contains('dark-theme');
+    const newValue = !isCurrentlyDark;
+    
+    // Speicher aktualisieren (triggert 'storage' event in anderen Fenstern)
+    localStorage.setItem('darkMode', newValue);
+    
+    // Auf der eigenen Seite sofort anwenden
+    applyTheme();
+    
+    // Icon-Update
+    const icon = darkModeButton.querySelector('i');
+    if (newValue) {
+        icon.classList.replace('fa-moon', 'fa-sun');
+    } else {
+        icon.classList.replace('fa-sun', 'fa-moon');
+    }
+});
+
+// 1. Beim Laden der Seite prüfen
+document.addEventListener('DOMContentLoaded', applyTheme);
+
+// 2. Auf Änderungen von anderen Fenstern reagieren
+window.addEventListener('storage', (e) => {
+    if (e.key === 'darkMode') {
+        applyTheme();
+    }
+});
+
+// Beim Start prüfen
+document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-theme');
+    }
+});

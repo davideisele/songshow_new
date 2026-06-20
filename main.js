@@ -1,12 +1,23 @@
-const { app, Menu, BrowserWindow, ipcMain, screen } = require('electron');
+const {
+  app,
+  Menu,
+  BrowserWindow,
+  ipcMain,
+  screen,
+  dialog,
+} = require('electron');
 const path = require('path');
+const fs = require('fs');
+const Genius = require('genius-lyrics');
+const Client = new Genius.Client(
+  'SDXHdoX1kMgQ-DlAn5g7OHpZ8VdsCqSFDiJiJpwrSxWVL8ePxM1rLdJ5673ylrfi',
+);
 
 // ### Datenbank-Setup mit better-sqlite3 ###
 
 const Database = require('better-sqlite3');
 // Pfad zur Datenbankdatei im AppData-Verzeichnis
 const dbPath = path.join(app.getPath('userData'), 'songs.db');
-console.log('Datenbankpfad:', dbPath);
 const db = new Database(dbPath, { verbose: console.log });
 
 // Tabelle erstellen (bei erstem Start)
@@ -26,7 +37,9 @@ db.exec(`
 // IPC-Handler zum Abrufen aller Songs
 ipcMain.handle('get-all-songs', () => {
   // Führe die Datenbankabfrage aus
-  const stmt = db.prepare('SELECT id, title, author,lyrics, original_order, last_used_order, theme, last_used FROM songs ORDER BY title');
+  const stmt = db.prepare(
+    'SELECT id, title, author,lyrics, original_order, last_used_order, theme, last_used FROM songs ORDER BY title',
+  );
   return stmt.all();
 });
 
@@ -54,6 +67,9 @@ let mainWindow;
 
 // 1. Funktion zum Erstellen des Hauptfensters
 const createWindow = () => {
+  const workerPath = path.join(__dirname, 'pdf.worker.mjs');
+  process.env.PDFJS_WORKER_SRC = workerPath;
+
   mainWindow = new BrowserWindow({
     width: 1388,
     height: 991,
@@ -61,6 +77,8 @@ const createWindow = () => {
       // Wichtig für Sicherheit: ermöglicht die Nutzung von Node.js-APIs im Renderer-Prozess
       // über ein Preload-Skript
       preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false, // Wichtig: Deaktiviert
+      contextIsolation: true, // Wichtig: Aktiviert
       // Damit ich HTML-Dateien in HTML einbauen kann als Webview
       webviewTag: true,
     },
@@ -81,6 +99,7 @@ app.whenReady().then(() => {
   createMenu();
   // createAddSongWindow();
   // createSongCollectionWindow();
+  // createThemeManagerWindow();
 
   // Wichtig für macOS: Wenn keine Fenster geöffnet sind, soll ein neues erstellt werden,
   // wenn das Dock-Icon angeklickt wird (nachdem das letzte Fenster geschlossen wurde).
@@ -123,32 +142,26 @@ const menuBar = [
     : []),
   // Individuelle Menüs
   {
-    label: 'Import',
+    label: 'Songs',
     submenu: [
       {
         label: 'Form txt',
         // accelerator: 'CmdOrCtrl+I', // Kann später hinzugefügt werden
         click: (menuItem, browserWindow, event) => {
-          console.log('Import form txt clicked');
           // Hier IPC-Kommunikation zum Renderer-Prozess, falls nötig
         },
       },
       {
         label: 'Form CCLI',
-        click: () => {
-          console.log('Import form CCLI clicked');
-        },
+        click: () => {},
       },
       {
         label: 'Form Genius',
-        click: () => {
-          console.log('Import form Genius clicked');
-        },
+        click: () => {},
       },
       {
         label: 'Manually',
         click: () => {
-          console.log('Import "Manually" clicked');
           if (!addSongWindow) {
             createAddSongWindow();
           }
@@ -158,10 +171,94 @@ const menuBar = [
       {
         label: 'Song-Collection',
         click: () => {
-          console.log('Import "Song-Collection" clicked');
           if (!songCollectionWindow) {
             createSongCollectionWindow();
           }
+        },
+      },
+      {
+        label: 'Theme Manager',
+        click: () => {
+          if (!themeManagerWindow) {
+            createThemeManagerWindow();
+          }
+        },
+      },
+    ],
+  },
+  {
+    label: 'Add',
+    submenu: [
+      {
+        label: 'PDF',
+        click: async () => {
+          const pdfPath = await dialog.showOpenDialog({
+            title: 'PDF auswählen',
+            properties: ['openFile', 'multiSelections'],
+            buttonLabel: 'PDF hinzufügen',
+            filters: [{ name: 'PDF-Dateien', extensions: ['pdf'] }],
+          });
+          if (!pdfPath.canceled && pdfPath.filePaths.length > 0) {
+            mainWindow.webContents.send('selected-pdf', pdfPath);
+          }
+        },
+      },
+      {
+        label: 'Audio',
+        click: async () => {
+          const audioPath = await dialog.showOpenDialog({
+            title: 'Audio auswählen',
+            properties: ['openFile', 'multiSelections'],
+            buttonLabel: 'Audio hinzufügen',
+            filters: [
+              { name: 'Audio-Dateien', extensions: ['mp3', 'wav', 'flac'] },
+            ],
+          });
+          if (!audioPath.canceled && audioPath.filePaths.length > 0) {
+            mainWindow.webContents.send('selected-audio', audioPath);
+          }
+        },
+      },
+      {
+        label: 'Image',
+        click: async () => {
+          const imagePath = await dialog.showOpenDialog({
+            title: 'Bild auswählen',
+            properties: ['openFile', 'multiSelections'],
+            buttonLabel: 'Bild hinzufügen',
+            filters: [
+              {
+                name: 'Bild-Dateien',
+                extensions: ['jpg', 'jpeg', 'png', 'gif'],
+              },
+            ],
+          });
+          if (!imagePath.canceled && imagePath.filePaths.length > 0) {
+            mainWindow.webContents.send('selected-image', imagePath);
+          }
+        },
+      },
+      {
+        label: 'Video',
+        click: async () => {
+          const videoPath = await dialog.showOpenDialog({
+            title: 'Video auswählen',
+            properties: ['openFile', 'multiSelections'],
+            buttonLabel: 'Video hinzufügen',
+            filters: [
+              { name: 'Video-Dateien', extensions: ['mp4', 'avi', 'mov'] },
+            ],
+          });
+          if (!videoPath.canceled && videoPath.filePaths.length > 0) {
+            mainWindow.webContents.send('selected-video', videoPath);
+          }
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'remove everything',
+        click: () => {
+          mainWindow.webContents.send('clear-entire-playlist');
         },
       },
     ],
@@ -298,6 +395,12 @@ ipcMain.handle('get-song-lyrics', (event, songId) => {
   return result ? result.lyrics : 'Lyrics not found.';
 });
 
+ipcMain.handle('get-song-order', async (event, songId) => {
+  const stmt = db.prepare('SELECT original_order FROM songs WHERE id = ?');
+  const result = stmt.get(songId);
+  return result ? result.original_order : '';
+});
+
 let songSelectWindow;
 
 // NEU: Funktion zum Erstellen des Song-Auswahlfensters
@@ -309,8 +412,8 @@ function createSongSelectWindow() {
   }
 
   songSelectWindow = new BrowserWindow({
-    width: 500,
-    height: 350,
+    width: 700,
+    height: 800,
     title: 'Song auswählen',
     modal: true,
     parent: mainWindow, // Definiert das Hauptfenster als Elternteil
@@ -341,20 +444,16 @@ ipcMain.on('send-selected-song', (event, songData) => {
     // Sende die Daten an den Renderer des Hauptfensters
     mainWindow.webContents.send('song-selected', songData);
   }
-  // Schließe das Auswahlfenster
-  if (songSelectWindow) {
-    songSelectWindow.close();
-  }
 });
 
 // ### IPC-Handler zum Öffnen eines Songs auf dem Beamer-Fenster ###
 
 let songPresentationWindow = null;
 var beamerWindow = false;
+let lastThemeData = null;
 
 ipcMain.on('open-song-on-beamer', (event, content) => {
   beamerWindow = true;
-  console.log('Opening Beamer Window with content:', content);
   songPresentation(content);
 });
 
@@ -384,10 +483,11 @@ function songPresentation(content) {
     fullscreen: true,
     frame: false,
     autoHideMenuBar: true,
+    transparent: true,
 
     title: 'Song Präsentation',
 
-    focusable: false,
+    focusable: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -401,11 +501,311 @@ function songPresentation(content) {
 
   songPresentationWindow.webContents.on('did-finish-load', () => {
     // Der Listener in beamerPage.js ist jetzt registriert.
-    console.log('Beamer Page hat geladen. Sende Inhalt.');
     songPresentationWindow.webContents.send('load-song-content', content);
+
+    if (lastThemeData) {
+      // 👈 Prüft, ob mainPage.js bereits Daten gesendet hat
+      songPresentationWindow.webContents.send(
+        'update-beamer-theme',
+        lastThemeData,
+      );
+    } else {
+    }
   });
 
   songPresentationWindow.on('closed', () => {
     songPresentationWindow = null;
   });
 }
+
+// Style für das Beamer-Fenster
+ipcMain.on('apply-theme-styles-to-beamer', (event, themeData) => {
+  // 1. Speichere die Theme-Daten IMMER, wenn sie vom Hauptfenster kommen
+  lastThemeData = themeData;
+  console.log('themeData in Main', themeData);
+
+  // 2. Versuche, die Daten sofort zu senden, WENN das Fenster bereits existiert
+  if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
+    songPresentationWindow.webContents.send('update-beamer-theme', themeData);
+  }
+  // Wenn das Fenster nicht existiert, wird nichts gesendet (bis zum Laden).
+});
+
+// Dropdownliste für Themes im Hauptfenster
+ipcMain.handle('get-theme-list', async () => {
+  // Pfad zum 'themes'-Ordner (angenommen, er liegt neben main.js und index.html)
+  const themesDir = path.join(__dirname, 'themes');
+
+  try {
+    const files = fs.readdirSync(themesDir);
+
+    // Dateinamen filtern und die Dateierweiterung '.json' entfernen
+    const themeNames = files
+      .filter((file) => file.endsWith('.json'))
+      .map((file) => path.parse(file).name);
+
+    // Rückgabe der Theme-Namen an den Renderer
+    return [...themeNames];
+  } catch (error) {
+    console.error('Fehler beim Lesen des themes-Ordners:', error);
+    // Im Fehlerfall eine leere Liste zurückgeben
+    return ['default'];
+  }
+});
+
+//  ### Video on Beamer ###
+ipcMain.on('play-video-on-beamer', (event, videoSrc) => {
+  // WICHTIG: Wir müssen prüfen, ob songPresentationWindow existiert,
+  // da dies deine Variable für das Beamer-Fenster ist.
+  if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
+    songPresentationWindow.webContents.send('beamer-video-load', videoSrc);
+  } else {
+    console.error(
+      'Beamer-Fenster ist nicht offen. Video kann nicht geladen werden.',
+    );
+    // Optional: Hier songPresentation() aufrufen, falls das Fenster automatisch öffnen soll
+  }
+});
+
+ipcMain.on('video-is-ready', () => {
+  if (mainWindow) {
+    mainWindow.webContents.send('start-preview');
+  }
+});
+
+ipcMain.on('control-video-on-beamer', (event, data) => {
+  // data enthält hier { command, time } wie in deiner preload definiert
+  if (songPresentationWindow && !songPresentationWindow.isDestroyed()) {
+    songPresentationWindow.webContents.send('beamer-video-control', data);
+  }
+});
+
+// ### Theme Manager Window ###
+
+let themeManagerWindow;
+
+function createThemeManagerWindow() {
+  // Stellen Sie sicher, dass nur ein Fenster offen ist
+  if (themeManagerWindow) {
+    themeManagerWindow.focus();
+    return;
+  }
+
+  themeManagerWindow = new BrowserWindow({
+    width: 1200,
+    height: 900,
+    title: 'Theme Manager',
+    modal: false,
+    parent: mainWindow, // Definiert das Hauptfenster als Elternteil
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+
+  themeManagerWindow.loadFile(
+    path.join(__dirname, './themeManager/themeManager.html'),
+  );
+
+  themeManagerWindow.on('closed', () => {
+    themeManagerWindow = null;
+  });
+
+  // Optional: Öffnet die Entwickler-Tools
+  themeManagerWindow.webContents.openDevTools();
+}
+
+const themesDir = path.join(__dirname, 'themes');
+
+// --- READ (Details) ---
+ipcMain.handle('get-theme-details', async (event, themeName) => {
+  const filePath = path.join(themesDir, `${themeName}.json`);
+
+  try {
+    const data = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error(`Fehler beim Laden von Theme ${themeName}:`, error);
+    throw new Error(`Theme ${themeName} konnte nicht geladen werden.`);
+  }
+});
+
+// --- CREATE / UPDATE (SAVE) ---
+ipcMain.handle('save-theme', async (event, themeData) => {
+  // Der Theme-Name wird als Dateiname verwendet
+  const themeName = themeData.name;
+  if (!themeName) {
+    throw new Error('Theme-Name fehlt in den Daten.');
+  }
+
+  const filePath = path.join(themesDir, `${themeName}.json`);
+
+  // Löschen des temporären 'id' Feldes, falls es existiert und nicht gespeichert werden soll
+  const dataToSave = { ...themeData };
+  if (dataToSave.id && typeof dataToSave.id === 'number') {
+    delete dataToSave.id;
+  }
+
+  try {
+    // JSON formatiert speichern (2 Leerzeichen Einrückung)
+    fs.writeFileSync(filePath, JSON.stringify(dataToSave, null, 2), 'utf-8');
+    return { success: true, message: `Theme ${themeName} gespeichert.` };
+  } catch (error) {
+    console.error(`Fehler beim Speichern von Theme ${themeName}:`, error);
+    throw new Error(`Theme ${themeName} konnte nicht gespeichert werden.`);
+  }
+});
+
+// --- DELETE ---
+ipcMain.handle('delete-theme-file', async (event, themeName) => {
+  const filePath = path.join(themesDir, `${themeName}.json`);
+
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      return { success: true, message: `Theme ${themeName} gelöscht.` };
+    } else {
+      throw new Error('Datei existiert nicht.');
+    }
+  } catch (error) {
+    console.error(`Fehler beim Löschen von Theme ${themeName}:`, error);
+    throw new Error(`Theme ${themeName} konnte nicht gelöscht werden.`);
+  }
+});
+
+// Theme-Dropdown im Hauptfenster aktualisieren, wenn im Theme Manager Änderungen vorgenommen wurden
+ipcMain.on('theme-updated', (event, themeName) => {
+  // Sende das Signal an alle offenen Fenster (Hauptfenster & Beamer)
+  // mainWindow ist die Variable deines Hauptfensters
+  if (mainWindow && !mainWindow.webContents.isDestroyed()) {
+    mainWindow.webContents.send('theme-updated-signal', themeName);
+  }
+
+  // Falls das Beamer-Fenster auch direkt informiert werden soll:
+  // if (beamerWindow && !beamerWindow.webContents.isDestroyed()) {
+  //   beamerWindow.webContents.send('theme-updated-signal', themeName);
+  // }
+});
+
+// ### Button Implementation für Blackscreen, Hintergrund und Desktop anzeigen ###
+ipcMain.handle('show-blackscreen', () => {
+  if (songPresentationWindow) {
+    songPresentationWindow.webContents.send('set-display-mode', 'black');
+  }
+});
+
+ipcMain.handle('show-background-only', () => {
+  if (songPresentationWindow) {
+    songPresentationWindow.webContents.send('set-display-mode', 'background');
+  }
+});
+
+ipcMain.handle('show-desktop', () => {
+  if (songPresentationWindow) {
+    // songPresentationWindow.webContents.send('set-display-mode', 'desktop');
+    songPresentationWindow.close();
+  }
+});
+
+ipcMain.handle('show-slide', () => {
+  if (songPresentationWindow) {
+    songPresentationWindow.webContents.send('set-display-mode', 'slide');
+  }
+});
+
+// ### Hotkey Laden ###
+const hotkeysPath = path.join(__dirname, 'hotkeys.json');
+
+// Listener für den Aufruf aus dem Renderer-Prozess
+ipcMain.handle('load-hotkeys-config', async (event) => {
+  try {
+    const data = fs.readFileSync(hotkeysPath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Fehler beim Laden der Hotkeys-Konfiguration:', error);
+    return {}; // Wichtig: Immer ein Fallback zurückgeben
+  }
+});
+
+// Hanler für File auswahl
+
+ipcMain.handle('dialog:openFile', async (event, type) => {
+  const properties = type === 'video' ? ['openFile'] : ['openFile']; // Sie können hier 'openFile', 'multiSelections' usw. hinzufügen
+
+  const filters =
+    type === 'video'
+      ? [{ name: 'Videos', extensions: ['mp4', 'webm', 'ogg'] }]
+      : [{ name: 'Images', extensions: ['jpg', 'png', 'gif'] }];
+
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    properties: properties,
+    filters: filters,
+  });
+
+  if (canceled) {
+    return null;
+  } else {
+    // Gibt den tatsächlichen Pfad zurück
+    return filePaths[0];
+  }
+});
+
+//  PDF Laden
+ipcMain.handle('open-pdf-select-dialog', async (event) => {
+  const result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+    properties: ['openFile'],
+    filters: [{ name: 'PDF-Dateien', extensions: ['pdf'] }],
+  });
+
+  if (result.canceled) {
+    return null; // Nichts ausgewählt
+  }
+
+  // Gibt den Pfad der ersten ausgewählten Datei zurück
+  return result.filePaths[0];
+});
+
+// ### Imports von Songs ###
+async function addNewSong(searchQuery) {
+  try {
+    console.log(`Suche nach: ${searchQuery}...`);
+
+    // 1. Suche bei Genius
+    const searches = await Client.songs.search(searchQuery);
+    if (searches.length === 0) {
+      console.log('Nichts gefunden.');
+      return;
+    }
+
+    const song = searches[0];
+    let lyrics = await song.lyrics();
+
+    // 2. Lyrics bereinigen (Entfernt [Verse], [Chorus] etc.)
+    lyrics = lyrics.replace(/\[.*?\]/g, '').trim();
+
+    // 3. In die Datenbank INSERTEN
+    // Wir lassen die 'id' Spalte weg, da sie automatisch generiert wird
+    const stmt = db.prepare(`
+            INSERT INTO songs (title, author, lyrics, original_order, theme)
+            VALUES (@title, @author, @lyrics, @originalOrder, @theme)
+        `);
+
+    const info = stmt.run({
+      title: song.title,
+      author: song.artist.name,
+      lyrics: lyrics,
+      originalOrder: 1,
+      theme: 'Default',
+    });
+
+    console.log(
+      `✅ Neu hinzugefügt! ID: ${info.lastInsertRowid} - ${song.title}`,
+    );
+  } catch (e) {
+    console.error('❌ Fehler beim Hinzufügen:', e);
+  }
+}
+
+// Testlauf
+// addNewSong("Imagine Dragons Believer");

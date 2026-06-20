@@ -1,0 +1,27 @@
+{
+  "name": "dark",
+  "background-option": "color",
+  ".slide-content": {
+    "color": "#ffffff",
+    "background-color": "#000000",
+    "font-family": "Inter, sans-serif",
+    "font-size": "12px",
+    "font-style": "",
+    "font-weight": "",
+    "text-decoration": "",
+    "text-align": "center",
+    "top": "auto",
+    "bottom": "auto",
+    "left": "auto",
+    "right": "auto"
+  },
+  ".translation-line": {
+    "color": "#b9b8ff",
+    "font-family": "Inter, sans-serif",
+    "font-size": "10px",
+    "font-style": "",
+    "font-weight": "",
+    "text-decoration": "",
+    "text-align": "center"
+  }
+}
