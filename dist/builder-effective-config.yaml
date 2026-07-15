@@ -1,0 +1,11 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.deinefirma.beamerapp
+productName: BeamerPräsentation
+win:
+  target: nsis
+mac:
+  target: dmg
+files: []
+electronVersion: 38.8.6

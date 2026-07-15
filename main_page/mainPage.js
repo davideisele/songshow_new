@@ -103,23 +103,15 @@ async function createAndAppendSongButton(songData) {
 
 // Funktion für das Übernehmen des Theme-Styles
 async function fetchThemeStyles(themeName) {
-  // Erstellen des Pfades zur JSON-Datei, z.B. '/theme/default.json'
-  const themePath = `../themes/${themeName}.json`;
-
   try {
-    const response = await fetch(themePath);
-
-    if (!response.ok) {
-      throw new Error(`Fehler beim Laden des Themes: ${response.status}`);
-    }
-
-    const themeData = await response.json();
+    const themeData = await window.electronAPI.getThemeDetails(themeName);
     return themeData;
   } catch (error) {
     console.error('Konnte Theme-Daten nicht laden:', error);
     return null;
   }
 }
+
 
 // Funktion zum Anwenden der Theme-Styles
 // function applyThemeStyles(themeData, targetElement) {
@@ -1250,6 +1242,7 @@ async function createAndAppendPDFButton(pdfPath) {
 
   songListContainer.appendChild(newPDFItem);
   playlist.push(newPDFItem); // Zur internen Verfolgung hinzufügen
+  updatePlaylistArray();
 }
 
 async function loadSelectedPDFContent(event) {
@@ -1354,6 +1347,7 @@ async function createAndAppendImageButton(imagePath) {
 
   songListContainer.appendChild(newImageItem);
   playlist.push(newImageItem); // Zur internen Verfolgung hinzufügen
+  updatePlaylistArray();
 }
 
 async function loadSelectedImageContent(event) {
@@ -1413,6 +1407,7 @@ async function createAndAppendAudioButton(audioPath) {
   newAudioItem.setAttribute('audio-id', audioPath); // WICHTIG: Speichere den Pfad
 
   newAudioItem.setAttribute('draggable', 'true');
+
 
   // Drag-and-Drop (Identisch mit deinem Image-Code)
   newAudioItem.addEventListener('dragstart', () => {
@@ -1533,6 +1528,7 @@ async function createAndAppendVideoButton(videoPath) {
 
   songListContainer.appendChild(newVideoItem);
   playlist.push(newVideoItem);
+  updatePlaylistArray();
 }
 
 let isVideoLoadedOnBeamer = false;
@@ -1625,6 +1621,7 @@ function savePlaylistToStorage() {
   });
 
   localStorage.setItem('currentPlaylist', JSON.stringify(playlistData));
+  console.log("Playslist Safed")
 }
 
 let isAppInitialized = false;

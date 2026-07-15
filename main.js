@@ -88,7 +88,7 @@ const createWindow = () => {
   mainWindow.loadFile('./main_page/mainPage.html');
 
   // Optional: Öffnet die Entwickler-Tools
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 };
 
 // 3. App-Lebenszyklus-Ereignisse (Steuerung des App-Verhaltens)
@@ -352,7 +352,7 @@ function createSongCollectionWindow() {
   );
 
   // Optional: Öffnet die Entwickler-Tools für dieses Fenster
-  songCollectionWindow.webContents.openDevTools();
+  // songCollectionWindow.webContents.openDevTools();
 
   // Entfernt das Fensterobjekt, wenn es geschlossen wird
   songCollectionWindow.on('closed', () => {
@@ -487,7 +487,7 @@ function songPresentation(content) {
 
     title: 'Song Präsentation',
 
-    focusable: true,
+    focusable: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -534,7 +534,7 @@ ipcMain.on('apply-theme-styles-to-beamer', (event, themeData) => {
 // Dropdownliste für Themes im Hauptfenster
 ipcMain.handle('get-theme-list', async () => {
   // Pfad zum 'themes'-Ordner (angenommen, er liegt neben main.js und index.html)
-  const themesDir = path.join(__dirname, 'themes');
+  // const themesDir = path.join(__dirname, 'themes');
 
   try {
     const files = fs.readdirSync(themesDir);
@@ -613,10 +613,15 @@ function createThemeManagerWindow() {
   });
 
   // Optional: Öffnet die Entwickler-Tools
-  themeManagerWindow.webContents.openDevTools();
+  // themeManagerWindow.webContents.openDevTools();
 }
 
-const themesDir = path.join(__dirname, 'themes');
+const themesDir = path.join(app.getPath('userData'), 'themes');
+
+// Ordner beim ersten Start anlegen, falls er noch nicht existiert
+if (!fs.existsSync(themesDir)) {
+  fs.mkdirSync(themesDir, { recursive: true });
+}
 
 // --- READ (Details) ---
 ipcMain.handle('get-theme-details', async (event, themeName) => {
